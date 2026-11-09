@@ -13,6 +13,109 @@ wenn der ausgeht.
 
 ---
 
+## 🎒 Für Mitschüler: in 2 Minuten loslegen
+
+### 1. Herunterladen & starten (ohne Installation)
+
+1. **[⬇️ Lernhub als ZIP herunterladen](https://github.com/MasseStiefel749/LHS/archive/refs/heads/main.zip)**
+   (oder oben auf GitHub: grüner Knopf **Code → Download ZIP**).
+2. ZIP **entpacken** (Rechtsklick → „Alle extrahieren“) – nicht direkt aus der ZIP heraus öffnen.
+3. Im Ordner **`index.html` doppelklicken** → öffnet sich im Browser. Fertig.
+
+> Am besten **Edge oder Chrome** nehmen – nur dort klappen Mikrofon-Übungen.
+> Dein Fortschritt wird im Browser gespeichert. Gleicher PC + gleicher Browser
+> = alles noch da. Auf Schul-PCs lieber ein Konto anlegen (siehe unten).
+
+**Alternative für Git-Nutzer:** `git clone https://github.com/MasseStiefel749/LHS.git`
+– Updates später mit `git pull`.
+
+### 2. Der erste Start
+
+1. **Konto oder ohne Konto:** Mit Konto (E-Mail + Passwort + Spitzname) wird dein
+   Lernstand gesichert und du kannst mit Freunden in der Bestenliste antreten.
+   „Ohne Konto weiter“ geht auch – dann bleibt alles nur auf diesem PC.
+2. **Kurzes Start-Quiz:** Lernstil (sehen / hören / tun) und Tagesziel – danach
+   passt die App die Aufgaben an dich an.
+3. **App-Tour:** Pingulin 🐧 zeigt dir alles in 15 kurzen Schritten.
+   Später nochmal: ⚙️ **Einstellungen → „🗺️ App-Tour nochmal ansehen“**.
+
+### 3. Was kann ich wo machen?
+
+| Bereich | Wofür |
+| --- | --- |
+| 🏠 **Dashboard** | Streak, Tagesziel, fällige Wiederholungen, Stundenplan, nächste Prüfung |
+| 🎓 **Lernpfad** | Fächer (ITS, SAE, BWL, WK, GK, Deutsch, BE …) Thema für Thema – das Herzstück |
+| 🧠 **Erklär-Modus** | Thema in Ruhe erklärt bekommen, Fragen stellen – kostet keinen Akku |
+| 🎭 **Lernrunde** | 1–3 Figuren erklären dir ein Thema im Gespräch, du kannst mitreden |
+| 🔁 **Wiederholen** | Deine Fehler von früher kommen zurück, bis sie sitzen |
+| 🏆 **Bestenliste** | Freunde, Wochenliga, Klassen-Challenge, Lern-Duelle (mit Konto) |
+| 📝 **Notizen** | Mitschriften; Zeilen `Frage \| Antwort` werden per Klick zum eigenen Fach |
+| 📅 **Planer** | Stundenplan (WebUntis-Link), Klassenarbeiten, Erinnerungen |
+| 🍅 **Fokus-Timer** | Pomodoro: konzentriert lernen, dann Pause |
+| 🗣️ **Sprachen** | Aussprache üben, Telefon-Dialoge mit Figuren |
+| 🧸 **Charaktere** | Eigene Lernbegleiter (Bild, Stimme, Persönlichkeit) |
+| ⚙️ **Einstellungen** | Design hell/dunkel, Akku an/aus, Stimmen, Backup |
+
+Auf dem Handy liegen die Bereiche unten in der Leiste, der Rest unter **☰ Mehr**.
+
+### 4. So holst du das Meiste raus 🚀
+
+- **Jeden Tag 1 Lektion** – auch nur 5 Minuten. Die 🔥 Streak ist der Trick, dranzubleiben.
+  Mal keine Zeit? Klick auf die 🔥 → **🧊 Streak-Freeze** oder **😴 Ruhetage** festlegen.
+- **🔁 Wiederholen ernst nehmen:** Da landet genau das, was du noch nicht kannst.
+  Erst Wiederholen, dann neuer Stoff – das bringt am meisten für die Arbeit.
+- **Prüfung eintragen:** 📅 Planer → Termin mit Häkchen **📝 Prüfung** → Countdown
+  auf dem Dashboard. Die Woche davor im 🧠 Erklär-Modus + 🔁 Wiederholen lernen.
+- **WebUntis verbinden:** 📅 Planer → Anleitung folgen (iCal-Link kopieren und einfügen).
+  Dann siehst du deinen Stundenplan direkt auf dem Dashboard.
+- **Hängst du fest?** Im ✨ Chat gibt's erst **Tipps**, die Lösung erst nach 2 Fehlversuchen
+  oder mit „🙋 Ich geb's auf“ – so lernst du mehr, als wenn du direkt die Antwort siehst.
+- **Mit Freunden:** Konto anlegen → 🏆 Bestenliste → Freund per Spitzname hinzufügen.
+  **Klasse erstellen** → 6-stelligen Code in die Klassengruppe schicken → gemeinsames
+  Wochenziel. **⚔️ Duell:** gleiche 5 Fragen, wer ist besser?
+- **Eigener Stoff:** Auf dem Dashboard **➕ Fach** oder in 📝 Notizen Zeilen wie
+  `Was ist RAM? | Arbeitsspeicher` schreiben → wird zu Karteikarten + Quiz.
+- **Erinnerungen:** 📅 Planer → Uhrzeit festlegen und Browser-Benachrichtigungen erlauben.
+  Fürs Handy: **Kalender-Export (.ics)** mit täglichem Wecker.
+- **Fokus:** 🍅 25 Minuten Timer starten, Handy weg – wirkt Wunder.
+- **Kein Akku mehr 🔋?** Lädt alle 20 Minuten nach. In der Zeit kannst du im 🧠
+  Erklär-Modus weiterlernen. Man kann den Akku in den Einstellungen auch abschalten.
+
+### 5. Backup & anderes Gerät
+
+- **Mit Konto:** Auf dem neuen Gerät einloggen → Lernstand ist da.
+- **Ohne Konto:** ⚙️ Einstellungen → 💾 Daten → **„Exportieren (JSON)“** →
+  Datei auf das andere Gerät → dort **„Importieren“**.
+- **Schul-PC:** Nach dem Lernen 👤 Konto → **„Abmelden & Gerät leeren“**.
+
+### 6. Extras für Fortgeschrittene (optional)
+
+Alles hier ist **freiwillig** – die App funktioniert auch komplett ohne.
+
+| Extra | Was du brauchst | So geht's |
+| --- | --- | --- |
+| 🤖 **KI-Agent** (neuer Lernstoff, Figuren antworten per KI in der Lernrunde) | Windows, [Node.js](https://nodejs.org) | `opencode-verbinden.cmd` doppelklicken → installiert OpenCode und startet die Bridge. Dann in der App 🤖 Agent → „Verbindung prüfen“ (grüner Punkt) |
+| 🎙️ **KI-Stimmen** (Chatterbox, eigene Stimme hochladen) | Python 3.12, ca. 6 GB frei, am besten NVIDIA-Grafikkarte | `agent\chatterbox-installieren.ps1` ausführen (Rechtsklick → „Mit PowerShell ausführen“). Danach ⚙️ Einstellungen → Stimmen. Auf schwachen Laptops dauert jeder Satz 10–30 s |
+| 🔑 **Eigener KI-Key** (Chat & Erklär-Modus mit echter KI) | OpenAI-Key oder lokaler [Ollama](https://ollama.com)-Server | ⚙️ Einstellungen → Endpunkt + Key eintragen. Der Key bleibt nur auf deinem PC |
+| 🔄 **Automatisch neu laden** (zum Mitentwickeln) | Node.js | `lernhub-starten.cmd` doppelklicken → `http://127.0.0.1:5500` |
+
+Ohne Agent beantworten die Figuren in der 🎭 Lernrunde trotzdem – dann offline aus
+den Lerndaten. Ohne Chatterbox nutzt die App die normalen Browser-Stimmen.
+
+### 7. Probleme?
+
+| Problem | Lösung |
+| --- | --- |
+| Mikrofon geht nicht | Edge/Chrome nehmen und Mikrofon-Zugriff erlauben (Schloss-Symbol links in der Adressleiste) |
+| Keine Stimme zu hören | Ton am PC an? ⚙️ Einstellungen → Stimmen → andere Stimme wählen |
+| Fortschritt weg | Anderer Browser oder Browserdaten gelöscht → mit Konto einloggen bzw. Backup importieren |
+| 🤖 Agent bleibt rot | `opencode-verbinden.cmd` muss im Hintergrund laufen (Fenster offen lassen) |
+| Untis lädt nicht | Link neu erstellen (WebUntis → ⋯ → iCal-Abo) oder `.ics` herunterladen und importieren |
+
+Fehler gefunden oder Idee? → auf GitHub ein **Issue** aufmachen oder Simon Bescheid sagen.
+
+---
+
 ## Quickstart (2 Wege)
 
 **A) Nur lernen (sofort, offline):**
