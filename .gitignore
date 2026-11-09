@@ -1,0 +1,17 @@
+# Temporäres vom Agenten (nicht committen)
+content/.agent-running
+content/auftraege/
+*.log
+# OS
+Thumbs.db
+.DS_Store
+
+# Wird bei jedem Bridge-Start neu erzeugt (geheimer Token)
+content/bridge-token.js
+
+# Lokales / Geheimes
+.env
+.env.*
+node_modules/
+__pycache__/
+*.wav

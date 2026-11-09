@@ -1,0 +1,157 @@
+/* Lernhub Extra-Styles: sprechende Figuren, Maskottchen, Crew, Erfolge, Fokus-Timer, Prüfungs-Countdown, Ligen, Duelle */
+
+/* ---- Sprechende Figuren (Viseme: X Ruhe, M Lippen zu, E breit, A offen, O rund) ---- */
+.talker{display:block;width:100%;height:100%;overflow:visible}
+.talker .mouth>g{display:none}
+.talker[data-m="X"] .mouth .v-X,.talker[data-m="M"] .mouth .v-M,.talker[data-m="E"] .mouth .v-E,
+.talker[data-m="A"] .mouth .v-A,.talker[data-m="O"] .mouth .v-O{display:inline}
+.talker .eyes{transform-box:fill-box;transform-origin:center;animation:lh-blink 4.2s infinite}
+@keyframes lh-blink{0%,93%,100%{transform:scaleY(1)}95.5%{transform:scaleY(.1)}}
+.talker.talking{animation:lh-bob .5s ease-in-out infinite}
+@keyframes lh-bob{50%{transform:translateY(-2px) rotate(-1deg)}}
+.talker .flip-l,.talker .flip-r{transform-box:fill-box}
+.talker .flip-l{transform-origin:top right}
+.talker .flip-r{transform-origin:top left}
+.talker.talking .flip-l{animation:lh-wave-l .6s ease-in-out infinite}
+.talker.talking .flip-r{animation:lh-wave-r .6s ease-in-out infinite .3s}
+@keyframes lh-wave-l{50%{transform:rotate(14deg)}}
+@keyframes lh-wave-r{50%{transform:rotate(-14deg)}}
+.talker .ant{animation:lh-ant 1.4s infinite}
+@keyframes lh-ant{50%{opacity:.35}}
+.talker .anger{transform-box:fill-box;transform-origin:center}
+.talker.talking .anger{animation:lh-anger .45s ease-in-out infinite}
+@keyframes lh-anger{50%{transform:scale(1.25)}}
+.talker .tail{transform-box:fill-box;transform-origin:top left}
+.talker.talking .tail{animation:lh-tail .9s ease-in-out infinite}
+@keyframes lh-tail{50%{transform:rotate(-5deg)}}
+.talker .spark,.talker .qmark{transform-box:fill-box;transform-origin:center}
+.talker .spark{animation:lh-spark 2.8s ease-in-out infinite}
+.talker .spark+.spark{animation-delay:1.4s}
+@keyframes lh-spark{0%,100%{opacity:.25;transform:scale(.7) rotate(0)}50%{opacity:1;transform:scale(1.1) rotate(45deg)}}
+.talker .qmark{animation:lh-q 1.8s ease-in-out infinite}
+@keyframes lh-q{50%{transform:translateY(-3px) rotate(10deg)}}
+.talker .bolt{animation:lh-bolt 3.2s steps(1) infinite}
+@keyframes lh-bolt{0%,100%{opacity:1}46%{opacity:.35}50%{opacity:1}54%{opacity:.5}}
+.talker .rays{transform-origin:60px 62px;animation:lh-rays 40s linear infinite}
+@keyframes lh-rays{to{transform:rotate(360deg)}}
+.talker .glow{animation:lh-glow 2.4s ease-in-out infinite}
+@keyframes lh-glow{50%{opacity:.55}}
+/* Lade-Anzeige (Stimme wird erzeugt, KI denkt nach …) */
+#loadpill{position:fixed;top:70px;left:50%;transform:translate(-50%,-12px);z-index:9000;display:flex;flex-direction:column;gap:6px;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;max-width:min(92vw,520px)}
+#loadpill.show{opacity:1;transform:translate(-50%,0)}
+#loadpill>div{display:flex;align-items:center;gap:10px;background:#111827;color:#fff;font-weight:700;font-size:14px;padding:9px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#loadpill .spin{flex:none;width:16px;height:16px;border-radius:50%;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;animation:lh-spin .8s linear infinite}
+@keyframes lh-spin{to{transform:rotate(360deg)}}
+.talker.waiting{animation:lh-wait 1.1s ease-in-out infinite}
+@keyframes lh-wait{50%{opacity:.55;transform:scale(.97)}}
+/* 🎭 Lernrunde */
+.rav{display:inline-grid;place-items:center;width:34px;height:34px;flex:none;border-radius:50%;overflow:hidden;background:var(--cc,#eee);font-size:20px}
+.rav>svg,.rav>.talker-pic{width:100%;height:100%}
+.rav.big{width:84px;height:84px;font-size:44px}
+.rundepick{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.rundepick button{display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:4px 12px 4px 4px;font-weight:700;cursor:pointer}
+.rundepick button.on{border-color:var(--cc);box-shadow:0 0 0 2px var(--cc) inset}
+.rundecast{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin-bottom:12px}
+.rundeseat{display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.6;transition:opacity .2s,transform .2s}
+.rundeseat.on{opacity:1;transform:translateY(-4px) scale(1.06)}
+.rundeseat.on .rav{box-shadow:0 0 0 4px var(--cc)}
+#rundeLog{max-height:340px}
+/* 🗺️ App-Tour */
+#tour{position:fixed;inset:0;z-index:9500;display:none}
+#tour.show{display:block}
+#tour .tour-hole{position:fixed;border-radius:14px;box-shadow:0 0 0 200vmax rgba(15,23,42,.66),0 0 0 3px #facc15 inset;pointer-events:none;transition:left .3s,top .3s,width .3s,height .3s}
+#tour .tour-tip{position:fixed;width:min(360px,calc(100vw - 20px));background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:0 12px 32px rgba(0,0,0,.35);transition:left .3s,top .3s}
+#tour .tour-tip p{margin:8px 0 10px;line-height:1.45}
+#tour .tour-head{display:flex;align-items:center;gap:10px}
+#tour .tour-head>div{flex:1;display:flex;flex-direction:column}
+#tour .tour-head b{font-size:17px}
+#tour .tour-av{width:52px;height:52px;flex:none}
+#tour .tour-av svg{width:100%;height:100%}
+#tour .tour-x{background:none;border:0;color:var(--ink);font-size:18px;cursor:pointer;padding:4px 6px;border-radius:8px}
+#tour .tour-bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+#tour .tour-bar i{display:block;height:100%;background:#22c55e;transition:width .3s}
+#tour .tour-btns{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:6px;margin-top:12px}
+/* Bild/Emoji-Charaktere ohne Gesicht: pulsieren beim Sprechen */
+.talker-pic{display:inline-grid;place-items:center;width:auto;height:auto;border-radius:50%;transition:transform .15s}
+.talker-pic.talking{animation:lh-pulse .35s ease-in-out infinite}
+@keyframes lh-pulse{50%{transform:scale(1.08)}}
+@media (prefers-reduced-motion:reduce){
+  .talker .eyes,.talker.talking,.talker.talking .flip-l,.talker.talking .flip-r,.talker .ant,.talker-pic.talking,.talker.talking .anger,.talker.talking .tail,.talker .spark,.talker .qmark,.talker .bolt,.talker .rays,.talker .glow,.talker.waiting,#loadpill .spin{animation:none}
+  #tour .tour-hole,#tour .tour-tip{transition:none}
+}
+
+/* ---- Maskottchen Pingulin mit Sprechblase ---- */
+.mascot{display:flex;align-items:flex-end;gap:12px}
+.mascot-av{flex:none;cursor:pointer;filter:drop-shadow(0 6px 10px rgba(0,0,0,.18))}
+.mascot-av:hover{transform:scale(1.04)}
+.mascot .bubble{position:relative;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:18px;padding:11px 14px;font-weight:700;font-size:14.5px;margin-bottom:22px;max-width:420px;box-shadow:0 4px 0 var(--line)}
+.mascot .bubble::before{content:"";position:absolute;left:-11px;bottom:14px;border:9px solid transparent;border-right-color:var(--line);border-left:0}
+.mascot .bubble::after{content:"";position:absolute;left:-7px;bottom:15px;border:8px solid transparent;border-right-color:var(--card);border-left:0}
+.hero .hero-m{position:absolute;right:14px;bottom:6px;width:96px;height:103px;cursor:pointer;filter:drop-shadow(0 6px 12px rgba(0,0,0,.25))}
+.hero:has(.hero-m){padding-right:124px}
+.hero .hero-say{display:inline-block;margin-top:10px;background:rgba(255,255,255,.18);padding:7px 12px;border-radius:14px 14px 14px 4px;font-size:14px;opacity:1}
+@media (max-width:560px){.hero .hero-m{width:70px;height:75px;right:8px}.hero:has(.hero-m){padding-right:84px}}
+.lessondone-m{display:flex;justify-content:center;margin:6px 0 10px}
+.lessondone-m .mascot{align-items:center}
+.lessondone-m .bubble{margin-bottom:0}
+
+/* ---- Crew-Auswahl ---- */
+.castgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}
+.castcard{border:2px solid var(--line);border-bottom-width:5px;border-radius:16px;background:var(--card);padding:10px;text-align:center;display:flex;flex-direction:column;gap:3px}
+.castcard.on{border-color:var(--cc,var(--pri));box-shadow:0 0 0 3px color-mix(in srgb,var(--cc,var(--pri)) 25%,transparent)}
+.castface{width:92px;height:98px;margin:0 auto 4px;cursor:pointer;border-radius:50%;background:color-mix(in srgb,var(--cc,var(--pri)) 14%,transparent)}
+.castbtns{display:flex;gap:5px;justify-content:center;margin-top:6px;flex-wrap:wrap}
+.facepick{width:52px;height:56px;padding:3px}
+.facepick .talker{width:44px;height:47px}
+.chatav .talker,.chat-av .talker{width:100%;height:100%}
+
+/* ---- Erfolge / Abzeichen ---- */
+.badgegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+.medal{border:2px solid var(--line);border-radius:15px;background:var(--card);padding:12px;text-align:center;display:flex;flex-direction:column;gap:2px;opacity:.75}
+.medal.on{opacity:1;border-color:var(--amber);box-shadow:0 4px 0 color-mix(in srgb,var(--amber) 55%,transparent)}
+.medal .bic{font-size:34px;line-height:1.2;filter:grayscale(1)}
+.medal.on .bic{filter:none}
+.medal small{font-size:12px}
+
+/* ---- Fokus-Timer ---- */
+.focusbox{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:14px}
+.focusring{--p:0%;width:220px;height:220px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--red) var(--p),var(--line) 0)}
+.focusring.brk{background:conic-gradient(var(--green) var(--p),var(--line) 0)}
+.focusring>div{width:184px;height:184px;border-radius:50%;background:var(--card);display:grid;place-items:center;text-align:center}
+.focusring b{font-size:46px;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.focusmini{font-variant-numeric:tabular-nums}
+
+/* ---- Prüfungs-Countdown ---- */
+.examcard{display:flex;align-items:center;gap:12px;border:2px solid var(--line);border-radius:15px;padding:10px 12px;background:var(--card);margin-top:8px}
+.examcard.hot{border-color:var(--red);background:color-mix(in srgb,var(--red) 9%,var(--card))}
+.examnum{min-width:62px;text-align:center;font-weight:900;font-size:26px;line-height:1}
+.examnum small{display:block;font-size:11px;font-weight:700;color:var(--mut)}
+.restdays{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.restdays .choice{text-align:center;padding:10px 0;margin-top:6px}
+
+/* ---- Ligen ---- */
+.tierchip{display:inline-block;border:2px solid var(--tc);color:var(--tc);border-radius:99px;padding:1px 9px;font-weight:800;font-size:13px}
+.leaguehead{border-color:var(--tc);border-bottom-width:5px}
+.tierladder{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.tierladder span{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;border:2px solid var(--line);font-size:17px;filter:grayscale(1);opacity:.5}
+.tierladder span.got{filter:none;opacity:.85}
+.tierladder span.on{filter:none;opacity:1;border-color:var(--tc);transform:scale(1.15);background:color-mix(in srgb,var(--tc) 18%,transparent)}
+.rankrow.lgrow.up{border-left:5px solid var(--green)}
+.rankrow.lgrow.down{border-left:5px solid var(--red)}
+.classcode{font-size:24px;letter-spacing:4px;font-family:ui-monospace,Consolas,monospace;color:var(--pri)}
+
+/* ---- Duelle ---- */
+.choice.duelopt.ok{border-color:var(--green);background:color-mix(in srgb,var(--green) 16%,var(--card))}
+.choice.duelopt.bad{border-color:var(--red);background:color-mix(in srgb,var(--red) 14%,var(--card))}
+.choice.duelopt:disabled{cursor:default}
+.exrow select.fi{flex:1;min-width:120px}
+
+/* ---- Chat: Vorlesen pro Nachricht ---- */
+.msay{border:0;background:transparent;cursor:pointer;font-size:14px;padding:0 0 0 6px;opacity:.6;vertical-align:middle}
+.msay:hover{opacity:1}
+
+/* ---- Dunkles Design ---- */
+body.dark .mascot .bubble{box-shadow:0 4px 0 rgba(0,0,0,.35)}
+body.dark .medal.on{box-shadow:0 4px 0 rgba(245,158,11,.35)}
+body.dark .castface{background:rgba(255,255,255,.06)}
