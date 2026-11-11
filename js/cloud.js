@@ -91,6 +91,10 @@ function cloudErr(j, status) {
     bad_endpoint: "Dieser Browser nutzt einen unbekannten Push-Dienst.",
     bad_time: "Ungültige Uhrzeit",
     limit: "Limit erreicht – bitte erst etwas aufräumen.",
+    busy: "Gerade sehr viele Anfragen – bitte später nochmal versuchen.",
+    bad_subject_name: "Fachname: 2–40 Zeichen, nur Buchstaben, Zahlen und . , & ( ) / + -",
+    bad_report: "Diese Aufgabe kann nicht gemeldet werden.",
+    bad_key: "Bitte zuerst Schule und Klassenstufe wählen.",
     "Could not find the function":
       "Server noch nicht aktualisiert: supabase/schema.sql bitte erneut ausführen.",
   };

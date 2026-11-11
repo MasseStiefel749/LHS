@@ -333,7 +333,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
   <div class="sidefoot">
     <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.2 · offline</span>
+    <span id="verLine">v1.3 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -377,6 +377,8 @@ details.exsec summary{cursor:pointer;font-weight:800}
 <script src="js/games.js"></script>
 <script src="js/chat.js"></script>
 <script src="js/invite.js"></script>
+<script src="content/schulfaecher.js"></script>
+<script src="js/schulen.js"></script>
 <script src="content/bridge-token.js"></script>
 <script>
 "use strict";
@@ -402,7 +404,8 @@ function defaultState(){
   return Object.assign({
     v:1, seenOnboard:false,
     profile:{name:"", school:SCHULEN[0], klasse:"E1FI A", goal:"schule", langs:["Englisch"],
-             style:{sehen:50,hören:50,tun:50}, daily:20, hearts:true, theme:"dark", skipOnboard:false},
+             style:{sehen:50,hören:50,tun:50}, daily:20, hearts:true, theme:"dark", skipOnboard:false,
+             sid:"", land:"XX", art:"so", stufe:"", faecher:[], year:0},
     xp:0, streak:{n:0,last:"",best:0}, hearts:{v:5,day:"",t:0},
     progress:{},               /* topicId -> {lessons, done, wrong:{key:count}} */
     review:[],                 /* {tid,kind,idx,fails,due} */
@@ -493,6 +496,7 @@ function sanitizeState(raw){
   if(typeof st.chat.model!=="string") st.chat.model=D.chat.model;
   sanitizePlus(st);
   sanitizeExtra(st);
+  if(window.sanitizeSchool) sanitizeSchool(st);
   st.seenOnboard = !!st.seenOnboard;
   st.seenTour = !!st.seenTour;
   return st;
@@ -1603,6 +1607,7 @@ function renderNav(){
 }
 /* ---- Schule/Klasse-Dropdown ---- */
 function openSchoolPicker(){
+  if(window.schoolPickerOpen) return schoolPickerOpen();
   const rows = SCHULEN.map((s,i)=>`<div class="listrow" onclick="pickSchool(${i})"><span class="emo">🏫</span><div><b>${esc(s)}</b><small>Schule</small></div></div>`).join("")
     + KLASSEN.map((k,i)=>`<div class="listrow" onclick="pickClass(${i})"><span class="emo">🎓</span><div><b>${esc(k)}</b><small>Klasse</small></div></div>`).join("");
   toastModal(`<h2 style="margin-top:0">🏫 Schule &amp; Klasse</h2>
@@ -1615,8 +1620,8 @@ function filterSchool(){
   const q=norm($("schSearch").value);
   [...$("schList").children].forEach(el=>{ el.style.display = !q || norm(el.textContent).includes(q) ? "" : "none"; });
 }
-function pickSchool(i){ const s=SCHULEN[i]; if(!s) return; S.profile.school=s; save(); closeModal(); renderTop(); toast("Schule gespeichert: "+s); }
-function pickClass(i){ const k=KLASSEN[i]; if(!k) return; S.profile.klasse=k; save(); closeModal(); renderTop(); toast("Klasse gespeichert: "+k); }
+function pickSchool(i){ const s=SCHULEN[i]; if(!s) return; S.profile.school=s; S.profile.sid=""; if(!KLASSEN.includes(S.profile.klasse)) S.profile.klasse=KLASSEN[0]; save(); closeModal(); renderTop(); V.view==="onboard"?renderOnboard():render(); toast("Schule gespeichert: "+s); }
+function pickClass(i){ const k=KLASSEN[i]; if(!k) return; S.profile.klasse=k; S.profile.sid=""; if(!SCHULEN.includes(S.profile.school)) S.profile.school=SCHULEN[0]; save(); closeModal(); renderTop(); V.view==="onboard"?renderOnboard():render(); toast("Klasse gespeichert: "+k); }
 
 /* ===================== 5) ONBOARDING (überspringbar) ===================== */
 let ob={step:0, style:"ausgewogen", daily:20, goal:"schule", langs:["Englisch"], name:""};
@@ -1636,13 +1641,9 @@ function renderOnboard(){
     </div>
     <div class="obstep ${d.step===1?'on':''}">
       <span class="bigemoji">🏫</span>
-      <div class="center"><h1 class="h1">Wo lernst du?</h1><p class="mut">Für Schulfächer, Termine und den Agenten.</p></div>
-      <label class="fl">Schule</label>
-      <input class="fi" id="obSch" list="schListD" value="${esc(S.profile.school)}" oninput="S.profile.school=this.value">
-      <label class="fl">Klasse</label>
-      <input class="fi" id="obKl" list="klListD" value="${esc(S.profile.klasse)}" oninput="S.profile.klasse=this.value">
-      <datalist id="schListD">${SCHULEN.map(s=>`<option value="${esc(s)}">`).join("")}</datalist>
-      <datalist id="klListD">${KLASSEN.map(k=>`<option value="${esc(k)}">`).join("")}</datalist>
+      <div class="center"><h1 class="h1">Wo lernst du?</h1><p class="mut">Jede Schule in Deutschland – Deutsch, Mathe &amp; Englisch passend zu deiner Klasse, weitere Fächer erstellt OpenCode.</p></div>
+      <div class="card" style="margin-top:10px"><b>🏫 ${esc(S.profile.school)}</b><br><small class="mut">${esc(S.profile.klasse)}${window.schoolDesc&&schoolDesc()?" · "+esc(schoolDesc()):" · Lernhub-Original"}</small></div>
+      <div class="center" style="margin-top:12px"><button class="btn" onclick="openSchoolPicker()">🔎 Schule suchen &amp; Klasse wählen</button></div>
       <div class="center" style="margin-top:18px"><button class="btn" onclick="obNext()">Weiter</button>
       <button class="btn ghost" onclick="obBack()">Zurück</button></div>
     </div>
@@ -1691,9 +1692,9 @@ function skipOnboard(){ S.seenOnboard=true; save(); go("home"); }
 
 /* ===================== 6) HOME & LERNPFAD ===================== */
 const SUBJECT_NAMES = {ITS:"IT-Systeme", SAE:"Software & Anwendungsentwicklung", BWL:"BWL", Deutsch:"Deutsch", GK:"Gemeinschaftskunde", WK:"Wirtschaftskunde", BE:"Berufsenglisch"};
-function allSubjectIds(){ return Object.keys(DATA).concat((S.custom.subjects||[]).map(s=>s.id)); }
+function allSubjectIds(){ const sch=window.schoolSubjectIds&&schoolSubjectIds(); return (sch||Object.keys(DATA)).concat((S.custom.subjects||[]).map(s=>s.id)); }
 function subjById(id){
-  const s = DATA[id] || (S.custom.subjects||[]).find(x=>x.id===id);
+  const s = DATA[id] || (window.schoolSubj&&schoolSubj(id)) || (S.custom.subjects||[]).find(x=>x.id===id);
   if(s && !s.name) s.name = SUBJECT_NAMES[id] || id;          /* Alt-Daten hatten keinen Anzeigenamen */
   return s;
 }
@@ -1727,9 +1728,10 @@ function streakLine(){
   if(S.streak.last===dayStr(-1)) return `<b>Streak in Gefahr!</b> Noch eine Lektion und du hast ${S.streak.n+1} Tage. ⏰`;
   return "Starte heute eine neue Serie – leg los! 🚀";
 }
-function continueLesson(){ const ids=allSubjectIds(); const favId=S.stats.lastSubject&&subjById(S.stats.lastSubject)?S.stats.lastSubject:ids[0]; startLesson(favId, nextLessonFor(favId).id); }
+function continueLesson(){ const ids=allSubjectIds(); const favId=ids.includes(S.stats.lastSubject)?S.stats.lastSubject:ids[0]; startLesson(favId, nextLessonFor(favId).id); }
 function renderPath(subjId){
-  const id = subjId || V.subj || S.stats.lastSubject || allSubjectIds()[0];
+  let id = subjId || V.subj || S.stats.lastSubject || allSubjectIds()[0];
+  if(!subjId && !allSubjectIds().includes(id)) id = allSubjectIds()[0];
   const subj = subjById(id);
   if(!subj) return go("home");
   const doneN = subj.topics.filter((t,i)=>topicState(id,i)==="done").length;
@@ -1747,7 +1749,7 @@ function renderPath(subjId){
       <div class="card center" style="cursor:pointer" onclick="startExam('${id}')"><div style="font-size:28px">📝</div><b>Probeprüfung</b><br><small class="mut">mit ${examPool(id).free.length} Freitext-Fragen</small></div>
       <div class="card center" style="cursor:pointer" onclick="go('review')"><div style="font-size:28px">🔁</div><b>Wiederholen</b><br><small class="mut">${dueCount()} fällig</small></div>
       <div class="card center" style="cursor:pointer" onclick="suggestVideo('${id}')"><div style="font-size:28px">🎥</div><b>Video-Tipp</b><br><small class="mut">zum aktuellen Thema</small></div>
-      <div class="card center" style="cursor:pointer" onclick="openAgent()"><div style="font-size:28px">🤖</div><b>Neue Aufgaben</b><br><small class="mut">vom Agenten holen</small></div>
+      ${(window.schoolPathCard&&schoolPathCard(id)) || `<div class="card center" style="cursor:pointer" onclick="openAgent()"><div style="font-size:28px">🤖</div><b>Neue Aufgaben</b><br><small class="mut">vom Agenten holen</small></div>`}
     </div>
     <div class="center" style="margin-top:16px"><button class="btn ghost" onclick="go('home')">← Zum Dashboard</button></div>`;
 }
@@ -1835,7 +1837,7 @@ function startExam(subjId){
 }
 function startReview(){
   pruneReview();
-  const due=S.review.filter(r=>r.due<=today() && r.kind!=="free");
+  const due=S.review.filter(r=>r.due<=today() && r.kind!=="free" && topicById(r.tid));
   if(!due.length){ toast("Alles aufgeholt – perfect! 🎉"); return; }
   const items=shuffle(due).slice(0,10).map(r=>({kind:r.kind, idx:r.idx, tid:r.tid}));
   heartsRefill();
@@ -1851,7 +1853,8 @@ function langOfTopic(tp){ const sid=tp?subjectOfTopic(tp.id):null; const s=sid?s
 function pruneReview(){
   const key={mc:"mc",card:"cards",gap:"gaps",free:"free"};
   const n=S.review.length;
-  S.review=S.review.filter(r=>{ const tp=topicById(r.tid); return r.kind!=="free" && tp && key[r.kind] && tp[key[r.kind]] && tp[key[r.kind]][r.idx]; });
+  S.review=S.review.filter(r=>{ if(r.kind!=="free" && window.schoolKeepTid && schoolKeepTid(r.tid)) return true; /* Cloud-Paket noch nicht geladen */
+    const tp=topicById(r.tid); return r.kind!=="free" && tp && key[r.kind] && tp[key[r.kind]] && tp[key[r.kind]][r.idx]; });
   if(S.review.length!==n) save();
 }
 function curTP(){
@@ -1862,6 +1865,8 @@ function curTP(){
 }
 function subjectOfTopic(tid){
   for(const id of allSubjectIds()){ const s=subjById(id); if(s && s.topics.some(t=>t.id===tid)) return id; }
+  /* Fächer, die gerade ausgeblendet sind (andere Schule/Stufe) – damit Wiederholungen nicht verloren gehen */
+  for(const id of Object.keys(DATA).concat(window.schoolAllIds?schoolAllIds():[])){ const s=subjById(id); if(s && s.topics.some(t=>t.id===tid)) return id; }
   return null;
 }
 function renderLesson(){
@@ -2004,7 +2009,7 @@ function wrong(item, expl){
 }
 function feedbackHTML(ok, text, btn){
   return `<div class="fb show ${ok?'ok':'bad'}"><b>${ok?'Richtig! 🎉':'Leider falsch.'}</b> ${text}</div>
-    <button class="btn ${ok?'g':''}" style="margin-top:12px" onclick="nextItem()">${btn||"Weiter"}</button>`;
+    <button class="btn ${ok?'g':''}" style="margin-top:12px" onclick="nextItem()">${btn||"Weiter"}</button>${window.packReportLink?packReportLink():""}`;
 }
 function nextItem(){ LES.checked=false; LES.flipped=false; LES.i++; renderLesson(); }
 function quitLesson(){ if(confirm("Lektion beenden? Der Fortschritt dieser Lektion geht verloren.")){ const s=LES&&LES.subjId; LES=null; s?openSubject(s):go("home"); } }
@@ -2646,7 +2651,7 @@ const AGE_RULES="Zielgruppe: Azubis zwischen 16 und 40. Kein Fluchen, keine sexu
 function agentPersona(){
   const c=activeChar(), nm=c?c.name:"Pingulin";
   return `Du bist ${nm}, der Lern-Begleiter in der Lern-App „Lernhub“. Persönlichkeit: ${c&&c.blurb?c.blurb:"freundlich, witzig, motivierend"}.${c&&c.style?" Sprechstil: "+c.style:""}
-${c&&c.teach?`Dein Job: Du bist der SCHÜLER, nicht der Lehrer (Lernen durch Lehren). ${accountName()||"Der Lernende"} (${S.profile.school}, Klasse ${S.profile.klasse}, Fachinformatiker, 1. Lehrjahr) erklärt dir den Stoff. Du weißt über das Lernthema fast nichts und erklärst nie selbst. Stell neugierige, einfache Nachfragen (Warum? Was passiert dann? Gibt's ein Beispiel?). Du kennst heimlich die richtigen Fakten: Ist eine Erklärung falsch oder lückenhaft, verrate das nicht direkt, sondern frag verwirrt nach oder bring ein Gegenbeispiel, damit der Fehler selbst gefunden wird. Ist sie richtig, freu dich, fasse sie in eigenen kindlichen Worten zusammen und frag nach dem nächsten Detail. Du schreibst im Chat-Fenster der App.`:`Dein Job: ${S.profile.name||"dem Lernenden"} (${S.profile.school}, Klasse ${S.profile.klasse}, Fachinformatiker, 1. Lehrjahr) beim Lernen helfen – Tipps zu Aufgaben geben, Stoff erklären, motivieren und Fragen zur App beantworten. Du schreibst im Chat-Fenster der App.`}
+${c&&c.teach?`Dein Job: Du bist der SCHÜLER, nicht der Lehrer (Lernen durch Lehren). ${accountName()||"Der Lernende"} (${S.profile.school}, Klasse ${S.profile.klasse}, ${(window.schoolDesc&&schoolDesc())||"Fachinformatiker, 1. Lehrjahr"}) erklärt dir den Stoff. Du weißt über das Lernthema fast nichts und erklärst nie selbst. Stell neugierige, einfache Nachfragen (Warum? Was passiert dann? Gibt's ein Beispiel?). Du kennst heimlich die richtigen Fakten: Ist eine Erklärung falsch oder lückenhaft, verrate das nicht direkt, sondern frag verwirrt nach oder bring ein Gegenbeispiel, damit der Fehler selbst gefunden wird. Ist sie richtig, freu dich, fasse sie in eigenen kindlichen Worten zusammen und frag nach dem nächsten Detail. Du schreibst im Chat-Fenster der App.`:`Dein Job: ${S.profile.name||"dem Lernenden"} (${S.profile.school}, Klasse ${S.profile.klasse}, ${(window.schoolDesc&&schoolDesc())||"Fachinformatiker, 1. Lehrjahr"}) beim Lernen helfen – Tipps zu Aufgaben geben, Stoff erklären, motivieren und Fragen zur App beantworten. Du schreibst im Chat-Fenster der App.`}
 Regeln: Antworte auf Deutsch, locker und kurz (höchstens 4 Sätze), ohne Markdown. Benutze keine Tools. Bleib in deiner Rolle als ${nm}. ${AGE_RULES} Verrate die Lösung einer aktiven Aufgabe nie, solange weniger als ${HINT_THRESHOLD} Fehlversuche vorliegen und nicht aufgegeben wurde – gib dann nur Tipps.`;
 }
 function agentState(){
@@ -3093,7 +3098,7 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.2 · Open Source (MIT) · keine externen Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.3 · Open Source (MIT) · keine externen Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){
@@ -3176,6 +3181,7 @@ function showLegal(which){
       <p><b>Chat (nur mit Konto, freiwillig):</b> Nachrichten an Freunde oder deine Klasse werden mit Absender, Empfänger und Zeitpunkt bei Supabase gespeichert, sind nur für die Beteiligten lesbar und werden nach 90 Tagen automatisch gelöscht. Eigene Nachrichten kannst du jederzeit löschen.</p>
       <p><b>Einladungslinks:</b> Ein Einladungslink enthält deinen Spitznamen (und ggf. den Klassencode). Öffnet jemand den Link und erstellt ein Konto, wird automatisch eine Freundschaftsanfrage an dich geschickt.</p>
       <p><b>Wissens-Videos:</b> Die Videos sind YouTube-Videos im erweiterten Datenschutzmodus (youtube-nocookie.com). Sobald du den Video-Feed öffnest, lädt dein Browser das gerade sichtbare Video von YouTube (Google Ireland Ltd.); dabei werden u. a. deine IP-Adresse und technische Gerätedaten an YouTube übertragen. Vorschaubilder werden von YouTube-Servern (i.ytimg.com) geladen. Welche Videos du magst oder speicherst, bleibt lokal in deinem Browser.</p>
+      <p><b>Schulsuche &amp; Schulfächer:</b> Suchst du deine Schule, schickt dein Browser den Suchbegriff (bzw. bei „In meiner Nähe“ deinen auf ca. 1 km gerundeten Standort) an jedeschule.codefor.de (Open Knowledge Foundation Deutschland e. V.); dabei wird deine IP-Adresse übertragen. Gespeichert wird nur die gewählte Schule, Schulart und Stufe in deinem Browser. Fachpakete (Aufgaben) werden ohne Personenbezug aus der Lernhub-Cloud (Supabase) geladen. Forderst du mit Konto ein neues Fach an oder meldest eine fehlerhafte Aufgabe, werden Fachname, Schulname, Bundesland/Schulart/Stufe, ggf. deine Notiz und deine Konto-ID gespeichert (für Tageslimits gegen Missbrauch); die Aufgaben selbst erstellt ein KI-Modell über OpenCode, dabei werden keine personenbezogenen Daten an die KI gesendet.</p>
       <p><b>Was das Internet sieht:</b> Grundsätzlich nichts. Nur wenn du selbst (a) einen API-Key in den Einstellungen einträgst, werden Chat-Anfragen an den von dir gewählten Endpunkt gesendet, (b) Video-Tipps öffnest (YouTube, externe Seite) oder (c) den OpenCode-Agenten nutzt (recherchiert lokal + Web). Mikrofon wird nur bei Sprechübungen aktiviert und nur für die Spracherkennung deines Browsers verwendet.</p>
       <p><b>Speicher löschen:</b> Einstellungen → „Alles zurücksetzen“, oder Browser-Daten löschen.</p>
       <p><b>Kontakt:</b> <a href="mailto:simon.lasarzewski@gmail.com">simon.lasarzewski@gmail.com</a></p>
@@ -3233,6 +3239,7 @@ function init(){
   if(window.cloudCfg && cloudCfg() && !CLOUD && !S.authAsked && V.view!=="konto"){ KONTO.welcome=true; V.view="konto"; }
   render();
   if(!S.seenTour) setTimeout(tourMaybe, 1200);
+  if(window.schoolSync){ schoolSync(true); setTimeout(()=>{ if(S.seenOnboard && $("modal").classList.contains("hidden")) sfYearCheck(); }, 2500); }
   /* Sprachausgabe: Stimmen laden (Chrome lädt sie asynchron) */
   if("speechSynthesis" in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }
   /* Chat-Eingabe */

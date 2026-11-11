@@ -112,7 +112,7 @@ function openMore() {
 /* ===================== 🏠 Dashboard ===================== */
 function favSubject() {
   const ids = allSubjectIds();
-  return S.stats.lastSubject && subjById(S.stats.lastSubject) ? S.stats.lastSubject : ids[0];
+  return ids.includes(S.stats.lastSubject) ? S.stats.lastSubject : ids[0];
 }
 function quests() {
   return [
@@ -252,6 +252,7 @@ function renderDashboard() {
     <button class="btn ghost" onclick="SOC.sec='duels';go('board')">⚔️ Duell</button>
     <button class="btn ghost" onclick="go('notes')">📝 Notiz</button>
   </div>
+  ${window.schoolDashHTML ? schoolDashHTML() : ""}
   <div class="two">
     <div class="card"><b>✅ Tages-Quests (${qDone}/${q.length})</b>
       ${q.map((x) => `<div class="trow" style="cursor:${x.ok ? "default" : "pointer"}" ${x.ok ? "" : `onclick="${x.go}"`}><span>${x.ok ? "✅" : "⬜"}</span><span style="${x.ok ? "opacity:.6;text-decoration:line-through" : ""}">${x.t}</span></div>`).join("")}
@@ -521,7 +522,7 @@ function exOffline(q, tp) {
 function exAPI(q, tp) {
   exPush("bot", "⏳ Denkt nach …");
   const facts = topicFacts(tp).join("\n").slice(0, 3500);
-  const sys = `Du bist ein geduldiger Nachhilfelehrer für Azubis (Fachinformatiker, Berufsschule ${S.profile.klasse || ""}). Antworte auf Deutsch, einfach, mit Beispielen aus der IT-Praxis, höchstens 8 Sätze. Erfinde nichts – wenn du unsicher bist, sag es.
+  const sys = `${window.schoolDesc && schoolDesc() ? `Du bist ein geduldiger Nachhilfelehrer für Schüler (${schoolDesc()}). Antworte auf Deutsch, einfach und altersgerecht, mit Alltagsbeispielen, höchstens 8 Sätze.` : `Du bist ein geduldiger Nachhilfelehrer für Azubis (Fachinformatiker, Berufsschule ${S.profile.klasse || ""}). Antworte auf Deutsch, einfach, mit Beispielen aus der IT-Praxis, höchstens 8 Sätze.`} Erfinde nichts – wenn du unsicher bist, sag es.
 Thema: ${tp.name}
 Lernstoff dazu:
 ${facts}`;

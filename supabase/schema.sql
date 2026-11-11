@@ -774,3 +774,187 @@ grant execute on function public.chat_overview() to authenticated;
 grant execute on function public.chat_messages(text, bigint) to authenticated;
 grant execute on function public.chat_send(text, text) to authenticated;
 grant execute on function public.chat_delete(bigint) to authenticated;
+
+-- ===================== Schul-Aufgaben (von OpenCode erzeugt, für alle gleich) =====================
+-- Schlüssel: Bundesland|Schulart|Klassenstufe|Fach, z. B. "BW|gy|7|biologie". Ein Paket wird einmal erzeugt
+-- und dann von allen mit gleichem Schlüssel genutzt. Erzeugt wird es vom GitHub-Workflow (.github/workflows/aufgaben.yml),
+-- der als service_role die pack_worker_*-Funktionen aufruft. Der Browser darf nur lesen und Aufträge einreichen.
+create table if not exists public.content_packs (
+  key        text primary key check (key ~ '^[A-Z]{2}\|[a-z]{2}\|(1[0-3]|[1-9]|L[1-4])\|[a-z0-9-]{2,40}$'),
+  fach_name  text not null check (char_length(fach_name) between 2 and 40),
+  subject    jsonb not null,
+  topics     smallint not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists content_packs_prefix_idx on public.content_packs (key text_pattern_ops);
+
+create table if not exists public.content_requests (
+  id           bigint generated always as identity primary key,
+  key          text not null check (key ~ '^[A-Z]{2}\|[a-z]{2}\|(1[0-3]|[1-9]|L[1-4])\|[a-z0-9-]{2,40}$'),
+  fach_name    text not null check (char_length(fach_name) between 2 and 40),
+  kind         text not null check (kind in ('neu','mehr','fix')),
+  status       text not null default 'offen' check (status in ('offen','arbeit','fertig','fehler')),
+  school       text not null default '' check (char_length(school) <= 100),
+  requested_by uuid references auth.users(id) on delete set null,
+  attempts     smallint not null default 0,
+  error        text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+create index if not exists content_requests_status_idx on public.content_requests (status, created_at);
+create index if not exists content_requests_key_idx on public.content_requests (key, created_at desc);
+create index if not exists content_requests_user_idx on public.content_requests (requested_by, created_at desc);
+-- Pro Paket höchstens ein offener Auftrag (verhindert doppelte KI-Kosten)
+create unique index if not exists content_requests_open_key on public.content_requests (key) where status in ('offen','arbeit');
+
+create table if not exists public.content_reports (
+  id         bigint generated always as identity primary key,
+  key        text not null references public.content_packs(key) on delete cascade,
+  tid        text not null check (tid ~ '^[A-Za-z0-9_-]{1,60}$'),
+  kind       text not null check (kind in ('mc','card','gap','free')),
+  idx        smallint not null check (idx between 0 and 199),
+  note       text not null default '' check (char_length(note) <= 300),
+  reporter   uuid not null references auth.users(id) on delete cascade,
+  resolved   boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists content_reports_key_idx on public.content_reports (key, resolved);
+create index if not exists content_reports_reporter_idx on public.content_reports (reporter, created_at desc);
+create unique index if not exists content_reports_once on public.content_reports (key, tid, kind, idx, reporter) where not resolved;
+
+alter table public.content_packs    enable row level security;
+alter table public.content_requests enable row level security;
+alter table public.content_reports  enable row level security;
+revoke all on public.content_packs, public.content_requests, public.content_reports from anon, authenticated;
+
+-- Welche Fächer gibt es schon für Bundesland|Schulart|Stufe| ? (ohne Login lesbar)
+create or replace function public.pack_list(p_prefix text)
+returns json language sql stable security definer set search_path = public as $$
+  select coalesce(json_agg(json_build_object('key', key, 'name', fach_name, 'topics', topics, 'at', updated_at) order by fach_name), '[]'::json)
+  from content_packs
+  where p_prefix ~ '^[A-Z]{2}\|[a-z]{2}\|(1[0-3]|[1-9]|L[1-4])\|$' and key like p_prefix || '%';
+$$;
+
+-- Pakete laden (höchstens 30 auf einmal)
+create or replace function public.pack_get(p_keys text[])
+returns json language sql stable security definer set search_path = public as $$
+  select coalesce(json_agg(json_build_object('key', key, 'name', fach_name, 'subject', subject, 'at', updated_at)), '[]'::json)
+  from content_packs where key = any(p_keys[1:30]);
+$$;
+
+-- Stand der letzten Aufträge je Schlüssel (+ Platz in der Warteschlange)
+create or replace function public.pack_status(p_keys text[])
+returns json language sql stable security definer set search_path = public as $$
+  select coalesce(json_agg(json_build_object('key', r.key, 'kind', r.kind, 'status', r.status, 'error', left(r.error, 120),
+    'at', r.updated_at,
+    'pos', case when r.status = 'offen' then (select count(*) from content_requests o where o.status = 'offen' and o.created_at <= r.created_at) end)), '[]'::json)
+  from (select distinct on (key) * from content_requests where key = any(p_keys[1:30]) order by key, created_at desc) r;
+$$;
+
+-- Neues Fach bzw. mehr Aufgaben anfordern (mit Login, Limit pro Tag)
+create or replace function public.pack_request(p_key text, p_name text, p_kind text, p_school text)
+returns text language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); n int; cur int;
+begin
+  if uid is null then raise exception 'not_authenticated'; end if;
+  if p_key !~ '^[A-Z]{2}\|[a-z]{2}\|(1[0-3]|[1-9]|L[1-4])\|[a-z0-9-]{2,40}$' then raise exception 'bad_key'; end if;
+  if p_name !~ '^[A-Za-zÄÖÜäöüß0-9 .,&()/+-]{2,40}$' then raise exception 'bad_subject_name'; end if;
+  if p_kind not in ('neu','mehr') then raise exception 'bad_kind'; end if;
+  select topics into cur from content_packs where key = p_key;
+  if p_kind = 'neu' and found then return 'exists'; end if;
+  if coalesce(cur, 0) >= 16 then return 'full'; end if;
+  if exists (select 1 from content_requests where key = p_key and status in ('offen','arbeit')) then return 'queued'; end if;
+  select count(*) into n from content_requests where requested_by = uid and created_at > now() - interval '1 day';
+  if n >= 5 then raise exception 'limit'; end if;
+  select count(*) into n from content_requests where status in ('offen','arbeit');
+  if n >= 200 then raise exception 'busy'; end if;
+  insert into content_requests (key, fach_name, kind, school, requested_by)
+    values (p_key, p_name, p_kind, left(regexp_replace(coalesce(p_school, ''), '[^[:alnum:] .,&()/+''-]', '', 'g'), 100), uid)
+    on conflict (key) where status in ('offen','arbeit') do nothing;
+  return 'ok';
+end $$;
+
+-- Fehlerhafte Aufgabe melden -> OpenCode prüft und korrigiert sie (Position bleibt gleich)
+create or replace function public.pack_report(p_key text, p_tid text, p_kind text, p_idx integer, p_note text)
+returns text language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); n int; v_name text;
+begin
+  if uid is null then raise exception 'not_authenticated'; end if;
+  if p_kind not in ('mc','card','gap','free') or p_idx is null or p_idx < 0 or p_idx > 199 then raise exception 'bad_report'; end if;
+  select fach_name into v_name from content_packs p
+    where p.key = p_key and exists (select 1 from jsonb_array_elements(p.subject->'topics') t where t->>'id' = p_tid);
+  if v_name is null then raise exception 'bad_report'; end if;
+  select count(*) into n from content_reports where reporter = uid and created_at > now() - interval '1 day';
+  if n >= 20 then raise exception 'limit'; end if;
+  insert into content_reports (key, tid, kind, idx, note, reporter)
+    values (p_key, p_tid, p_kind, p_idx, left(coalesce(p_note, ''), 300), uid)
+    on conflict (key, tid, kind, idx, reporter) where not resolved do nothing;
+  insert into content_requests (key, fach_name, kind, requested_by) values (p_key, v_name, 'fix', uid)
+    on conflict (key) where status in ('offen','arbeit') do nothing;
+  return 'ok';
+end $$;
+
+-- ---- Nur für den GitHub-Workflow (service_role) ----
+create or replace function public.pack_worker_claim(p_max integer)
+returns json language plpgsql security definer set search_path = public as $$
+declare ids bigint[];
+begin
+  update content_requests set status = 'offen', updated_at = now()
+    where status = 'arbeit' and updated_at < now() - interval '45 minutes';
+  select array_agg(id) into ids from (
+    select id from content_requests
+    where status = 'offen' or (status = 'fehler' and attempts < 3 and updated_at < now() - interval '20 minutes')
+    order by created_at limit greatest(1, least(coalesce(p_max, 3), 10))
+    for update skip locked) x;
+  if ids is null then return '[]'::json; end if;
+  update content_requests set status = 'arbeit', attempts = attempts + 1, updated_at = now() where id = any(ids);
+  return (select coalesce(json_agg(json_build_object(
+      'id', r.id, 'key', r.key, 'name', r.fach_name, 'kind', r.kind, 'school', r.school,
+      'subject', p.subject,
+      'reports', (select coalesce(json_agg(json_build_object('id', c.id, 'tid', c.tid, 'kind', c.kind, 'idx', c.idx, 'note', c.note)), '[]'::json)
+                  from content_reports c where c.key = r.key and not c.resolved)
+    ) order by r.created_at), '[]'::json)
+    from content_requests r left join content_packs p on p.key = r.key where r.id = any(ids));
+end $$;
+
+create or replace function public.pack_worker_done(p_id bigint, p_subject jsonb, p_resolved bigint[])
+returns void language plpgsql security definer set search_path = public as $$
+declare r content_requests%rowtype;
+begin
+  select * into r from content_requests where id = p_id and status = 'arbeit';
+  if not found then raise exception 'not_claimed'; end if;
+  if jsonb_typeof(p_subject->'topics') <> 'array' or octet_length(p_subject::text) > 600000 then raise exception 'bad_subject'; end if;
+  insert into content_packs as cp (key, fach_name, subject, topics)
+    values (r.key, r.fach_name, p_subject, jsonb_array_length(p_subject->'topics'))
+    on conflict (key) do update set subject = excluded.subject, topics = excluded.topics, updated_at = now();
+  update content_reports set resolved = true where key = r.key and id = any(coalesce(p_resolved, '{}'));
+  update content_requests set status = 'fertig', error = null, updated_at = now() where id = p_id;
+  -- Meldungen, die während der Arbeit dazukamen, im nächsten Lauf prüfen
+  if exists (select 1 from content_reports where key = r.key and not resolved) then
+    insert into content_requests (key, fach_name, kind) values (r.key, r.fach_name, 'fix')
+      on conflict (key) where status in ('offen','arbeit') do nothing;
+  end if;
+end $$;
+
+create or replace function public.pack_worker_fail(p_id bigint, p_error text)
+returns void language sql security definer set search_path = public as $$
+  update content_requests set status = 'fehler', error = left(p_error, 300), updated_at = now() where id = p_id;
+$$;
+
+revoke all on function public.pack_list(text) from public;
+revoke all on function public.pack_get(text[]) from public;
+revoke all on function public.pack_status(text[]) from public;
+revoke all on function public.pack_request(text, text, text, text) from public, anon;
+revoke all on function public.pack_report(text, text, text, integer, text) from public, anon;
+revoke all on function public.pack_worker_claim(integer) from public, anon, authenticated;
+revoke all on function public.pack_worker_done(bigint, jsonb, bigint[]) from public, anon, authenticated;
+revoke all on function public.pack_worker_fail(bigint, text) from public, anon, authenticated;
+grant execute on function public.pack_list(text) to anon, authenticated;
+grant execute on function public.pack_get(text[]) to anon, authenticated;
+grant execute on function public.pack_status(text[]) to anon, authenticated;
+grant execute on function public.pack_request(text, text, text, text) to authenticated;
+grant execute on function public.pack_report(text, text, text, integer, text) to authenticated;
+grant execute on function public.pack_worker_claim(integer) to service_role;
+grant execute on function public.pack_worker_done(bigint, jsonb, bigint[]) to service_role;
+grant execute on function public.pack_worker_fail(bigint, text) to service_role;

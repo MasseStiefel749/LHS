@@ -1,0 +1,69 @@
+# Erstellt neue Aufgaben-Pakete mit OpenCode, sobald jemand in der App ein Fach / mehr Aufgaben anfordert
+# oder eine Aufgabe als fehlerhaft meldet. Läuft alle 10 Minuten (kostenlos bei öffentlichen Repos).
+# Einrichtung: README → „Aufgaben für alle Schulen (OpenCode online)“.
+name: Aufgaben erstellen (OpenCode)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      probe:
+        description: "Nur testen, ob Modell + KI-Key funktionieren"
+        type: boolean
+        default: false
+
+concurrency:
+  group: aufgaben
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  aufgaben:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      WORK: ${{ github.workspace }}/../aufgaben-arbeit
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Offene Aufträge holen
+        id: claim
+        if: ${{ !inputs.probe }}
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: node agent/aufgaben-worker.mjs claim "$WORK"
+
+      - name: OpenCode installieren
+        if: ${{ inputs.probe || steps.claim.outputs.count != '0' }}
+        run: npm install -g opencode-ai@latest
+
+      # Nur hier sind die KI-Keys sichtbar – der Supabase-Schlüssel nicht. Nicht gesetzte Secrets bleiben leer und werden ignoriert.
+      - name: Aufgaben erzeugen
+        if: ${{ inputs.probe || steps.claim.outputs.count != '0' }}
+        env:
+          OPENCODE_MODEL: ${{ vars.OPENCODE_MODEL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: node agent/aufgaben-worker.mjs ${{ inputs.probe && 'probe' || 'generate' }} "$WORK"
+
+      - name: Ergebnisse prüfen und speichern
+        if: ${{ !inputs.probe && steps.claim.outputs.count != '0' && !cancelled() }}
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: node agent/aufgaben-worker.mjs submit "$WORK"

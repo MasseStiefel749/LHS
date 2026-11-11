@@ -242,6 +242,59 @@ App → „Neue Inhalte laden" → neue Themen/Übungen erscheinen
 ➕ auf der Startseite: Name + Zeilen im Format `Frage | Antwort` → fertiges
 Fach mit MC, Karteikarten, Fortschritt im selben Pfad-System.
 
+### 🏫 Jede Schule, jede Klasse (OpenCode online)
+
+- **Schule suchen:** 🏫-Knopf links oben → Name eintippen, Bundesland filtern
+  oder „📍 In meiner Nähe“. Daten von [jedeschule.codefor.de](https://jedeschule.codefor.de)
+  (alle Schulen in Deutschland). Nicht gefunden → „Von Hand eintragen“.
+- Danach Schulart + Klassenstufe (bzw. Ausbildungsjahr) wählen → **Deutsch,
+  Mathe und Englisch** passend zur Stufe sind sofort da (`content/schulfaecher.js`).
+- **➕ Fach** auf dem Dashboard: Gibt es das Fach für deine Stufe schon, ist es
+  sofort dabei. Sonst erstellt **OpenCode** es einmalig in GitHub Actions
+  (meist 10–30 Min.) und speichert es in Supabase. **Alle** aus demselben
+  Bundesland + Schulart + Stufe bekommen danach **genau dieselben Aufgaben**
+  (keine Abweichungen). Auf eine einzelne Schule wird bewusst nicht aufgeteilt –
+  Lehrpläne gelten pro Bundesland, so profitieren viel mehr Leute.
+- „Von anderen schon erstellt“: Fächer, die jemand aus deiner Stufe angefordert
+  hat, mit einem Klick übernehmen.
+- ☁️ **Mehr Aufgaben** im Lernpfad: 2 neue Themen pro Anfrage (max. 16 je Fach).
+- ⚠️ **Aufgabe falsch? Melden** unter Cloud-Aufgaben: OpenCode prüft und
+  korrigiert sie für alle (Position bleibt gleich, Fortschritt geht nicht verloren).
+- Ab August fragt die App einmal pro Schuljahr: „Bist du jetzt in Klasse X+1?“
+- Anfordern/Melden braucht ein (kostenloses) Konto, Limit 5 Anfragen bzw.
+  20 Meldungen pro Tag – damit niemand die KI zuspammt. Lesen geht ohne Konto.
+- Das **Lernhub-Original** (Gewerbliche Schulen VS, E1FI …) bleibt unverändert:
+  im Schul-Fenster unter „Lernhub-Original“ auswählen.
+
+**Einrichten (einmalig, Repo-Besitzer):**
+
+1. `supabase/schema.sql` im Supabase-SQL-Editor erneut ausführen (neu:
+   `content_packs`, `content_requests`, `content_reports` + Funktionen `pack_*`).
+2. GitHub → Repo → **Settings → Secrets and variables → Actions → Secrets**:
+   - `SUPABASE_SERVICE_KEY` = Supabase → Project Settings → API → `service_role`
+     (geheim! nie in den Code). OpenCode bekommt diesen Schlüssel nie zu sehen.
+   - **einen** KI-Schlüssel mit genau diesem Namen, je nach Anbieter:
+     `OPENROUTER_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `GROQ_API_KEY`,
+     `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `DEEPSEEK_API_KEY`,
+     `MISTRAL_API_KEY`, `XAI_API_KEY` oder `OPENCODE_API_KEY` (OpenCode Zen).
+3. Gleiche Seite → **Variables** → `OPENCODE_MODEL` im Format
+   `anbieter/modell`, passend zum Schlüssel, z. B. `google/gemini-2.5-flash`,
+   `groq/llama-3.3-70b-versatile`, `openrouter/<modell>` oder
+   `opencode/<modell>`. Ob und wie viel kostenlos ist, legt der Anbieter fest –
+   bitte dort nachsehen.
+4. **Testen ohne App:** Actions → „Aufgaben erstellen (OpenCode)“ → _Run
+   workflow_ → Haken bei **probe** → grün = Modell + Schlüssel funktionieren.
+   Rot → im Log steht die Fehlermeldung des Anbieters (meist falscher
+   Secret-Name oder Modellname).
+5. Danach läuft der Workflow alle 10 Minuten und arbeitet offene Anfragen ab
+   (ohne Anfragen dauert ein Lauf nur Sekunden). Hinweis: GitHub pausiert
+   Zeitpläne nach 60 Tagen ohne Commit – dann unter Actions wieder aktivieren.
+
+Der Ablauf im Workflow (`agent/aufgaben-worker.mjs`): `claim` (Aufträge holen) →
+`generate` (OpenCode schreibt nur `ergebnis.json`, ohne Shell/Web, in einem
+Ordner außerhalb des Repos) → `submit` (strenge Prüfung, dann speichern).
+Schlägt etwas fehl, gibt es bis zu 3 Versuche (Abstand mind. 20 Min.).
+
 ### 🏠 Dashboard
 
 Startseite mit Streak, Tages-XP, Akku, fälligen Wiederholungen, Wochen-XP + Platz
@@ -440,6 +493,10 @@ Crew-Gesicht und eine bestimmte Stimme bekommen.
 | `js/games.js`                             | 🎮 Pausen-Minispiele                                                |
 | `js/chat.js`                              | 💬 Chat mit Freunden/Klasse (Supabase-Funktionen `chat_*`)          |
 | `js/invite.js`                            | 📣 Einladungslink (`?ref=Spitzname&k=Klassencode`), WhatsApp/Teilen |
+| `js/schulen.js`                           | 🏫 Schulsuche, Schulmodus, Cloud-Fachpakete, Melden, Schuljahr      |
+| `content/schulfaecher.js`                 | Deutsch/Mathe/Englisch je Stufen-Band (1-2 … 11-13)                 |
+| `agent/aufgaben-worker.mjs`               | Worker für GitHub Actions: Aufträge → OpenCode → Prüfung → Supabase |
+| `.github/workflows/aufgaben.yml`          | Zeitplan (alle 10 Min.) + manueller Test (`probe`)                  |
 | `manifest.webmanifest`, `sw.js`, `icons/` | Installierbare App + Push-Empfang                                   |
 | `supabase/functions/`                     | Edge Functions `push-reminders` und `untis-ics`                     |
 | `supabase/push-cron.sql`                  | pg_cron-Job für Push (alle 15 Min.)                                 |
@@ -467,6 +524,10 @@ Crew-Gesicht und eine bestimmte Stimme bekommen.
 - Export/Import (JSON) in den Einstellungen. Der Export enthält **nie** den
   API-Key oder den Untis-Link; der Import wird vollständig bereinigt.
 - Vault-Pfad und Schul-URL (Agent-Panel) bleiben im Browser.
+- Schulsuche: Suchbegriff bzw. auf ~1 km gerundeter Standort gehen an
+  jedeschule.codefor.de. Fachpakete liegen ohne Personenbezug in Supabase
+  (`lernhub_packs_v1` als Zwischenspeicher im Browser); Anfragen/Meldungen
+  speichern Konto-ID für die Tageslimits.
 - API-Key (optional) nur lokal, wird ausschließlich an den eingestellten
   Endpunkt gesendet. Mikrofon nur bei Sprechübungen.
 - Impressum/Datenschutz sind in der App eingebaut und ausgefüllt (Fußzeile →

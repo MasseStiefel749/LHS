@@ -329,6 +329,26 @@ body.feedmode #app{padding-top:8px;padding-bottom:0}
 .dmform .btn{border-radius:50%;width:48px;height:48px;padding:0;flex:none;font-size:18px}
 .dmnote{margin:6px 0 0;text-align:center}
 
+/* Schulen & Klassen für alle (js/schulen.js) */
+.schrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.schrow .fi{flex:1 1 200px;margin:0}
+.schrow select.fi{flex:0 1 190px}
+.schbtns{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.schres{max-height:42vh;overflow:auto;margin:6px 0}
+.schorig{margin:10px 0}
+.schorig summary{cursor:pointer;font-weight:700;font-size:13.5px;color:var(--mut)}
+.schpanel{margin-top:14px}
+.schhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.schhead small{display:block;color:var(--mut);font-size:12.5px}
+.schchips{display:flex;flex-wrap:wrap;gap:8px}
+.schip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--c,var(--line));border-radius:99px;padding:6px 12px;font-weight:700;font-size:13.5px;color:inherit;cursor:pointer}
+.schip small{color:var(--mut);font-weight:600}
+.schip:hover{transform:translateY(-1px)}
+.schip.add{border-style:dashed}
+.schip.wait{cursor:default;opacity:.85;border-style:dotted}
+.schip.bad{border-color:var(--red)}
+.schx{background:none;border:0;color:var(--mut);cursor:pointer;padding:0 0 0 2px;font-size:12px}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important;scroll-behavior:auto!important}
 }
