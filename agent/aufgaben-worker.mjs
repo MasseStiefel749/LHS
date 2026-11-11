@@ -325,13 +325,17 @@ function opencode(cwd, prompt) {
   if (!model)
     throw new Error("Repo-Variable OPENCODE_MODEL fehlt (z. B. openrouter/… oder google/…)");
   // ERROR-Logs zeigen die echte Ursache (sonst nur "UnknownError")
-  const r = spawnSync("opencode", ["run", "--print-logs", "--log-level", "ERROR", "--model", model, prompt], {
-    cwd,
-    env: opencodeEnv(),
-    encoding: "utf8",
-    timeout: 12 * 60 * 1000,
-    maxBuffer: 20 * 1024 * 1024,
-  });
+  const r = spawnSync(
+    "opencode",
+    ["run", "--print-logs", "--log-level", "ERROR", "--model", model, prompt],
+    {
+      cwd,
+      env: opencodeEnv(),
+      encoding: "utf8",
+      timeout: 12 * 60 * 1000,
+      maxBuffer: 20 * 1024 * 1024,
+    },
+  );
   if (r.error) throw r.error;
   return { code: r.status, out: (r.stdout || "") + (r.stderr || "") };
 }
