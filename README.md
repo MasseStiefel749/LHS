@@ -41,22 +41,30 @@ wenn der ausgeht.
 
 ### 3. Was kann ich wo machen?
 
-| Bereich | Wofür |
-| --- | --- |
-| 🏠 **Dashboard** | Streak, Tagesziel, fällige Wiederholungen, Stundenplan, nächste Prüfung |
-| 🎓 **Lernpfad** | Fächer (ITS, SAE, BWL, WK, GK, Deutsch, BE …) Thema für Thema – das Herzstück |
-| 🧠 **Erklär-Modus** | Thema in Ruhe erklärt bekommen, Fragen stellen – kostet keinen Akku |
-| 🎭 **Lernrunde** | 1–3 Figuren erklären dir ein Thema im Gespräch, du kannst mitreden |
-| 🔁 **Wiederholen** | Deine Fehler von früher kommen zurück, bis sie sitzen |
-| 🏆 **Bestenliste** | Freunde, Wochenliga, Klassen-Challenge, Lern-Duelle (mit Konto) |
-| 📝 **Notizen** | Mitschriften; Zeilen `Frage \| Antwort` werden per Klick zum eigenen Fach |
-| 📅 **Planer** | Stundenplan (WebUntis-Link), Klassenarbeiten, Erinnerungen |
-| 🍅 **Fokus-Timer** | Pomodoro: konzentriert lernen, dann Pause |
-| 🗣️ **Sprachen** | Aussprache üben, Telefon-Dialoge mit Figuren |
-| 🧸 **Charaktere** | Eigene Lernbegleiter (Bild, Stimme, Persönlichkeit) |
-| ⚙️ **Einstellungen** | Design hell/dunkel, Akku an/aus, Stimmen, Backup |
+| Bereich               | Wofür                                                                                    |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| 🏠 **Dashboard**      | Streak, Tagesziel, fällige Wiederholungen, Stundenplan, nächste Prüfung                  |
+| 🎓 **Lernpfad**       | Fächer (ITS, SAE, BWL, WK, GK, Deutsch, BE …) Thema für Thema – das Herzstück            |
+| 🧠 **Erklär-Modus**   | Thema in Ruhe erklärt bekommen, Fragen stellen – kostet keinen Akku                      |
+| 🎭 **Lernrunde**      | 1–3 Figuren erklären dir ein Thema im Gespräch, du kannst mitreden                       |
+| 🔁 **Wiederholen**    | Deine Fehler von früher kommen zurück, bis sie sitzen                                    |
+| 🧪 **Lernmethoden**   | Wissenschaftlich untersuchte Lerntechniken mit interaktiven Werkzeugen                   |
+| 🎬 **Wissens-Videos** | Kurze Lernvideos im Feed: „Für dich“ (nach deinem Lernstand) oder nach Fach; 👍 👎 🔀 🔖 |
+| 💬 **Chat**           | Nachrichten an Freunde und deine Klasse (mit Konto)                                      |
+| 🎮 **Minispiele**     | Kurze Pausen-Spiele: Snake, 2048, Lern-Memory, Reaktion, Tic-Tac-Toe, Binär-Blitz        |
+| 🏆 **Bestenliste**    | Freunde, Wochenliga, Klassen-Challenge, Lern-Duelle (mit Konto)                          |
+| 📝 **Notizen**        | Mitschriften; Zeilen `Frage \| Antwort` werden per Klick zum eigenen Fach                |
+| 📅 **Planer**         | Stundenplan (WebUntis-Link), Klassenarbeiten, Erinnerungen                               |
+| 🍅 **Fokus-Timer**    | Pomodoro: konzentriert lernen, dann Pause                                                |
+| 🗣️ **Sprachen**       | Aussprache üben, Telefon-Dialoge mit Figuren                                             |
+| 🧸 **Charaktere**     | Eigene Lernbegleiter (Bild, Stimme, Persönlichkeit)                                      |
+| ⚙️ **Einstellungen**  | Design hell/dunkel, Akku an/aus, Stimmen, Backup                                         |
 
 Auf dem Handy liegen die Bereiche unten in der Leiste, der Rest unter **☰ Mehr**.
+Unten links in der Seitenleiste steht dein Konto-Name (ohne Anmeldung „Gast“) –
+ein Klick führt zum Einloggen / Registrieren. Darunter: **📣 Freunde einladen** – der Link
+enthält deinen Spitznamen (und optional den Klassencode); wer darüber ein Konto erstellt,
+schickt dir automatisch eine Freundschaftsanfrage bzw. kommt direkt in die Klasse.
 
 ### 4. So holst du das Meiste raus 🚀
 
@@ -92,25 +100,25 @@ Auf dem Handy liegen die Bereiche unten in der Leiste, der Rest unter **☰ Mehr
 
 Alles hier ist **freiwillig** – die App funktioniert auch komplett ohne.
 
-| Extra | Was du brauchst | So geht's |
-| --- | --- | --- |
-| 🤖 **KI-Agent** (neuer Lernstoff, Figuren antworten per KI in der Lernrunde) | Windows, [Node.js](https://nodejs.org) | `opencode-verbinden.cmd` doppelklicken → installiert OpenCode und startet die Bridge. Dann in der App 🤖 Agent → „Verbindung prüfen“ (grüner Punkt) |
-| 🎙️ **KI-Stimmen** (Chatterbox, eigene Stimme hochladen) | Python 3.12, ca. 6 GB frei, am besten NVIDIA-Grafikkarte | `agent\chatterbox-installieren.ps1` ausführen (Rechtsklick → „Mit PowerShell ausführen“). Danach ⚙️ Einstellungen → Stimmen. Auf schwachen Laptops dauert jeder Satz 10–30 s |
-| 🔑 **Eigener KI-Key** (Chat & Erklär-Modus mit echter KI) | OpenAI-Key oder lokaler [Ollama](https://ollama.com)-Server | ⚙️ Einstellungen → Endpunkt + Key eintragen. Der Key bleibt nur auf deinem PC |
-| 🔄 **Automatisch neu laden** (zum Mitentwickeln) | Node.js | `lernhub-starten.cmd` doppelklicken → `http://127.0.0.1:5500` |
+| Extra                                                                        | Was du brauchst                                             | So geht's                                                                                                                                                                    |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🤖 **KI-Agent** (neuer Lernstoff, Figuren antworten per KI in der Lernrunde) | Windows, [Node.js](https://nodejs.org)                      | `opencode-verbinden.cmd` doppelklicken → installiert OpenCode und startet die Bridge. Dann in der App 🤖 Agent → „Verbindung prüfen“ (grüner Punkt)                          |
+| 🎙️ **KI-Stimmen** (Chatterbox, eigene Stimme hochladen)                      | Python 3.12, ca. 6 GB frei, am besten NVIDIA-Grafikkarte    | `agent\chatterbox-installieren.ps1` ausführen (Rechtsklick → „Mit PowerShell ausführen“). Danach ⚙️ Einstellungen → Stimmen. Auf schwachen Laptops dauert jeder Satz 10–30 s |
+| 🔑 **Eigener KI-Key** (Chat & Erklär-Modus mit echter KI)                    | OpenAI-Key oder lokaler [Ollama](https://ollama.com)-Server | ⚙️ Einstellungen → Endpunkt + Key eintragen. Der Key bleibt nur auf deinem PC                                                                                                |
+| 🔄 **Automatisch neu laden** (zum Mitentwickeln)                             | Node.js                                                     | `lernhub-starten.cmd` doppelklicken → `http://127.0.0.1:5500`                                                                                                                |
 
 Ohne Agent beantworten die Figuren in der 🎭 Lernrunde trotzdem – dann offline aus
 den Lerndaten. Ohne Chatterbox nutzt die App die normalen Browser-Stimmen.
 
 ### 7. Probleme?
 
-| Problem | Lösung |
-| --- | --- |
-| Mikrofon geht nicht | Edge/Chrome nehmen und Mikrofon-Zugriff erlauben (Schloss-Symbol links in der Adressleiste) |
-| Keine Stimme zu hören | Ton am PC an? ⚙️ Einstellungen → Stimmen → andere Stimme wählen |
-| Fortschritt weg | Anderer Browser oder Browserdaten gelöscht → mit Konto einloggen bzw. Backup importieren |
-| 🤖 Agent bleibt rot | `opencode-verbinden.cmd` muss im Hintergrund laufen (Fenster offen lassen) |
-| Untis lädt nicht | Link neu erstellen (WebUntis → ⋯ → iCal-Abo) oder `.ics` herunterladen und importieren |
+| Problem               | Lösung                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------- |
+| Mikrofon geht nicht   | Edge/Chrome nehmen und Mikrofon-Zugriff erlauben (Schloss-Symbol links in der Adressleiste) |
+| Keine Stimme zu hören | Ton am PC an? ⚙️ Einstellungen → Stimmen → andere Stimme wählen                             |
+| Fortschritt weg       | Anderer Browser oder Browserdaten gelöscht → mit Konto einloggen bzw. Backup importieren    |
+| 🤖 Agent bleibt rot   | `opencode-verbinden.cmd` muss im Hintergrund laufen (Fenster offen lassen)                  |
+| Untis lädt nicht      | Link neu erstellen (WebUntis → ⋯ → iCal-Abo) oder `.ics` herunterladen und importieren      |
 
 Fehler gefunden oder Idee? → auf GitHub ein **Issue** aufmachen oder Simon Bescheid sagen.
 
@@ -270,6 +278,7 @@ Format `Frage | Antwort` werden per Klick zu einem eigenen Lernfach.
   sonst `.ics` herunterladen und importieren. Der Link ist wie ein Passwort und lässt
   sich in WebUntis mit „Link deaktivieren“ ungültig machen. Lernhub lädt ihn beim
   Öffnen automatisch neu (höchstens alle 6 h) und übernimmt 90 Tage voraus.
+
 - **Termine:** Klassenarbeiten/Abgaben eintragen (Häkchen „📝 Prüfung“ → Countdown
   auf dem Dashboard); Schultermine kommen automatisch dazu.
 - **Erinnerungen:** Ab der eingestellten Uhrzeit erinnert Lernhub, bis das Tagesziel
@@ -314,11 +323,11 @@ simpleclub-Empfehlung ist eine **unbezahlte** Empfehlung (keine Kooperation).
 
 1. Auf [supabase.com](https://supabase.com) ein kostenloses Projekt anlegen.
 2. **SQL Editor** → Inhalt von `supabase/schema.sql` einfügen → Run.
-3. **Project Settings → API**: *Project URL* und *anon public key* in
+3. **Project Settings → API**: _Project URL_ und _anon public key_ in
    `content/cloud-config.js` eintragen (der anon key ist öffentlich gedacht;
    **nie** den `service_role`-Key eintragen).
 4. **Authentication → Sign In / Providers → Email**: „Confirm email“ ausschalten
-   *oder* unter *URL Configuration* die Site-URL auf die veröffentlichte Seite
+   _oder_ unter _URL Configuration_ die Site-URL auf die veröffentlichte Seite
    setzen (Bestätigungslinks funktionieren nicht mit `file://`).
 5. **Authentication → URL Configuration → Redirect URLs**: die Adresse der
    App eintragen (z. B. `https://NAME.github.io/lernhub/index.html` und zum Testen
@@ -405,34 +414,40 @@ Crew-Gesicht und eine bestimmte Stimme bekommen.
 
 ## Dateien im Projekt
 
-| Datei                      | Zweck                                                             |
-| -------------------------- | ----------------------------------------------------------------- |
-| `opencode.json`            | OpenCode-Rechte für dieses Projekt (`bash` verboten)              |
-| `content/bridge-token.js`  | Wird von der Bridge erzeugt (geheim, in `.gitignore`)             |
-| `index.html`               | **Komplette App** (CSS+JS inline, ~1 Datei, keine Abhängigkeiten) |
-| `AGENT.md`                 | Arbeitsanweisung für den OpenCode-Agenten + Daten-Schema          |
-| `opencode-verbinden.cmd`   | Installations-Check + Start von Bridge & Agent                    |
-| `agent/bridge.ps1`         | Lokale HTTP-Bridge (127.0.0.1:8799)                               |
-| `agent/vollzugriff.ps1`    | PC-Auftrag bestätigen lassen + OpenCode mit Vollzugriff starten   |
-| `content/erweiterungen.js` | Agent-schreibt-hier-neue-Inhalte rein                             |
-| `content/status.json`      | Agent-Status (Warteschlange, letzter Lauf)                        |
-| `content/auftraege/`       | Aufträge aus der App                                              |
-| `content/cloud-config.js`  | Supabase-URL + anon key (leer = keine Bestenliste)                |
-| `js/plus.js`               | Dashboard, Erklär-Modus, Notizen, Planer/Untis, Erinnerungen, Links |
-| `js/cloud.js`              | Konto-Sitzung, Freunde, Bestenliste (Supabase über `fetch`)       |
-| `js/konto.js`              | Anmelde-Bildschirm, Passwort-Reset, privater Cloud-Speicher       |
-| `js/mascot.js`             | Pingulin & Crew (SVG-Gesichter), Stimmen, Mund-Animation          |
-| `js/extra.js`              | Streak-Freeze, Ruhetage, Fokus-Timer, Countdown, Erfolge, PWA/Push |
-| `js/social.js`             | Ligen, Klassen, Duelle, Untis-Proxy-Aufruf                        |
-| `css/extra.css`            | Styles für die neuen Bereiche                                     |
-| `manifest.webmanifest`, `sw.js`, `icons/` | Installierbare App + Push-Empfang                  |
-| `supabase/functions/`      | Edge Functions `push-reminders` und `untis-ics`                   |
-| `supabase/push-cron.sql`   | pg_cron-Job für Push (alle 15 Min.)                               |
-| `supabase/schema.sql`      | Tabellen, Indizes, RLS und Funktionen für Supabase                |
-| `README.md`                | Diese Doku                                                        |
-| `docs/AI-CHECKLISTE.md`    | Prüfprotokoll für eine andere KI                                  |
-| `docs/PUBLIKATION.md`      | GitHub + Impressum vor Veröffentlichung                           |
-| `LICENSE`                  | MIT                                                               |
+| Datei                                     | Zweck                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------- |
+| `opencode.json`                           | OpenCode-Rechte für dieses Projekt (`bash` verboten)                |
+| `content/bridge-token.js`                 | Wird von der Bridge erzeugt (geheim, in `.gitignore`)               |
+| `index.html`                              | **Komplette App** (CSS+JS inline, ~1 Datei, keine Abhängigkeiten)   |
+| `AGENT.md`                                | Arbeitsanweisung für den OpenCode-Agenten + Daten-Schema            |
+| `opencode-verbinden.cmd`                  | Installations-Check + Start von Bridge & Agent                      |
+| `agent/bridge.ps1`                        | Lokale HTTP-Bridge (127.0.0.1:8799)                                 |
+| `agent/vollzugriff.ps1`                   | PC-Auftrag bestätigen lassen + OpenCode mit Vollzugriff starten     |
+| `content/erweiterungen.js`                | Agent-schreibt-hier-neue-Inhalte rein                               |
+| `content/status.json`                     | Agent-Status (Warteschlange, letzter Lauf)                          |
+| `content/auftraege/`                      | Aufträge aus der App                                                |
+| `content/cloud-config.js`                 | Supabase-URL + anon key (leer = keine Bestenliste)                  |
+| `js/plus.js`                              | Dashboard, Erklär-Modus, Notizen, Planer/Untis, Erinnerungen, Links |
+| `js/cloud.js`                             | Konto-Sitzung, Freunde, Bestenliste (Supabase über `fetch`)         |
+| `js/konto.js`                             | Anmelde-Bildschirm, Passwort-Reset, privater Cloud-Speicher         |
+| `js/mascot.js`                            | Pingulin & Crew (SVG-Gesichter), Stimmen, Mund-Animation            |
+| `js/extra.js`                             | Streak-Freeze, Ruhetage, Fokus-Timer, Countdown, Erfolge, PWA/Push  |
+| `js/social.js`                            | Ligen, Klassen, Duelle, Untis-Proxy-Aufruf                          |
+| `css/extra.css`                           | Styles für die neuen Bereiche                                       |
+| `css/neu.css`                             | Styles für Seitenleisten-Ordner, Methoden, Feed, Spiele, Chat       |
+| `js/methoden.js`                          | 🧪 Lernmethoden (interaktive Werkzeuge)                             |
+| `js/feed.js`, `content/videos.js`         | 🎬 Video-Feed (YouTube-nocookie-Einbettung) + Videoliste            |
+| `js/games.js`                             | 🎮 Pausen-Minispiele                                                |
+| `js/chat.js`                              | 💬 Chat mit Freunden/Klasse (Supabase-Funktionen `chat_*`)          |
+| `js/invite.js`                            | 📣 Einladungslink (`?ref=Spitzname&k=Klassencode`), WhatsApp/Teilen |
+| `manifest.webmanifest`, `sw.js`, `icons/` | Installierbare App + Push-Empfang                                   |
+| `supabase/functions/`                     | Edge Functions `push-reminders` und `untis-ics`                     |
+| `supabase/push-cron.sql`                  | pg_cron-Job für Push (alle 15 Min.)                                 |
+| `supabase/schema.sql`                     | Tabellen, Indizes, RLS und Funktionen für Supabase                  |
+| `README.md`                               | Diese Doku                                                          |
+| `docs/AI-CHECKLISTE.md`                   | Prüfprotokoll für eine andere KI                                    |
+| `docs/PUBLIKATION.md`                     | GitHub + Impressum vor Veröffentlichung                             |
+| `LICENSE`                                 | MIT                                                                 |
 
 ## Daten & Datenschutz
 
@@ -454,8 +469,8 @@ Crew-Gesicht und eine bestimmte Stimme bekommen.
 - Vault-Pfad und Schul-URL (Agent-Panel) bleiben im Browser.
 - API-Key (optional) nur lokal, wird ausschließlich an den eingestellten
   Endpunkt gesendet. Mikrofon nur bei Sprechübungen.
-- Impressum/Datenschutz sind in der App eingebaut – **vor öffentlicher
-  Veröffentlichung die Platzhalter ausfüllen** (siehe `docs/PUBLIKATION.md`).
+- Impressum/Datenschutz sind in der App eingebaut und ausgefüllt (Fußzeile →
+  Impressum · Datenschutz). Bei neuen Datenflüssen den Datenschutz-Text ergänzen.
 
 ## Browser-Support
 
@@ -467,4 +482,3 @@ Doppelklick nutzbar; über `file://` läuft alles außer dem Agenten-Ping
 ## Lizenz
 
 MIT – siehe `LICENSE`. Vor Veröffentlichung den Copyright-Namen anpassen.
-

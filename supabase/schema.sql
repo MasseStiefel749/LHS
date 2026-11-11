@@ -653,3 +653,124 @@ revoke all on function public.state_load() from public, anon;
 revoke all on function public.state_save(jsonb, timestamptz) from public, anon;
 grant execute on function public.state_load() to authenticated;
 grant execute on function public.state_save(jsonb, timestamptz) to authenticated;
+
+-- ===================== 💬 Chat: Direktnachrichten unter Freunden + Klassenchat =====================
+-- Direktnachrichten nur zwischen bestätigten Freunden, Klassenchat nur für Mitglieder derselben Klasse.
+-- Kein direkter Tabellenzugriff (RLS ohne Policies + REVOKE) – alles über die Funktionen unten.
+-- Limits: max. 1000 Zeichen, 15 Nachrichten pro Minute, 400 pro Tag. Nachrichten werden nach 90 Tagen gelöscht.
+create table if not exists public.messages (
+  id         bigint generated always as identity primary key,
+  sender     uuid not null references public.profiles(id) on delete cascade,
+  recipient  uuid references public.profiles(id) on delete cascade,
+  class_id   bigint references public.classes(id) on delete cascade,
+  body       text not null check (char_length(body) between 1 and 1000),
+  created_at timestamptz not null default now(),
+  check ((recipient is null) <> (class_id is null)),
+  check (recipient is null or recipient <> sender)
+);
+-- Verlauf eines Paares (beide Richtungen), Posteingang, Klassenchat, Rate-Limit pro Absender, Aufräumen nach Alter
+create index if not exists messages_pair_idx on public.messages (least(sender, recipient), greatest(sender, recipient), id desc) where recipient is not null;
+create index if not exists messages_recipient_idx on public.messages (recipient, id desc) where recipient is not null;
+create index if not exists messages_class_idx on public.messages (class_id, id desc) where class_id is not null;
+create index if not exists messages_sender_idx on public.messages (sender, created_at desc);
+create index if not exists messages_created_idx on public.messages (created_at);
+alter table public.messages enable row level security;
+revoke all on public.messages from anon, authenticated;
+
+-- Übersicht: Klassenchat (falls Mitglied) + alle bestätigten Freunde mit letzter Nachricht
+create or replace function public.chat_overview()
+returns json language sql stable security definer set search_path = public as $$
+  with me as (select auth.uid() as uid),
+  cls as (select c.id, c.name from class_members m join classes c on c.id = m.class_id, me where m.user_id = me.uid),
+  fr as (
+    select p.id, p.nickname from friendships f cross join me
+    join profiles p on p.id = case when f.requester = me.uid then f.addressee else f.requester end
+    where f.status = 'accepted' and me.uid in (f.requester, f.addressee))
+  select json_build_object(
+    'class', (select json_build_object('name', cls.name, 'last', (
+        select json_build_object('id', m.id, 'body', left(m.body, 80), 'at', m.created_at, 'mine', m.sender = me.uid, 'nick', p.nickname)
+        from messages m join profiles p on p.id = m.sender
+        where m.class_id = cls.id order by m.id desc limit 1)) from cls, me),
+    'friends', coalesce((select json_agg(x order by x.last_id desc nulls last, x.nickname) from (
+        select fr.nickname, l.id as last_id, left(l.body, 80) as body, l.created_at as at, l.sender = me.uid as mine
+        from fr cross join me
+        left join lateral (
+          select m.id, m.body, m.created_at, m.sender from messages m
+          where m.recipient is not null
+            and least(m.sender, m.recipient) = least(me.uid, fr.id) and greatest(m.sender, m.recipient) = greatest(me.uid, fr.id)
+          order by m.id desc limit 1) l on true) x), '[]'::json));
+$$;
+
+-- Nachrichten laden: p_nick = Freund (null = Klassenchat); p_after = nur neuere als diese ID (0 = letzte 60)
+create or replace function public.chat_messages(p_nick text, p_after bigint)
+returns json language plpgsql stable security definer set search_path = public as $$
+declare uid uuid := auth.uid(); peer uuid; v_cls bigint; res json;
+begin
+  if uid is null then raise exception 'not_authenticated'; end if;
+  if p_nick is null then
+    select class_id into v_cls from class_members where user_id = uid;
+    if v_cls is null then return '[]'::json; end if;
+    select coalesce(json_agg(x order by x.id), '[]'::json) into res from (
+      select m.id, m.sender = uid as mine, p.nickname as nick, m.body, m.created_at as at
+      from messages m join profiles p on p.id = m.sender
+      where m.class_id = v_cls and m.id > coalesce(p_after, 0)
+      order by m.id desc limit 60) x;
+  else
+    select id into peer from profiles where lower(nickname) = lower(trim(p_nick));
+    if peer is null or not are_friends(uid, peer) then return '[]'::json; end if;
+    select coalesce(json_agg(x order by x.id), '[]'::json) into res from (
+      select m.id, m.sender = uid as mine, p.nickname as nick, m.body, m.created_at as at
+      from messages m join profiles p on p.id = m.sender
+      where m.recipient is not null
+        and least(m.sender, m.recipient) = least(uid, peer) and greatest(m.sender, m.recipient) = greatest(uid, peer)
+        and m.id > coalesce(p_after, 0)
+      order by m.id desc limit 60) x;
+  end if;
+  return res;
+end $$;
+
+-- Senden. Antwort: sent | empty | not_friends | no_class | rate
+create or replace function public.chat_send(p_nick text, p_body text)
+returns text language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); peer uuid; v_cls bigint;
+  v_body text := btrim(regexp_replace(coalesce(p_body, ''), E'[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]', '', 'g'));
+begin
+  if uid is null then raise exception 'not_authenticated'; end if;
+  if not exists (select 1 from profiles where id = uid) then raise exception 'no_profile'; end if;
+  if v_body = '' then return 'empty'; end if;
+  v_body := left(v_body, 1000);
+  if (select count(*) from messages where sender = uid and created_at > now() - interval '1 minute') >= 15
+     or (select count(*) from messages where sender = uid and created_at > now() - interval '1 day') >= 400 then
+    return 'rate';
+  end if;
+  if p_nick is null then
+    select class_id into v_cls from class_members where user_id = uid;
+    if v_cls is null then return 'no_class'; end if;
+    insert into messages (sender, class_id, body) values (uid, v_cls, v_body);
+  else
+    select id into peer from profiles where lower(nickname) = lower(trim(p_nick));
+    if peer is null or peer = uid or not are_friends(uid, peer) then return 'not_friends'; end if;
+    insert into messages (sender, recipient, body) values (uid, peer, v_body);
+  end if;
+  delete from messages where created_at < now() - interval '90 days';
+  return 'sent';
+end $$;
+
+-- Eigene Nachricht löschen; im Klassenchat darf die Person, die die Klasse erstellt hat, jede Nachricht löschen
+create or replace function public.chat_delete(p_id bigint)
+returns void language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid();
+begin
+  if uid is null then raise exception 'not_authenticated'; end if;
+  delete from messages m where m.id = p_id and (m.sender = uid
+    or (m.class_id is not null and exists (select 1 from classes c where c.id = m.class_id and c.owner = uid)));
+end $$;
+
+revoke all on function public.chat_overview() from public, anon;
+revoke all on function public.chat_messages(text, bigint) from public, anon;
+revoke all on function public.chat_send(text, text) from public, anon;
+revoke all on function public.chat_delete(bigint) from public, anon;
+grant execute on function public.chat_overview() to authenticated;
+grant execute on function public.chat_messages(text, bigint) to authenticated;
+grant execute on function public.chat_send(text, text) to authenticated;
+grant execute on function public.chat_delete(bigint) to authenticated;

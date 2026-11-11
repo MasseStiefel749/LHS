@@ -6,11 +6,23 @@
 <meta name="description" content="Lernhub – gamifizierte Lern-App für Berufsschule und allgemeines Lernen: Quiz, Karteikarten, Sprech-Übungen, Wiederholungen und KI-Tipps. Offline, Open Source.">
 <meta name="theme-color" content="#7c5cff">
 <title>Lernhub – Lernen wie im Spiel</title>
+<!-- Link-Vorschau (WhatsApp, Discord, …) – braucht absolute URLs -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Lernhub">
+<meta property="og:title" content="Lernhub – Lernen wie im Spiel">
+<meta property="og:description" content="Kostenlos lernen mit Streaks, Bestenliste, Chat und Videos – zusammen mit deinen Freunden und deiner Klasse.">
+<meta property="og:url" content="https://massestiefel749.github.io/LHS/">
+<meta property="og:image" content="https://massestiefel749.github.io/LHS/icons/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Lernhub">
 <link rel="stylesheet" href="css/extra.css">
+<link rel="stylesheet" href="css/neu.css">
 <style>
 :root{
   --pri:#7c5cff; --pri-d:#5a3ee0; --pri-l:#efeaff;
@@ -39,7 +51,7 @@ a{color:var(--pri);cursor:pointer}
 /* ---------- Sidebar ---------- */
 .logo{font-weight:900;font-size:21px;padding:6px 8px 2px;cursor:pointer;user-select:none}
 .logo small{display:block;font-weight:600;font-size:11px;color:var(--mut)}
-#schoolBtn{width:100%;margin:12px 0 6px;background:var(--pri-l);border:1.5px solid #d9d0ff;color:var(--pri-d);border-radius:12px;padding:9px 10px;font-size:12.5px;font-weight:700;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#schoolBtn{width:100%;margin:12px 0 6px;background:var(--pri-l);border:1.5px solid #d9d0ff;color:var(--pri-d);border-radius:12px;padding:9px 10px;font-size:12.5px;font-weight:700;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;line-height:1.3}
 #schoolBtn:hover{border-color:var(--pri)}
 #nav{display:flex;flex-direction:column;gap:4px;margin-top:8px}
 #nav button{background:none;border:0;text-align:left;padding:11px 12px;border-radius:12px;font-size:14.5px;font-weight:600;color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:center}
@@ -120,6 +132,7 @@ a{color:var(--pri);cursor:pointer}
 .opt.correct{border-color:var(--green);background:#e9fbf1}
 .opt.wrong{border-color:var(--red);background:#ffeff3}
 .opt:disabled{cursor:default}
+@media(hover:hover) and (pointer:fine){ .qcard{counter-reset:opt} .qcard .opt{counter-increment:opt} .qcard .opt:not(:disabled)::before{content:counter(opt);display:inline-grid;place-items:center;width:20px;height:20px;margin-right:10px;border:1.5px solid var(--line);border-radius:6px;font-size:11px;color:var(--mut);vertical-align:1px} }
 .fb{border-radius:12px;padding:12px 15px;margin-top:14px;font-size:14.5px;line-height:1.55;display:none;font-weight:600}
 .fb.show{display:block;animation:pop .18s}
 .fb.ok{background:#e9fbf1;border:2px solid var(--green);color:#127a41}
@@ -318,8 +331,9 @@ details.exsec summary{cursor:pointer;font-weight:800}
   <button id="schoolBtn" onclick="openSchoolPicker()">🏫 Schule wählen</button>
   <nav id="nav"></nav>
   <div class="sidefoot">
+    <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.0 · offline</span>
+    <span id="verLine">v1.2 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -357,6 +371,12 @@ details.exsec summary{cursor:pointer;font-weight:800}
 <script src="js/cloud.js"></script>
 <script src="js/social.js"></script>
 <script src="js/konto.js"></script>
+<script src="js/methoden.js"></script>
+<script src="content/videos.js"></script>
+<script src="js/feed.js"></script>
+<script src="js/games.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/invite.js"></script>
 <script src="content/bridge-token.js"></script>
 <script>
 "use strict";
@@ -388,7 +408,7 @@ function defaultState(){
     review:[],                 /* {tid,kind,idx,fails,due} */
     chars:[], activeChar:null,
     chat:{apiKey:"",endpoint:"https://api.openai.com/v1/chat/completions",model:"gpt-4o-mini"},
-    agent:{lastPing:0,connected:false,vaultPath:"C:\\Users\\S-Lasarzewski\\Documents\\Obsidian Vault",schoolUrl:"https://www.gewerbeschule-vs.de/"},
+    agent:{lastPing:0,connected:false,vaultPath:"",schoolUrl:"https://www.gewerbeschule-vs.de/"},
     videos:{seen:0,lastTopic:"",lastDay:""},
     custom:{subjects:[]},      /* eigene Fächer (allgemeines Lernen) */
     stats:{answered:0,correct:0,lessons:0,hints:0}
@@ -439,6 +459,8 @@ function cleanChar(c){
 function sanitizeState(raw){
   const D = defaultState();
   const isObj = o => o && typeof o=="object" && !Array.isArray(o);
+  /* "__proto__"/"constructor" aus Importen/Cloud verwerfen, sonst ändert Object.assign den Prototyp */
+  if(isObj(raw)) raw = JSON.parse(JSON.stringify(raw), (k,v)=> k==="__proto__"||k==="constructor" ? undefined : v);
   const st = Object.assign({}, D, isObj(raw)?raw:{});
   if(!Array.isArray(st.chars)) st.chars=[];
   ["profile","streak","hearts","progress","chat","agent","videos","custom","stats"].forEach(k=>{
@@ -514,7 +536,7 @@ function confetti(n){
     document.body.appendChild(d); setTimeout(()=>d.remove(),3600);
   }
 }
-function toastModal(html){ $("modalbox").innerHTML=html; $("modal").classList.remove("hidden"); }
+function toastModal(html){ $("modalbox").innerHTML=html; $("modal").classList.remove("hidden","sheetmode"); }
 function closeModal(){ $("modal").classList.add("hidden"); }
 function applyTheme(){ document.body.classList.toggle("dark", (S.profile&&S.profile.theme)!=="light"); }
 async function copyText(t){
@@ -1491,8 +1513,39 @@ const NAV = [
   ["chars","🧸","Charaktere"],
   ["agent","🤖","Agent"],
   ["konto","👤","Konto"],
-  ["settings","⚙️","Einstellungen"]
+  ["settings","⚙️","Einstellungen"],
+  ["methoden","🧪","Lernmethoden"],
+  ["feed","🎬","Wissens-Videos"],
+  ["chat","💬","Chat"],
+  ["games","🎮","Minispiele"]
 ];
+/* Seitenleiste: Dashboard oben, alles andere in Ordnern */
+const NAV_GROUPS = [
+  ["lernen","📚","Lernen",["path","explain","runde","review","methoden","feed","sprachen"]],
+  ["orga","🗂️","Organisieren",["plan","notes","fokus","links"]],
+  ["community","👥","Community",["board","chat","erfolge"]],
+  ["pause","☕","Pause",["games"]],
+  ["ich","🙂","Ich & Einstellungen",["chars","agent","konto","settings"]]
+];
+function navItem(v){ return NAV.find(n=>n[0]===v); }
+function navGroupOf(v){ return NAV_GROUPS.find(g=>g[3].includes(v)); }
+function navIsOpen(g){ const o=S.navOpen||{}; return o[g[0]]!==undefined ? !!o[g[0]] : (g[0]==="lernen" || g[3].includes(V.view)); }
+function navToggle(id){
+  const g=NAV_GROUPS.find(x=>x[0]===id); if(!g) return;
+  S.navOpen=Object.assign({}, S.navOpen||{}, {[id]:!navIsOpen(g)}); save();
+  const el=document.querySelector(`#nav .navgrp[data-g="${id}"]`);
+  if(el){ el.classList.toggle("open", S.navOpen[id]); el.querySelector(".ghead").setAttribute("aria-expanded", S.navOpen[id]); }
+}
+/* Ordner sofort (ohne Animation) öffnen, z. B. für die Tour */
+function navReveal(v){
+  const b=document.querySelector(`#nav button[onclick="go('${v}')"]`); if(!b) return null;
+  const grp=b.closest(".navgrp");
+  if(grp && !grp.classList.contains("open")){
+    const body=grp.querySelector(".gbody"); body.style.transition="none";
+    grp.classList.add("open"); void body.offsetHeight; body.style.transition="";
+  }
+  return b;
+}
 function go(view, a, b){
   if(V.view==="runde" && view!=="runde") rundeStop();
   V.view=view; if(view==="path" && a){ V.subj=a; }
@@ -1506,8 +1559,14 @@ function render(){
              review:renderReview, sprachen:renderSprachen, speak:renderSpeak, call:renderCall,
              chars:renderChars, settings:renderSettings, agent:renderAgent,
              explain:renderExplain, runde:renderRunde, board:renderBoard, notes:renderNotes, plan:renderPlan, links:renderLinks,
-             fokus:renderFocus, erfolge:renderBadges, duel:renderDuel, konto:renderKonto}[V.view];
+             fokus:renderFocus, erfolge:renderBadges, duel:renderDuel, konto:renderKonto,
+             methoden:window.renderMethoden, feed:window.feedView, chat:window.renderChatView, games:window.gamesView}[V.view];
+  if(V.view!=="feed" && window.feedStop) feedStop();
+  if(V.view!=="games" && window.gamesStop) gamesStop();
+  if(V.view!=="chat" && window.chatStop) chatStop();
   (f||renderDashboard)();
+  const app=$("app"); app.classList.remove("viewin"); void app.offsetWidth; app.classList.add("viewin");
+  clearTimeout(app._vt); app._vt=setTimeout(()=>app.classList.remove("viewin"), 600);
 }
 function renderTop(){
   applyTheme();
@@ -1526,11 +1585,21 @@ function renderTop(){
 function dueCount(){ const t=today(); return S.review.filter(r=>r.due<=t && r.kind!=="free").length; }
 function renderNav(){
   const due=dueCount();
-  $("nav").innerHTML = NAV.map(([v,ic,l])=>
-    `<button class="${V.view===v?'on':''}" onclick="go('${v}')">${ic} ${l}${v==='review'&&due?`<span class="badge">${due}</span>`:""}</button>`).join("");
-  const mob=[["home","🏠","Start"],["path","🎓","Lernen"],["explain","🧠","Erklären"],["board","🏆","Rang"],["more","☰","Mehr"]];
-  $("mnav").innerHTML = mob.map(([v,ic,l])=>
-    `<button class="${V.view===v?'on':''}" onclick="${v==='more'?'openMore()':`go('${v}')`}"><span class="ic">${ic}</span>${l}${v==='more'&&due?`<span class="badge" style="position:absolute;transform:translate(14px,-4px)">${due}</span>`:""}</button>`).join("");
+  const unread=window.chatUnread ? chatUnread() : 0;
+  const badgeOf=v=> v==="review"&&due ? due : v==="chat"&&unread ? unread : 0;
+  const btn=v=>{ const n=navItem(v); if(!n) return ""; const b=badgeOf(v);
+    return `<button class="${V.view===v?'on':''}" onclick="go('${v}')"><span class="nic">${n[1]}</span>${n[2]}${b?`<span class="badge">${b}</span>`:""}</button>`; };
+  $("nav").innerHTML = btn("home") + NAV_GROUPS.map(g=>{
+    const open=navIsOpen(g), sum=g[3].reduce((a,v)=>a+badgeOf(v),0), act=g[3].includes(V.view);
+    return `<div class="navgrp${open?' open':''}${act?' act':''}" data-g="${g[0]}">
+      <button class="ghead" onclick="navToggle('${g[0]}')" aria-expanded="${open}"><span class="nic">${g[1]}</span>${esc(g[2])}${sum?`<span class="badge gb">${sum}</span>`:""}<span class="chev">›</span></button>
+      <div class="gbody"><div>${g[3].map(btn).join("")}</div></div></div>`;
+  }).join("");
+  const mob=[["home","🏠","Start"],["path","🎓","Lernen"],["feed","🎬","Videos"],["chat","💬","Chat"],["more","☰","Mehr"]];
+  const inBar=mob.some(m=>m[0]===V.view);
+  if(window.renderSideUser) renderSideUser();
+  $("mnav").innerHTML = mob.map(([v,ic,l])=>{ const b=v==="more"?due:badgeOf(v);
+    return `<button class="${V.view===v||(v==='more'&&!inBar)?'on':''}" onclick="${v==='more'?'openMore()':`go('${v}')`}"><span class="ic">${ic}</span>${l}${b?`<span class="badge mb">${b}</span>`:""}</button>`; }).join("");
 }
 /* ---- Schule/Klasse-Dropdown ---- */
 function openSchoolPicker(){
@@ -1559,8 +1628,6 @@ function renderOnboard(){
       <span class="bigemoji">🧠</span>
       <div class="center"><h1 class="h1">Willkommen im Lernhub</h1>
       <p class="mut">Lernen wie im Spiel: Streaks 🔥, XP ⚡, Akku 🔋 – für die Berufsschule <b>und</b> alles andere.</p></div>
-      <label class="fl">Wie heißt du? (optional)</label>
-      <input class="fi" id="obName" value="${esc(d.name)}" placeholder="Dein Name" oninput="ob.name=this.value">
       <button class="choice ${d.goal==='schule'?'sel':''}" onclick="ob.goal='schule';renderOnboard()"><b>🎒 Berufsschule (E1FI A &amp; mehr)</b><br><small class="mut">ITS, SAE, BWL, WK, GK, Deutsch, Englisch – mit deinen echten Notizen</small></button>
       <button class="choice ${d.goal==='frei'?'sel':''}" onclick="ob.goal='frei';renderOnboard()"><b>🌍 Allgemein lernen</b><br><small class="mut">Was immer du lernen willst – eigene Fächer anlegen</small></button>
       <button class="choice ${d.goal==='beides'?'sel':''}" onclick="ob.goal='beides';renderOnboard()"><b>🔥 Beides</b><br><small class="mut">Schule + private Projekte</small></button>
@@ -2504,7 +2571,7 @@ function greetChat(){
   const c=activeChar(); const nm=c?c.name:"Coach";
   CHAT=[];
   if(agentOn()){
-    agentAsk(agentPersona()+"\n"+agentState()+`\nDas Chat-Fenster wurde gerade geöffnet. Schreib als ${nm} eine kurze Begrüßung (1–2 Sätze) an ${S.profile.name||"den Lernenden"} und ${c&&c.teach?"bitte neugierig darum, dir das Thema „"+teachTopic().name+"“ zu erklären":"biete deine Hilfe an"}.`)
+    agentAsk(agentPersona()+"\n"+agentState()+`\nDas Chat-Fenster wurde gerade geöffnet. Schreib als ${nm} eine kurze Begrüßung (1–2 Sätze) an ${accountName()||"den Lernenden"} und ${c&&c.teach?"bitte neugierig darum, dir das Thema „"+teachTopic().name+"“ zu erklären":"biete deine Hilfe an"}.`)
       .then(t=>{ if(t) pushMsg("bot",t); else localGreet(); renderQuick(); });
     return;
   }
@@ -2579,7 +2646,7 @@ const AGE_RULES="Zielgruppe: Azubis zwischen 16 und 40. Kein Fluchen, keine sexu
 function agentPersona(){
   const c=activeChar(), nm=c?c.name:"Pingulin";
   return `Du bist ${nm}, der Lern-Begleiter in der Lern-App „Lernhub“. Persönlichkeit: ${c&&c.blurb?c.blurb:"freundlich, witzig, motivierend"}.${c&&c.style?" Sprechstil: "+c.style:""}
-${c&&c.teach?`Dein Job: Du bist der SCHÜLER, nicht der Lehrer (Lernen durch Lehren). ${S.profile.name||"Der Lernende"} (${S.profile.school}, Klasse ${S.profile.klasse}, Fachinformatiker, 1. Lehrjahr) erklärt dir den Stoff. Du weißt über das Lernthema fast nichts und erklärst nie selbst. Stell neugierige, einfache Nachfragen (Warum? Was passiert dann? Gibt's ein Beispiel?). Du kennst heimlich die richtigen Fakten: Ist eine Erklärung falsch oder lückenhaft, verrate das nicht direkt, sondern frag verwirrt nach oder bring ein Gegenbeispiel, damit der Fehler selbst gefunden wird. Ist sie richtig, freu dich, fasse sie in eigenen kindlichen Worten zusammen und frag nach dem nächsten Detail. Du schreibst im Chat-Fenster der App.`:`Dein Job: ${S.profile.name||"dem Lernenden"} (${S.profile.school}, Klasse ${S.profile.klasse}, Fachinformatiker, 1. Lehrjahr) beim Lernen helfen – Tipps zu Aufgaben geben, Stoff erklären, motivieren und Fragen zur App beantworten. Du schreibst im Chat-Fenster der App.`}
+${c&&c.teach?`Dein Job: Du bist der SCHÜLER, nicht der Lehrer (Lernen durch Lehren). ${accountName()||"Der Lernende"} (${S.profile.school}, Klasse ${S.profile.klasse}, Fachinformatiker, 1. Lehrjahr) erklärt dir den Stoff. Du weißt über das Lernthema fast nichts und erklärst nie selbst. Stell neugierige, einfache Nachfragen (Warum? Was passiert dann? Gibt's ein Beispiel?). Du kennst heimlich die richtigen Fakten: Ist eine Erklärung falsch oder lückenhaft, verrate das nicht direkt, sondern frag verwirrt nach oder bring ein Gegenbeispiel, damit der Fehler selbst gefunden wird. Ist sie richtig, freu dich, fasse sie in eigenen kindlichen Worten zusammen und frag nach dem nächsten Detail. Du schreibst im Chat-Fenster der App.`:`Dein Job: ${S.profile.name||"dem Lernenden"} (${S.profile.school}, Klasse ${S.profile.klasse}, Fachinformatiker, 1. Lehrjahr) beim Lernen helfen – Tipps zu Aufgaben geben, Stoff erklären, motivieren und Fragen zur App beantworten. Du schreibst im Chat-Fenster der App.`}
 Regeln: Antworte auf Deutsch, locker und kurz (höchstens 4 Sätze), ohne Markdown. Benutze keine Tools. Bleib in deiner Rolle als ${nm}. ${AGE_RULES} Verrate die Lösung einer aktiven Aufgabe nie, solange weniger als ${HINT_THRESHOLD} Fehlversuche vorliegen und nicht aufgegeben wurde – gib dann nur Tipps.`;
 }
 function agentState(){
@@ -2603,7 +2670,7 @@ function teachTopic(){
 }
 async function teachAsk(){
   const nm=activeChar().name;
-  const t=await agentAsk(agentPersona()+"\n"+agentState()+`\nStell als ${nm} GENAU EINE neugierige Frage zum Thema, die ${S.profile.name||"der Lernende"} dir erklären soll (höchstens 2 Sätze). Wähle etwas Wichtiges, das noch nicht im Chat erklärt wurde.\nBisheriger Chat:\n${CHAT.filter(m=>!m.wait).slice(-6).map(m=>(m.who==="me"?"Nutzer":nm)+": "+String(m.t).slice(0,300)).join("\n")}`);
+  const t=await agentAsk(agentPersona()+"\n"+agentState()+`\nStell als ${nm} GENAU EINE neugierige Frage zum Thema, die ${accountName()||"der Lernende"} dir erklären soll (höchstens 2 Sätze). Wähle etwas Wichtiges, das noch nicht im Chat erklärt wurde.\nBisheriger Chat:\n${CHAT.filter(m=>!m.wait).slice(-6).map(m=>(m.who==="me"?"Nutzer":nm)+": "+String(m.t).slice(0,300)).join("\n")}`);
   pushMsg("bot", t || "⚠️ OpenCode hat gerade nicht geantwortet – versuch's nochmal.");
   renderQuick();
 }
@@ -2643,7 +2710,7 @@ async function agentAsk(prompt){
 async function agentTip(ctx){
   const ck=ctx.key+"|"+ctx.fails;
   if(TIPCACHE[ck]){ pushMsg("bot",TIPCACHE[ck]); return renderQuick(); }
-  const t=await agentAsk(agentPersona()+"\n"+agentState()+`\n${S.profile.name||"Der Lernende"} hat auf „✨ Tipp“ gedrückt. ${activeChar().teach?"Du rätselst selbst mit: Stell GENAU EINE laut gedachte, neugierige Frage, die auf den richtigen Gedanken bringt (höchstens 2 Sätze).":"Gib GENAU EINEN kurzen Tipp zur aktiven Aufgabe (höchstens 3 Sätze)."} ${ctx.fails===0?"Erster Denkanstoß: welches Prinzip oder welche Formel hilft?":"Schon "+ctx.fails+"× falsch – gib einen engeren Tipp."} Nenne die Lösung nicht und umschreibe sie nicht so, dass man sie direkt ablesen kann.`);
+  const t=await agentAsk(agentPersona()+"\n"+agentState()+`\n${accountName()||"Der Lernende"} hat auf „✨ Tipp“ gedrückt. ${activeChar().teach?"Du rätselst selbst mit: Stell GENAU EINE laut gedachte, neugierige Frage, die auf den richtigen Gedanken bringt (höchstens 2 Sätze).":"Gib GENAU EINEN kurzen Tipp zur aktiven Aufgabe (höchstens 3 Sätze)."} ${ctx.fails===0?"Erster Denkanstoß: welches Prinzip oder welche Formel hilft?":"Schon "+ctx.fails+"× falsch – gib einen engeren Tipp."} Nenne die Lösung nicht und umschreibe sie nicht so, dass man sie direkt ablesen kann.`);
   const same=chatCtx(); if(same && same.key!==ctx.key) return;   /* schon bei der nächsten Frage */
   if(t){ TIPCACHE[ck]=t; pushMsg("bot",t); }
   else pushMsg("bot","⚠️ Gerade kam kein Tipp von OpenCode – versuch's gleich nochmal.");
@@ -2706,7 +2773,7 @@ function handleChat(raw){
   if(S.chat.apiKey) return chatAPI(raw);
   if(/(^|[^a-zäöü])(hi|hallo|hey|moin|servus|guten (morgen|tag|abend))([^a-zäöü]|$)/i.test(raw)){
     const c=activeChar();
-    return pushMsg("bot",`Hallo${S.profile.name?", "+S.profile.name:""}! ${c?c.name+" an deiner Seite. ":""}Wie kann ich helfen – Tipp, Erklärung oder Motivation?`);
+    return pushMsg("bot",`Hallo, ${userName()}! ${c?c.name+" an deiner Seite. ":""}Wie kann ich helfen – Tipp, Erklärung oder Motivation?`);
   }
   if(/motiv|kaputt|schaffnicht|keinbock|keinelust|lustlos|mude|langweil|stress|angst/.test(t)){
     const c=activeChar();
@@ -2966,7 +3033,7 @@ function renderSettings(){
     <h1 class="h1">⚙️ Einstellungen</h1>
     <div class="card">
       <b>🎒 Profil</b>
-      <label class="fl">Name</label><input class="fi" value="${esc(p.name)}" onchange="S.profile.name=this.value;save();renderTop()">
+      <label class="fl">Konto</label><button class="sideuser" style="margin-top:7px" onclick="go('konto')">${sideUserHTML()}</button>
       <div style="display:flex;gap:10px;margin-top:12px">
         <button class="btn ghost sm" onclick="openSchoolPicker()">🏫 ${esc(p.school.split(" (")[0])}</button>
         <button class="btn ghost sm" onclick="openSchoolPicker()">🎓 ${esc(p.klasse)}</button>
@@ -3024,8 +3091,9 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="howWorks()">Wie funktioniert das?</button>
         <button class="btn ghost sm" onclick="showLegal('impressum')">Impressum</button>
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
+        <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.0 · Open Source (MIT) · keine externen Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.2 · Open Source (MIT) · keine externen Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){
@@ -3087,29 +3155,30 @@ function howWorks(){
 function showLegal(which){
   if(which==="impressum"){
     toastModal(`<h2 style="margin-top:0">Impressum</h2>
-      <p class="small mut" style="background:rgba(255,176,32,.15);border:1.5px dashed var(--amber);padding:10px;border-radius:10px">
-      ⚠️ <b>Vor dem Veröffentlichen ausfüllen:</b> Die Platzhalter unten musst du durch deine echten Daten ersetzen (Pflicht nach §5 DDG für jede öffentliche Website). Auch in <span class="kbd">docs/PUBLIKATION.md</span> steht das.</p>
       <p><b>Angaben gemäß § 5 DDG</b><br>
-      [Dein Vor- und Nachname]<br>
-      [Deine Straße und Hausnummer]<br>
-      [PLZ und Ort]<br>
-      E-Mail: [deine E-Mail]<br>
-      Telefon: [optional]</p>
-      <p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</b><br>[Name wie oben, Anschrift]</p>
-      <p class="small mut">Platzhalter in eckigen Klammern sind absichtlich noch leer – bitte ausfüllen, bevor die Seite öffentlich erreichbar ist. Mit Veröffentlichung ohne diese Angaben verstößt du gegen deutsches Recht; solange die Seite nur lokal läuft oder privat geteilt wird, ist das unproblematisch.</p>
+      Simon Adrian Lasarzewski<br>
+      Wagnerstr. 5<br>
+      78628 Rottweil (Neufra)<br>
+      E-Mail: <a href="mailto:simon.lasarzewski@gmail.com">simon.lasarzewski@gmail.com</a><br>
+      Telefon: +49 179 4342396</p>
+      <p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</b><br>Simon Adrian Lasarzewski, Anschrift wie oben</p>
+      <p class="small mut">Lernhub ist ein privates, nicht-kommerzielles Schulprojekt.</p>
       <button class="btn" onclick="closeModal()">Schließen</button>`);
   }else{
     toastModal(`<h2 style="margin-top:0">Datenschutzerklärung (Kurzfassung)</h2>
-      <p><b>Verantwortlich:</b> [Dein Name, siehe Impressum]</p>
+      <p><b>Verantwortlich:</b> Simon Adrian Lasarzewski, Wagnerstr. 5, 78628 Rottweil (Neufra) – siehe <a onclick="showLegal('impressum')">Impressum</a></p>
       <p><b>Was gespeichert wird:</b> Dein Lernfortschritt (XP, Streak, Akku, Notizen, Stundenplan, Einstellungen) wird lokal in deinem Browser (localStorage) gespeichert. Keine Cookies, keine Statistik-Tools.</p>
       <p><b>Optionales Konto &amp; Bestenliste:</b> Nur wenn du dich freiwillig registrierst, werden E-Mail (Anmeldung), Spitzname und Lernzahlen (XP, Streak, Lektionen, Aufgaben) bei einem Cloud-Dienst (Supabase) gespeichert und für deine bestätigten Freunde sichtbar. Fehler- und Hinweiszahlen nur, wenn du das erlaubst. Du kannst dein Konto unter 👤 Konto jederzeit löschen – alle Daten werden dann entfernt.</p>
       <p><b>Privater Cloud-Speicher (nur mit Konto, abschaltbar):</b> Damit dein Lernstand auf allen Geräten da ist, wird er (Fortschritt, Notizen, Termine, Stundenplan, eigene Fächer und Charaktere, Einstellungen) in deinem Konto gespeichert. Nur du kannst ihn lesen – Freunde, Klasse und andere sehen davon nichts. API-Key, Untis-Link, Vault-Pfad und Push-Adresse werden nie hochgeladen.</p>
       <p><b>Ligen, Klassen &amp; Duelle (nur mit Konto, freiwillig):</b> Wenn du einer Liga beitrittst, sehen andere Liga-Teilnehmer deinen Spitznamen, deine Wochen-XP und Streak. In einer Klasse sehen die Mitglieder zusätzlich deine Lektionen; andere Klassen sehen nur Klassenname, Mitgliederzahl und Durchschnitts-XP. Bei Duellen werden Fach, Punktzahl und Zeit gespeichert (sichtbar nur für euch beide).</p>
       <p><b>Push-Erinnerungen (freiwillig):</b> Schaltest du sie ein, speichert der Server die Push-Adresse deines Browsers (vom Browser-Hersteller, z. B. Google/Apple/Mozilla), deine Erinnerungszeit und Ruhetage. Die Benachrichtigung wird über den Push-Dienst deines Browsers zugestellt. Ausschalten löscht die Adresse.</p>
       <p><b>Stundenplan-Abruf (WebUntis):</b> Den iCal-Link lädt dein Browser direkt. Klappt das nicht und du bist eingeloggt, läuft der Abruf einmalig über unseren Server (Supabase Edge Function), der den Link nur weiterreicht und nichts speichert.</p>
+      <p><b>Chat (nur mit Konto, freiwillig):</b> Nachrichten an Freunde oder deine Klasse werden mit Absender, Empfänger und Zeitpunkt bei Supabase gespeichert, sind nur für die Beteiligten lesbar und werden nach 90 Tagen automatisch gelöscht. Eigene Nachrichten kannst du jederzeit löschen.</p>
+      <p><b>Einladungslinks:</b> Ein Einladungslink enthält deinen Spitznamen (und ggf. den Klassencode). Öffnet jemand den Link und erstellt ein Konto, wird automatisch eine Freundschaftsanfrage an dich geschickt.</p>
+      <p><b>Wissens-Videos:</b> Die Videos sind YouTube-Videos im erweiterten Datenschutzmodus (youtube-nocookie.com). Sobald du den Video-Feed öffnest, lädt dein Browser das gerade sichtbare Video von YouTube (Google Ireland Ltd.); dabei werden u. a. deine IP-Adresse und technische Gerätedaten an YouTube übertragen. Vorschaubilder werden von YouTube-Servern (i.ytimg.com) geladen. Welche Videos du magst oder speicherst, bleibt lokal in deinem Browser.</p>
       <p><b>Was das Internet sieht:</b> Grundsätzlich nichts. Nur wenn du selbst (a) einen API-Key in den Einstellungen einträgst, werden Chat-Anfragen an den von dir gewählten Endpunkt gesendet, (b) Video-Tipps öffnest (YouTube, externe Seite) oder (c) den OpenCode-Agenten nutzt (recherchiert lokal + Web). Mikrofon wird nur bei Sprechübungen aktiviert und nur für die Spracherkennung deines Browsers verwendet.</p>
       <p><b>Speicher löschen:</b> Einstellungen → „Alles zurücksetzen“, oder Browser-Daten löschen.</p>
-      <p><b>Kontakt:</b> [deine E-Mail]</p>
+      <p><b>Kontakt:</b> <a href="mailto:simon.lasarzewski@gmail.com">simon.lasarzewski@gmail.com</a></p>
       <button class="btn" onclick="closeModal()">Schließen</button>`);
   }
 }
@@ -3175,6 +3244,16 @@ function init(){
     if(e.key!=="Enter" || e.repeat || V.view!=="lesson" || !LES || !LES.checked || LES.completed) return;
     const t=e.target; if(t && /^(BUTTON|A|TEXTAREA|SELECT)$/.test(t.tagName)) return;
     if(!$("modal") || $("modal").classList.contains("hidden")){ e.preventDefault(); nextItem(); }
+  });
+  /* Tastenkürzel am PC: 1–9 = Antwort, Leertaste = Karte umdrehen, dann 1 = Gewusst / 2 = Nochmal */
+  document.addEventListener("keydown", e=>{
+    if(V.view!=="lesson" || !LES || LES.checked || LES.completed || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    const t=e.target; if(t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    if($("modal") && !$("modal").classList.contains("hidden")) return;
+    const it=curItem(); if(!it) return;
+    if(it.kind==="mc" && it.perm && /^[1-9]$/.test(e.key) && +e.key<=it.perm.length){ e.preventDefault(); answerMc(+e.key-1); }
+    else if(it.kind==="card" && !LES.flipped && e.key===" " && !(t && t.tagName==="BUTTON")){ e.preventDefault(); LES.flipped=true; renderLesson(); }
+    else if(it.kind==="card" && LES.flipped && (e.key==="1" || e.key==="2")){ e.preventDefault(); answerCard(e.key==="1"); }
   });
   /* Agenten-Ping: beim Start + im Agent-Panel alle 15 s (zeichnet nur bei Änderung neu, nie während du tippst) */
   setTimeout(()=>pingAgent(true), 800);

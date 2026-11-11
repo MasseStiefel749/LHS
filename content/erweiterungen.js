@@ -1461,6 +1461,310 @@ window.LERNHUB_EXT = {
             },
           ],
         },
+        {
+          id: "et_spannung_widerstand",
+          name: "⚡ Spannung, Widerstand & Leitwert",
+          mc: [
+            {
+              q: "Was ist elektrische Spannung?",
+              c: [
+                "Der Unterschied zwischen zwei elektrischen Potentialen",
+                "Die Menge an Elektronen in einem Leiter",
+                "Die Geschwindigkeit der Elektronen",
+                "Der Widerstand eines Drahtes",
+              ],
+              a: 0,
+              w: "Spannung entsteht durch Ladungstrennung: U₂₁ = φ₂ − φ₁ (Potentialdifferenz).",
+            },
+            {
+              q: "Welcher Pol einer Spannungsquelle hat Elektronenüberschuss?",
+              c: ["Der Minuspol", "Der Pluspol", "Beide gleich", "Keiner – nur der Leiter"],
+              a: 0,
+              w: "Minuspol = Elektronenüberschuss, Pluspol = Elektronenmangel.",
+            },
+            {
+              q: "Wie wird ein Spannungsmessgerät angeschlossen?",
+              c: [
+                "Parallel zum Messobjekt",
+                "In Reihe, der Stromkreis wird aufgetrennt",
+                "Nur an den Pluspol",
+                "Zwischen Gerät und Steckdose in Reihe",
+              ],
+              a: 0,
+              w: "Voltmeter parallel (kein Auftrennen nötig), Amperemeter in Reihe.",
+            },
+            {
+              q: "Wohin zeigt der Spannungspfeil?",
+              c: [
+                "Vom höheren zum niedrigeren Potential",
+                "Vom niedrigeren zum höheren Potential",
+                "Immer nach rechts",
+                "Gegen die Stromrichtung",
+              ],
+              a: 0,
+              w: "Der Spannungspfeil weist immer vom höheren zum niedrigeren Potential (bei der Quelle von + nach −).",
+            },
+            {
+              q: "Welche Spannungserzeugung nutzt ein Fahrraddynamo?",
+              c: ["Induktion", "Licht", "Wärme", "Kristallverformung"],
+              a: 0,
+              w: "Eine bewegte Spule im Magnetfeld erzeugt Spannung durch Induktion – wie im Generator.",
+            },
+            {
+              q: "Was ist ein Sekundärelement?",
+              c: [
+                "Ein wiederaufladbarer Akku",
+                "Eine Einwegbatterie",
+                "Eine Solarzelle",
+                "Ein Thermoelement",
+              ],
+              a: 0,
+              w: "Primärelemente (Batterien) nur einmal entladbar, Sekundärelemente (Akkus) vielfach wieder aufladbar.",
+            },
+            {
+              q: "Welche Einheit hat der elektrische Leitwert G?",
+              c: ["Siemens (S)", "Ohm (Ω)", "Volt (V)", "Coulomb (C)"],
+              a: 0,
+              w: "G = 1 / R, Einheit Siemens: 1 S = 1 / Ω.",
+            },
+            {
+              q: "Ein Toaster hat 46 Ω und hängt an 230 V. Welcher Strom fließt?",
+              c: ["5 A", "0,2 A", "10 580 A", "184 A"],
+              a: 0,
+              w: "I = U / R = 230 V / 46 Ω = 5 A.",
+            },
+            {
+              q: "Wie verändert sich der Strom bei gleichem Widerstand, wenn die Spannung um 10 % steigt?",
+              c: [
+                "Er steigt um 10 %",
+                "Er sinkt um 10 %",
+                "Er bleibt gleich",
+                "Er verdoppelt sich",
+              ],
+              a: 0,
+              w: "I ist proportional zu U (Ohmsches Gesetz) – +10 % Spannung = +10 % Strom.",
+            },
+            {
+              q: "Warum wird ein Leiter warm, wenn Strom fließt?",
+              c: [
+                "Elektronen stoßen mit Atomen zusammen und geben Bewegungsenergie ab",
+                "Weil der Leiter Elektronen verliert",
+                "Weil die Spannung im Draht verbrennt",
+                "Weil Kupfer magnetisch wird",
+              ],
+              a: 0,
+              w: "Die Stöße übertragen kinetische Energie auf die Atome → stärkere Wärmebewegung → Temperatur steigt.",
+            },
+          ],
+          cards: [
+            {
+              f: "Elektrische Spannung U",
+              b: "Potentialdifferenz durch Ladungstrennung. Einheit Volt (V).",
+            },
+            { f: "Widerstand R", b: "Hemmt den Stromfluss. R = U / I, Einheit Ohm (Ω)." },
+            { f: "Leitwert G", b: "Kehrwert des Widerstands: G = 1 / R, Einheit Siemens (S)." },
+            {
+              f: "Ohmsches Gesetz",
+              b: "I = U / R – Strom ist proportional zur Spannung und umgekehrt proportional zum Widerstand.",
+            },
+            { f: "Primärelement", b: "Batterie – nur einmal entladbar, danach entsorgen." },
+            { f: "Sekundärelement", b: "Akku – vielfach wieder aufladbar." },
+            {
+              f: "Arten der Spannungserzeugung",
+              b: "Induktion (Generator), chemisch (Batterie/Akku), Licht (Solarzelle), Druck (Piezo), Wärme (Thermoelement), Reibung (Blitz).",
+            },
+            {
+              f: "Messen",
+              b: "Spannungsmesser parallel zum Bauteil, Strommesser in Reihe (Stromkreis auftrennen).",
+            },
+            {
+              f: "Widerstandskennlinie",
+              b: "I-U-Gerade durch den Ursprung. Je größer R, desto flacher die Gerade.",
+            },
+          ],
+          gaps: [
+            { t: "Die Einheit der elektrischen Spannung ist das ___.", a: ["volt", "v"] },
+            {
+              t: "Der Leitwert ist der Kehrwert des ___.",
+              a: ["widerstands", "widerstand", "widerstandes"],
+            },
+            { t: "Ein Voltmeter wird ___ zum Messobjekt geschaltet.", a: ["parallel"] },
+            { t: "Eine Solarzelle erzeugt Spannung durch ___.", a: ["licht"] },
+            {
+              t: "Ein Feuerzeug mit Zündknopf nutzt den ___-Effekt.",
+              a: ["piezo", "piezoelektrischen", "piezoelektrisch"],
+            },
+            { t: "Spannung kann nur zwischen zwei ___ entstehen.", a: ["polen", "pole"] },
+          ],
+          free: [
+            {
+              q: "Eine Anschlussklemme hat 5 mΩ Übergangswiderstand, es fließen 20 A. Welche Spannung fällt ab?",
+              a: ["0,1 V", "0.1 V", "100 mV", "U = R · I = 0,005 Ω · 20 A = 0,1 V"],
+              w: "U = R · I = 0,005 Ω · 20 A = 0,1 V = 100 mV.",
+            },
+            {
+              q: "Ein Relais hat die Angaben 12 V / 40 mA. Berechne R und G.",
+              a: ["300 Ω und 3,33 mS", "R = 300 Ohm, G = 3,33 mS", "300 Ohm"],
+              w: "R = 12 V / 0,04 A = 300 Ω; G = 1 / 300 Ω ≈ 0,00333 S = 3,33 mS.",
+            },
+            {
+              q: "Dasselbe Relais (300 Ω) hängt versehentlich an 15 V. Welcher Strom fließt?",
+              a: ["50 mA", "0,05 A", "0.05 A"],
+              w: "I = 15 V / 300 Ω = 0,05 A = 50 mA – mehr als die erlaubten 40 mA.",
+            },
+            {
+              q: "Ein Heizwiderstand hat G = 25 mS und liegt an 230 V. Wie groß ist der Strom?",
+              a: ["5,75 A", "5.75 A", "I = G · U = 0,025 S · 230 V = 5,75 A"],
+              w: "I = G · U = 0,025 S · 230 V = 5,75 A.",
+            },
+            {
+              q: "Warum darf man die Pole einer Spannungsquelle nicht direkt mit einem Draht verbinden?",
+              a: ["Kurzschluss", "Kurzschluss, sehr hoher Strom", "weil ein Kurzschluss entsteht"],
+              w: "Fast kein Widerstand → riesiger Strom (Kurzschluss) → Hitze, Brand, Zerstörung der Quelle.",
+            },
+          ],
+        },
+        {
+          id: "strom_gefahren_sicherheit",
+          name: "🦺 Gefahren des Stroms & 5 Sicherheitsregeln",
+          mc: [
+            {
+              q: "Ab welcher Stromstärke durch den Körper wird es lebensgefährlich?",
+              c: ["Ab ca. 50 mA", "Ab ca. 5 A", "Ab ca. 1 µA", "Erst ab 1 A"],
+              a: 0,
+              w: "Ab etwa 50 mA drohen Muskelverkrampfung und Herzkammerflimmern.",
+            },
+            {
+              q: "Ab welcher Berührungsspannung gilt Wechselspannung als lebensgefährlich?",
+              c: ["Über 50 V AC", "Über 500 V AC", "Über 12 V AC", "Über 1000 V AC"],
+              a: 0,
+              w: "Grenzwerte: 50 V Wechselspannung (AC) und 120 V Gleichspannung (DC).",
+            },
+            {
+              q: "Was ist die 1. Sicherheitsregel?",
+              c: [
+                "Freischalten",
+                "Erden und kurzschließen",
+                "Abdecken",
+                "Spannungsfreiheit feststellen",
+              ],
+              a: 0,
+              w: "Reihenfolge: Freischalten → Sichern → Spannungsfreiheit feststellen → Erden/Kurzschließen → Abdecken.",
+            },
+            {
+              q: "Welche Regel kommt direkt nach „Gegen Wiedereinschalten sichern“?",
+              c: [
+                "Spannungsfreiheit allpolig feststellen",
+                "Erden und kurzschließen",
+                "Freischalten",
+                "Benachbarte Teile abdecken",
+              ],
+              a: 0,
+              w: "Regel 3: Mit einem geeigneten Prüfgerät allpolig prüfen, dass wirklich keine Spannung anliegt.",
+            },
+            {
+              q: "Welcher Faktor bestimmt NICHT, wie schwer ein Stromunfall ist?",
+              c: [
+                "Die Farbe des Kabels",
+                "Stromstärke",
+                "Einwirkzeit",
+                "Stromweg durch den Körper",
+              ],
+              a: 0,
+              w: "Entscheidend sind Stromstärke, Stromweg, Einwirkzeit und Stromart.",
+            },
+            {
+              q: "Warum entstehen an Ein- und Austrittsstellen des Stroms Verbrennungen?",
+              c: [
+                "Hohe Übergangswiderstände → große Wärmeleistung P = I² · R",
+                "Weil dort die Spannung null ist",
+                "Weil die Haut Strom speichert",
+                "Weil dort kein Strom fließt",
+              ],
+              a: 0,
+              w: "Wo der Widerstand hoch ist, wird nach P = I² · R besonders viel Wärme umgesetzt (Strommarken).",
+            },
+            {
+              q: "Eine Person klebt an einem 230-V-Gerät fest. Was tust du zuerst?",
+              c: [
+                "Strom abschalten (Sicherung/Stecker), sonst mit isoliertem Gegenstand trennen",
+                "Die Person sofort mit bloßen Händen wegziehen",
+                "Wasser über die Person schütten",
+                "Abwarten, bis sie loslässt",
+              ],
+              a: 0,
+              w: "Eigenschutz! Die Person leitet – wer sie berührt, steht selbst unter Spannung. Danach 112 und Erste Hilfe.",
+            },
+            {
+              q: "Warum ist Strom für das Herz gefährlich?",
+              c: [
+                "Fremde Spannung überlagert die körpereigenen Steuerimpulse (ca. 0,1 V)",
+                "Strom macht das Blut dicker",
+                "Das Herz speichert die Ladung dauerhaft",
+                "Strom kühlt das Herz ab",
+              ],
+              a: 0,
+              w: "Physiologische Wirkung: Die Nervensignale werden überlagert → Herzkammerflimmern möglich.",
+            },
+          ],
+          cards: [
+            {
+              f: "5 Sicherheitsregeln",
+              b: "1 Freischalten · 2 Gegen Wiedereinschalten sichern · 3 Spannungsfreiheit allpolig feststellen · 4 Erden und kurzschließen · 5 Benachbarte, unter Spannung stehende Teile abdecken/abschranken.",
+            },
+            { f: "Merkspruch", b: "„Frei – Sicher – Prüfen – Erden – Abdecken“." },
+            {
+              f: "Wirkungen des Stroms auf den Körper",
+              b: "Chemisch (Zellzerlegung wie Elektrolyse), physiologisch (Muskeln/Herz), Wärme (Verbrennungen).",
+            },
+            {
+              f: "Schweregrad hängt ab von …",
+              b: "Stromstärke, Stromweg, Einwirkzeit, Stromart (AC/DC).",
+            },
+            {
+              f: "Grenzwerte",
+              b: "Strom ab ~50 mA lebensgefährlich; Spannung über 50 V AC / 120 V DC.",
+            },
+            {
+              f: "Nach einem Stromunfall",
+              b: "Abschalten bzw. isoliert trennen, Notruf 112, Erste Hilfe, immer ärztlich untersuchen lassen (Spätfolgen am Herzen möglich).",
+            },
+          ],
+          gaps: [
+            { t: "Die erste Sicherheitsregel heißt ___.", a: ["freischalten"] },
+            { t: "Regel 4 lautet: Erden und ___.", a: ["kurzschliessen", "kurzschließen"] },
+            { t: "Der menschliche Körper besteht zu etwa zwei Dritteln aus ___.", a: ["wasser"] },
+            { t: "Gleichspannung ist ab ___ V lebensgefährlich.", a: ["120"] },
+            { t: "Bei zu hohem Strom droht Herzkammer___.", a: ["flimmern"] },
+          ],
+          free: [
+            {
+              q: "Nenne die 5 Sicherheitsregeln in der richtigen Reihenfolge.",
+              a: [
+                "Freischalten, gegen Wiedereinschalten sichern, Spannungsfreiheit feststellen, erden und kurzschließen, abdecken",
+                "freischalten sichern spannungsfreiheit feststellen erden kurzschliessen abdecken",
+              ],
+              w: "Reihenfolge ist Pflicht – erst danach darf an der Anlage gearbeitet werden.",
+            },
+            {
+              q: "Warum soll man nach einem Stromunfall auch ohne Beschwerden zum Arzt?",
+              a: [
+                "Herzrhythmusstörungen können später auftreten",
+                "Spätfolgen am Herz",
+                "Herzrhythmusstoerungen",
+              ],
+              w: "Herzrhythmusstörungen oder innere Verbrennungen können erst Stunden später auftreten.",
+            },
+            {
+              q: "Welche vier Faktoren bestimmen die Schwere eines Stromunfalls?",
+              a: [
+                "Stromstärke, Stromweg, Einwirkzeit, Stromart",
+                "Stromstaerke Stromweg Einwirkzeit Stromart",
+              ],
+              w: "Je größer der Strom, je länger und je mehr übers Herz – desto gefährlicher.",
+            },
+          ],
+        },
       ],
     },
     {
@@ -1949,6 +2253,617 @@ window.LERNHUB_EXT = {
             },
           ],
         },
+        {
+          id: "ka1_begriffe_software",
+          name: "📗 KA1: Software-Begriffe, Hochsprache & Übersetzer",
+          mc: [
+            {
+              q: "Was ist der Oberbegriff für alle immateriellen Teile eines Computersystems?",
+              c: ["Software", "Anwendung", "Treiber", "Computerprogramm"],
+              a: 0,
+              w: "Software umfasst alles Nicht-Hardware: Betriebssystem, Treiber, Anwendungen, Dienstprogramme, Doku.",
+            },
+            {
+              q: "Was unterscheidet eine Anwendung (App) von einem beliebigen Programm?",
+              c: [
+                "Sie löst eine konkrete Aufgabe für Endbenutzer, meist mit Benutzeroberfläche",
+                "Sie läuft nur auf Handys",
+                "Sie hat nie eine Oberfläche",
+                "Sie ist immer kostenlos",
+              ],
+              a: 0,
+              w: "Eine Anwendung ist ein Programm (oder mehrere) für den direkten Gebrauch durch Anwender.",
+            },
+            {
+              q: "Zu welcher Softwareart gehört ein Gerätetreiber?",
+              c: [
+                "Systemsoftware",
+                "Anwendersoftware",
+                "Individualsoftware",
+                "Unterstützungssoftware",
+              ],
+              a: 0,
+              w: "Systemsoftware (Betriebssystem, Treiber) ermöglicht das Ausführen von Anwendersoftware.",
+            },
+            {
+              q: "Zu welcher Softwareart zählen Compiler und Editoren?",
+              c: [
+                "Unterstützungssoftware",
+                "Systemsoftware",
+                "Anwendersoftware",
+                "Standardsoftware",
+              ],
+              a: 0,
+              w: "Unterstützungssoftware hilft bei der Entwicklung oder erbringt nicht anwendungsspezifische Leistungen.",
+            },
+            {
+              q: "Eine Firma lässt sich eine Lagersoftware genau für ihre Prozesse programmieren. Das ist …",
+              c: ["Individualsoftware", "Standardsoftware", "Systemsoftware", "Freeware"],
+              a: 0,
+              w: "Individualsoftware wird für die Bedürfnisse eines einzelnen Unternehmens entwickelt; Standardsoftware für den Massenmarkt.",
+            },
+            {
+              q: "Was bedeutet „höher“ bei einer Hochsprache?",
+              c: [
+                "Höhere Abstraktionsebene, näher an der menschlichen Sprache",
+                "Höherer Schwierigkeitsgrad",
+                "Schnellere Ausführung als Maschinencode",
+                "Mehr Speicherbedarf",
+              ],
+              a: 0,
+              w: "Hochsprachen sind abstrakt und lesbar – sie müssen erst in Maschinencode übersetzt werden.",
+            },
+            {
+              q: "Was ist „MOV AX,[20]“?",
+              c: ["Ein Assemblerbefehl", "Java-Code", "Maschinencode in Bits", "Ein Bash-Befehl"],
+              a: 0,
+              w: "Assembler gibt Maschinenbefehlen symbolische Namen (MOV = Daten kopieren/verschieben).",
+            },
+            {
+              q: "Wie arbeitet ein Compiler?",
+              c: [
+                "Er übersetzt den gesamten Quellcode vor der Ausführung in Maschinencode",
+                "Er führt den Code Zeile für Zeile zur Laufzeit aus",
+                "Er sucht Viren im Code",
+                "Er formatiert den Quellcode",
+              ],
+              a: 0,
+              w: "Compiler: erst komplett übersetzen, dann ausführen (z. B. C, C++).",
+            },
+            {
+              q: "Wie arbeitet ein Interpreter?",
+              c: [
+                "Er übersetzt und führt den Code zur Laufzeit Schritt für Schritt aus",
+                "Er erzeugt einmalig eine .exe-Datei",
+                "Er wandelt Maschinencode in Quellcode zurück",
+                "Er läuft nur im Browser",
+              ],
+              a: 0,
+              w: "Interpreter: Zeile für Zeile zur Laufzeit (z. B. Python, Bash, PHP).",
+            },
+            {
+              q: "Was macht ein Just-in-Time-Compiler (JIT)?",
+              c: [
+                "Er übersetzt während der Laufzeit häufig genutzte Teile in Maschinencode",
+                "Er kompiliert nur nachts",
+                "Er übersetzt Maschinencode in Java",
+                "Er ersetzt die CPU",
+              ],
+              a: 0,
+              w: "JIT kombiniert beides: Laufzeit-Übersetzung mit Optimierung – z. B. in der Java-JVM oder bei C#/.NET.",
+            },
+          ],
+          cards: [
+            {
+              f: "Computerprogramm",
+              b: "Klar definierte Abfolge von Anweisungen, die ein Computer ausführen kann.",
+            },
+            {
+              f: "Anwendung / App",
+              b: "Programm(e) für Endbenutzer zur Lösung einer konkreten Aufgabe, meist mit Oberfläche.",
+            },
+            {
+              f: "Software",
+              b: "Oberbegriff: alles Nicht-Hardware inkl. Betriebssystem, Treiber, Dokumentation.",
+            },
+            {
+              f: "System- / Unterstützungs- / Anwendersoftware",
+              b: "OS & Treiber · Compiler & Editoren · Buchhaltung, Lernprogramme, Spiele.",
+            },
+            {
+              f: "Standard- vs. Individualsoftware",
+              b: "Massenmarkt, per Customizing angepasst · für ein einzelnes Unternehmen gebaut.",
+            },
+            { f: "Maschinencode", b: "Bitfolgen, die die CPU direkt ausführt (z. B. 00010000 …)." },
+            {
+              f: "Assembler",
+              b: "Symbolische, menschenlesbare Namen für Maschinenbefehle (MOV, ADD …).",
+            },
+            {
+              f: "Hochsprache",
+              b: "Abstrakt, nah an natürlicher Sprache, z. B. a = b – braucht Compiler/Interpreter.",
+            },
+            { f: "Compiler", b: "Übersetzt alles vorab → schnelle Ausführung. Beispiele: C, C++." },
+            {
+              f: "Interpreter",
+              b: "Übersetzt zur Laufzeit Zeile für Zeile. Beispiele: Python, Bash, PHP.",
+            },
+            {
+              f: "JIT-Compiler",
+              b: "Übersetzt zur Laufzeit optimiert in Maschinencode. Beispiele: Java (JVM), C#.",
+            },
+          ],
+          gaps: [
+            { t: "Betriebssysteme und Treiber gehören zur ___software.", a: ["system"] },
+            { t: "Ein ___ übersetzt den kompletten Quellcode vor dem Start.", a: ["compiler"] },
+            {
+              t: "Python und Bash werden typischerweise von einem ___ ausgeführt.",
+              a: ["interpreter"],
+            },
+            { t: "Für den Massenmarkt gebaute Software heißt ___software.", a: ["standard"] },
+            { t: "Assemblerbefehle sind symbolische Namen für ___befehle.", a: ["maschinen"] },
+          ],
+          free: [
+            {
+              q: "Erkläre den Unterschied zwischen Compiler und Interpreter.",
+              a: [
+                "Compiler übersetzt alles vorher, Interpreter zur Laufzeit Zeile für Zeile",
+                "Compiler vorab komplett, Interpreter schrittweise zur Laufzeit",
+              ],
+              w: "Compiler: vorab, schnell beim Ausführen. Interpreter: flexibel, aber langsamer.",
+            },
+            {
+              q: "Warum gibt es so viele Programmiersprachen?",
+              a: [
+                "Unterschiedliche Probleme und Einsatzbereiche brauchen spezialisierte Werkzeuge",
+                "verschiedene Anwendungsbereiche und Paradigmen",
+              ],
+              w: "Jede Sprache hat Vor- und Nachteile für bestimmte Aufgaben; neue Technik/Denkweisen bringen neue Sprachen.",
+            },
+            {
+              q: "Nenne je ein Beispiel für System-, Unterstützungs- und Anwendersoftware.",
+              a: [
+                "Windows, Compiler, Word",
+                "Betriebssystem, Editor, Buchhaltungsprogramm",
+                "Treiber, Eclipse, Spiel",
+              ],
+              w: "System: OS/Treiber · Unterstützung: Compiler/Editor/IDE · Anwender: Office, Buchhaltung, Lernsoftware.",
+            },
+          ],
+        },
+        {
+          id: "ka1_computational_thinking",
+          name: "📗 KA1: Computational Thinking & Pseudocode",
+          mc: [
+            {
+              q: "Welche vier Schritte gehören zum Computational Thinking?",
+              c: [
+                "Zerlegung, Mustererkennung, Abstraktion, Algorithmus",
+                "Planen, Kaufen, Bauen, Testen",
+                "Eingabe, Verarbeitung, Ausgabe, Speichern",
+                "Lesen, Markieren, Gliedern, Zusammenfassen",
+              ],
+              a: 0,
+              w: "Decomposition, Pattern Recognition, Abstraction, Algorithmic Design.",
+            },
+            {
+              q: "Du teilst „Party planen“ in Gäste einladen, Essen kaufen, Musik wählen. Welcher Schritt ist das?",
+              c: ["Zerlegung", "Abstraktion", "Mustererkennung", "Algorithmus"],
+              a: 0,
+              w: "Zerlegung: Ein großes Problem in kleine, machbare Einzelschritte aufteilen.",
+            },
+            {
+              q: "„Die Farbe der Schüssel ist egal, die Mehlmenge nicht.“ – welcher Schritt?",
+              c: ["Abstraktion", "Zerlegung", "Mustererkennung", "Kompilierung"],
+              a: 0,
+              w: "Abstraktion: Unwichtiges weglassen, nur die nackte Struktur behalten.",
+            },
+            {
+              q: "Du merkst, dass sich „Wasser abmessen“ in mehreren Rezepten wiederholt. Welcher Schritt?",
+              c: ["Mustererkennung", "Abstraktion", "Zerlegung", "Debugging"],
+              a: 0,
+              w: "Mustererkennung: Wiederholungen und Ähnlichkeiten finden, um effizient zu werden.",
+            },
+            {
+              q: "Was muss ein Algorithmus erfüllen?",
+              c: [
+                "Eindeutig, Schritt für Schritt ausführbar und für jeden Fall zum richtigen Ergebnis",
+                "Er muss in Java geschrieben sein",
+                "Er muss möglichst kreativ formuliert sein",
+                "Er darf Sonderfälle ignorieren",
+              ],
+              a: 0,
+              w: "Ein Algorithmus ist „ohne Sinn und Verstand“ ausführbar und deckt alle Sonderfälle ab.",
+            },
+            {
+              q: "Was ist Pseudocode?",
+              c: [
+                "Eine informelle, sprachunabhängige Beschreibung eines Algorithmus",
+                "Eine echte Programmiersprache von Oracle",
+                "Maschinencode in Textform",
+                "Ein Virus, der Code fälscht",
+              ],
+              a: 0,
+              w: "Pseudocode mischt Programmier-Strukturen (WENN, SOLANGE) mit natürlicher Sprache.",
+            },
+            {
+              q: "Wofür wird Pseudocode NICHT verwendet?",
+              c: [
+                "Um direkt vom Prozessor ausgeführt zu werden",
+                "Um die Logik vor dem Programmieren zu planen",
+                "Zur Kommunikation zwischen Entwicklern",
+                "Als Vorlage zur Übersetzung in jede Sprache",
+              ],
+              a: 0,
+              w: "Pseudocode ist nicht ausführbar – er dient Entwurf, Kommunikation und Übersetzung.",
+            },
+            {
+              q: "Was bedeutet „Ergebnis = Summe / 3“ im Pseudocode?",
+              c: ["Eine Zuweisung", "Eine Ausgabe", "Ein Kommentar", "Eine Schleife"],
+              a: 0,
+              w: "Das Ergebnis der Rechnung wird in der Variablen Ergebnis gespeichert (Zuweisung).",
+            },
+            {
+              q: "Welche Struktur passt zu: „Wiederhole, solange noch Kaffee in der Kanne ist“?",
+              c: [
+                "SOLANGE … (Schleife)",
+                "WENN … DANN … SONST",
+                "FUNKTION … ENDE FUNKTION",
+                "GIB AUS",
+              ],
+              a: 0,
+              w: "SOLANGE (WHILE) wiederholt Anweisungen, bis die Bedingung nicht mehr gilt.",
+            },
+          ],
+          cards: [
+            {
+              f: "Computational Thinking",
+              b: "Problemlöse-Methode: Probleme so zerlegen und strukturieren, dass Mensch oder Computer sie schrittweise lösen kann.",
+            },
+            {
+              f: "Zerlegung",
+              b: "Großes Problem → kleine Einzelschritte in richtiger Reihenfolge.",
+            },
+            { f: "Mustererkennung", b: "Wiederholungen/Ähnlichkeiten finden und wiederverwenden." },
+            { f: "Abstraktion", b: "Unwichtiges ausblenden, nur das Wesentliche beschreiben." },
+            {
+              f: "Algorithmus",
+              b: "Eindeutige, endliche Schritt-für-Schritt-Anweisung, die immer zum Ziel führt.",
+            },
+            {
+              f: "Pseudocode-Strukturen",
+              b: "WENN … DANN … SONST · SOLANGE · FÜR JEDEN · FUNKTION … ENDE FUNKTION · GIB AUS · // Kommentar",
+            },
+            {
+              f: "Ticketautomat in Pseudocode",
+              b: "WENN Geld >= Preis DANN GIB AUS „Ticket ausgeben“ SONST GIB AUS „Bitte mehr Geld einwerfen“",
+            },
+          ],
+          gaps: [
+            { t: "Beim Schritt ___ blendet man Unwichtiges aus.", a: ["abstraktion"] },
+            {
+              t: "Pseudocode ist ___ – er hängt an keiner bestimmten Programmiersprache.",
+              a: ["sprachunabhaengig", "sprachunabhängig"],
+            },
+            {
+              t: "Eine Verzweigung schreibt man im Pseudocode mit WENN … DANN … ___.",
+              a: ["sonst"],
+            },
+            { t: "Zeilen mit // sind ___ für menschliche Leser.", a: ["kommentare", "kommentar"] },
+          ],
+          free: [
+            {
+              q: "Schreibe in Pseudocode: Wenn das Geld mindestens dem Preis entspricht, Ticket ausgeben, sonst mehr Geld verlangen.",
+              a: [
+                "WENN Geld >= Preis DANN GIB AUS Ticket SONST GIB AUS mehr Geld",
+                "wenn geld groesser gleich preis dann ticket ausgeben sonst bitte mehr geld",
+              ],
+              w: "Wichtig: Bedingung (>=), beide Fälle (DANN / SONST) und die Ausgaben.",
+            },
+            {
+              q: "Nenne die vier Schritte des Computational Thinking.",
+              a: [
+                "Zerlegung, Mustererkennung, Abstraktion, Algorithmus",
+                "Zerlegung Mustererkennung Abstraktion Algorithmen",
+              ],
+              w: "Merkhilfe „ZeMAA“: Zerlegen, Muster, Abstrahieren, Algorithmus.",
+            },
+            {
+              q: "Nenne zwei Zwecke von Pseudocode.",
+              a: [
+                "Planung und Kommunikation",
+                "Entwurf, Kommunikation, Übersetzung",
+                "Logik planen und mit anderen besprechen",
+              ],
+              w: "Entwurf der Logik, Kommunikation (auch mit Nicht-Technikern), leichte Übersetzung in jede Sprache.",
+            },
+          ],
+        },
+        {
+          id: "ka1_skript_bash",
+          name: "📗 KA1: Skriptsprachen & Bash",
+          mc: [
+            {
+              q: "Wie werden Skriptsprachen meist ausgeführt?",
+              c: [
+                "Von einem Interpreter zur Laufzeit",
+                "Vorab vollständig kompiliert",
+                "Direkt als Maschinencode geschrieben",
+                "Nur über eine JVM",
+              ],
+              a: 0,
+              w: "Skriptsprachen werden typischerweise zur Laufzeit interpretiert.",
+            },
+            {
+              q: "Wofür werden Skriptsprachen besonders häufig eingesetzt?",
+              c: [
+                "Automatisierung wiederkehrender Aufgaben",
+                "Treiberentwicklung für Grafikkarten",
+                "Bau von Betriebssystem-Kernen",
+                "Ersatz für Hardware",
+              ],
+              a: 0,
+              w: "Automatisierung, Webentwicklung, Data Science und als „Klebesprache“ zwischen Systemen.",
+            },
+            {
+              q: "Was ist die Bash?",
+              c: [
+                "Ein Kommandozeileninterpreter (Shell) für Unix/Linux",
+                "Ein Java-Compiler",
+                "Ein Grafikprogramm",
+                "Eine Datenbank",
+              ],
+              a: 0,
+              w: "Bash = Bourne-again shell; per WSL auch unter Windows nutzbar.",
+            },
+            {
+              q: "Was bewirkt die erste Zeile #!/bin/bash?",
+              c: [
+                "Sie legt fest, welcher Interpreter das Skript ausführt",
+                "Sie ist ein Kommentar ohne Wirkung",
+                "Sie löscht den Ordner /bin",
+                "Sie startet den Compiler",
+              ],
+              a: 0,
+              w: "Die Shebang-Zeile (#!) gibt den Pfad zum Interpreter an.",
+            },
+            {
+              q: "Mit welchem Befehl machst du skript.sh ausführbar?",
+              c: ["chmod +x skript.sh", "chown skript.sh", "run skript.sh", "mkdir skript.sh"],
+              a: 0,
+              w: "chmod ändert Rechte; +x setzt das Ausführungsrecht. Danach: ./skript.sh",
+            },
+            {
+              q: "Welcher Befehl zeigt das aktuelle Verzeichnis an?",
+              c: ["pwd", "ls", "cd", "cat"],
+              a: 0,
+              w: "pwd = print working directory.",
+            },
+            {
+              q: "Welcher Befehl legt eine leere Datei an?",
+              c: ["touch", "mkdir", "rm", "ps"],
+              a: 0,
+              w: "touch erstellt eine leere Datei (oder aktualisiert den Zeitstempel). mkdir legt Ordner an.",
+            },
+            {
+              q: "Was macht ls > inhalt.txt?",
+              c: [
+                "Schreibt die Ordnerauflistung in die Datei inhalt.txt",
+                "Löscht inhalt.txt",
+                "Liest inhalt.txt vor",
+                "Vergleicht zwei Ordner",
+              ],
+              a: 0,
+              w: "> leitet die Ausgabe eines Befehls in eine Datei um (überschreibt sie).",
+            },
+            {
+              q: "Welcher Befehl durchsucht Text nach einem Muster?",
+              c: ["grep", "echo", "kill", "nano"],
+              a: 0,
+              w: "grep „fehler“ log.txt zeigt alle Zeilen mit „fehler“.",
+            },
+            {
+              q: "Was ist typisch für Skriptsprachen im Vergleich zu Java?",
+              c: [
+                "Variablentypen müssen meist nicht angegeben werden",
+                "Jedes Programm braucht eine Klasse mit main",
+                "Sie sind immer schneller als C",
+                "Sie laufen nur auf Windows",
+              ],
+              a: 0,
+              w: "Weniger Quelltext, oft dynamische Typen – „Hallo Welt“ in Python ist eine Zeile.",
+            },
+          ],
+          cards: [
+            {
+              f: "Skriptsprache",
+              b: "Meist interpretiert; zum Automatisieren, Erweitern und Verbinden von Systemen.",
+            },
+            { f: "Beispiele Skriptsprachen", b: "JavaScript, Python, PHP, Ruby, Bash." },
+            { f: "Shell", b: "Software, über die man per Befehl mit dem Betriebssystem arbeitet." },
+            { f: "Shebang", b: "#!/bin/bash – erste Zeile, nennt den Interpreter." },
+            {
+              f: "Skript starten",
+              b: "chmod +x datei.sh, dann ./datei.sh – oder ohne Shebang: bash datei.sh",
+            },
+            {
+              f: "cd / ls / pwd",
+              b: "Verzeichnis wechseln / Inhalt auflisten / aktuellen Pfad zeigen.",
+            },
+            { f: "mkdir / touch / rm", b: "Ordner anlegen / leere Datei anlegen / löschen." },
+            {
+              f: "cp / mv / cat",
+              b: "Kopieren / verschieben bzw. umbenennen / Dateiinhalt ausgeben.",
+            },
+            { f: "echo / grep", b: "Text ausgeben / Text nach Muster durchsuchen." },
+            { f: "chmod / chown", b: "Rechte ändern / Besitzer ändern." },
+            {
+              f: "ps / kill / man / nano",
+              b: "Prozesse anzeigen / Prozess beenden / Handbuch / Texteditor.",
+            },
+          ],
+          gaps: [
+            { t: "Bash-Skripte haben üblicherweise die Endung .___.", a: ["sh"] },
+            { t: "Mit ___ legst du einen neuen Ordner an.", a: ["mkdir"] },
+            { t: "Mit ___ +x wird ein Skript ausführbar.", a: ["chmod"] },
+            { t: "Die Zeichenfolge #! heißt ___.", a: ["shebang", "hashbang"] },
+            { t: "Mit ___ beendest du einen laufenden Prozess.", a: ["kill"] },
+          ],
+          free: [
+            {
+              q: "Schreibe ein kurzes Bash-Skript, das den Ordner hallo anlegt, hineinwechselt und dort liste.txt mit der Ordnerauflistung erzeugt.",
+              a: [
+                "#!/bin/bash mkdir hallo cd hallo ls > liste.txt",
+                "mkdir hallo; cd hallo; ls > liste.txt",
+              ],
+              w: "#!/bin/bash → mkdir hallo → cd hallo → ls > liste.txt",
+            },
+            {
+              q: "Nenne zwei Merkmale von Skriptsprachen.",
+              a: [
+                "interpretiert und Automatisierung",
+                "Interpreter, keine Typangabe nötig",
+                "Automatisierung, hohe Abstraktion",
+              ],
+              w: "Interpretation statt Kompilierung, Automatisierung, Erweiterung bestehender Systeme, hohe Abstraktion.",
+            },
+            {
+              q: "Wie startest du ein Skript ohne Shebang-Zeile?",
+              a: ["bash skript.sh", "bash datei.sh"],
+              w: "Dann muss der Interpreter explizit genannt werden: bash skript.sh",
+            },
+          ],
+        },
+        {
+          id: "ka1_java_syntax",
+          name: "📗 KA1: Java Aufbau & Syntax",
+          mc: [
+            {
+              q: "Wie heißt die Methode, mit der ein Java-Programm startet?",
+              c: [
+                "public static void main(String[] args)",
+                "public void start()",
+                "static int run()",
+                "void begin(String text)",
+              ],
+              a: 0,
+              w: "Die JVM sucht genau diese main-Methode als Einstiegspunkt.",
+            },
+            {
+              q: "Wie gibst du in Java „Hallo“ mit Zeilenumbruch aus?",
+              c: [
+                'System.out.println("Hallo");',
+                'print "Hallo"',
+                'console.log("Hallo");',
+                "echo Hallo",
+              ],
+              a: 0,
+              w: "System.out.println gibt Text aus und springt in die nächste Zeile.",
+            },
+            {
+              q: "Womit endet in Java jede Anweisung?",
+              c: [
+                "Mit einem Semikolon ;",
+                "Mit einem Punkt .",
+                "Mit einem Doppelpunkt :",
+                "Mit einem Zeilenumbruch",
+              ],
+              a: 0,
+              w: "Fehlt das Semikolon, meldet der Compiler einen Fehler.",
+            },
+            {
+              q: "Die Klasse heißt public class Rechner. Wie muss die Datei heißen?",
+              c: ["Rechner.java", "rechner.txt", "Main.java", "Rechner.class"],
+              a: 0,
+              w: "Dateiname = Name der public-Klasse + .java. Die .class-Datei entsteht erst beim Kompilieren.",
+            },
+            {
+              q: "Was erzeugt der Befehl javac Rechner.java?",
+              c: [
+                "Bytecode in Rechner.class",
+                "Eine .exe-Datei",
+                "Maschinencode für Windows",
+                "Eine PDF",
+              ],
+              a: 0,
+              w: "javac kompiliert in plattformunabhängigen Bytecode; java Rechner startet ihn in der JVM.",
+            },
+            {
+              q: "Welcher Datentyp passt für 3,75?",
+              c: ["double", "int", "boolean", "char"],
+              a: 0,
+              w: "double speichert Kommazahlen; int nur ganze Zahlen.",
+            },
+            {
+              q: "Welche Deklaration ist korrekt?",
+              c: ["int alter = 17;", "alter int = 17", "int = alter 17;", "var: int alter = 17"],
+              a: 0,
+              w: "Typ, Name, = Wert, Semikolon.",
+            },
+            {
+              q: "Was gilt für Groß- und Kleinschreibung in Java?",
+              c: [
+                "Java unterscheidet sie (case-sensitive)",
+                "Sie ist egal",
+                "Nur Klassennamen werden unterschieden",
+                "Nur im Kommentar wichtig",
+              ],
+              a: 0,
+              w: "System ≠ system – ein falscher Buchstabe führt zu einem Kompilierfehler.",
+            },
+            {
+              q: "Woran ist die Java-Syntax stark angelehnt?",
+              c: ["C und C++", "Python", "HTML", "Bash"],
+              a: 0,
+              w: "Geschweifte Klammern, Semikolons, Datentypen – Java übernimmt viel von C/C++.",
+            },
+          ],
+          cards: [
+            {
+              f: "Grundgerüst",
+              b: 'public class Hallo { public static void main(String[] args) { System.out.println("Hallo"); } }',
+            },
+            {
+              f: "Blöcke",
+              b: "Geschweifte Klammern { } fassen Klassen, Methoden und Blöcke zusammen.",
+            },
+            { f: "Kommentare", b: "// einzeilig · /* mehrzeilig */ · /** Javadoc */" },
+            {
+              f: "Datentypen",
+              b: "int (ganze Zahl), double (Kommazahl), boolean (true/false), char ('A'), String (Text).",
+            },
+            {
+              f: "Kompilieren & starten",
+              b: "javac Hallo.java → Hallo.class (Bytecode) → java Hallo",
+            },
+            {
+              f: "Statisch typisiert",
+              b: "Jede Variable braucht beim Deklarieren einen festen Typ.",
+            },
+          ],
+          gaps: [
+            { t: "Jede Java-Anweisung endet mit einem ___.", a: ["semikolon"] },
+            { t: "Der Compiler heißt ___.", a: ["javac"] },
+            { t: "Ganze Zahlen speichert man im Datentyp ___.", a: ["int"] },
+            { t: "Wahr/Falsch speichert der Datentyp ___.", a: ["boolean"] },
+            { t: "Text wird in Java als ___ gespeichert.", a: ["string"] },
+          ],
+          free: [
+            {
+              q: "Schreibe ein vollständiges Java-Programm, das „Hallo Welt“ ausgibt.",
+              a: [
+                'public class HalloWelt { public static void main(String[] args) { System.out.println("Hallo Welt"); } }',
+                "class main System.out.println Hallo Welt",
+              ],
+              w: 'Klasse → main-Methode → System.out.println("Hallo Welt");',
+            },
+            {
+              q: "Wie kommst du vom Quellcode zum laufenden Programm?",
+              a: ["javac kompilieren, dann mit java starten", "javac Datei.java dann java Datei"],
+              w: "Quellcode (.java) → javac → Bytecode (.class) → JVM führt aus (java).",
+            },
+          ],
+        },
       ],
     },
     {
@@ -2217,6 +3132,330 @@ window.LERNHUB_EXT = {
                 "Buecher gefaelscht, ca. 7 Milliarden Euro erfunden, Kurs auf Null",
               ],
               w: "Das Beispiel zeigt: Firmenwahrheit ist kein Theorie-Thema, sondern hat echte Folgen.",
+            },
+          ],
+        },
+        {
+          id: "zielgruppe_konkurrenz",
+          name: "🎯 Zielgruppe & Konkurrenzanalyse (SWOT)",
+          mc: [
+            {
+              q: "Was ist der häufigste Grund, warum Startups scheitern?",
+              c: [
+                "Sie bauen eine „Lösung ohne Problem“, die niemand kaufen will",
+                "Das Logo ist zu bunt",
+                "Sie haben zu viele Kunden",
+                "Sie melden sich zu früh im Handelsregister an",
+              ],
+              a: 0,
+              w: "Erst das Kundenbedürfnis klären – ohne echtes Problem gibt es keine Abnehmer.",
+            },
+            {
+              q: "Jemand hält seinen schlechten Schlaf für normal und weiß nicht, dass eine bessere Matratze helfen würde. Das ist ein …",
+              c: [
+                "latentes (unbewusstes) Bedürfnis",
+                "bewusstes Bedürfnis",
+                "Konkurrenzvorteil",
+                "Rechtsformzusatz",
+              ],
+              a: 0,
+              w: "Latente Bedürfnisse sind dem Kunden nicht bewusst – schwer zu entdecken, aber große Chance.",
+            },
+            {
+              q: "Was ist eine Zielgruppe?",
+              c: [
+                "Eine genau beschriebene Teilmenge möglicher Kunden, auf die das Produkt zugeschnitten ist",
+                "Alle Menschen, die das Produkt theoretisch kaufen könnten",
+                "Die Mitarbeitenden eines Unternehmens",
+                "Die Konkurrenz am selben Ort",
+              ],
+              a: 0,
+              w: "Je präziser die Zielgruppe, desto besser lassen sich Produkt und Werbung anpassen.",
+            },
+            {
+              q: "Welches ist ein demografisches Merkmal bei Privatkunden?",
+              c: ["Alter", "Umsatz", "Mitarbeiterzahl", "Branche"],
+              a: 0,
+              w: "Demografisch: Alter, Geschlecht, Beruf, Familienstand. Umsatz/Branche/Mitarbeiter = Geschäftskunden.",
+            },
+            {
+              q: "Ein Anbieter gesunder Snackautomaten – wer ist ein DIREKTER Konkurrent?",
+              c: [
+                "Ein anderer Snackautomaten-Betreiber",
+                "Ein Burger-Restaurant",
+                "Ein Food Truck mit Currywurst",
+                "Ein Fitnessstudio",
+              ],
+              a: 0,
+              w: "Direkt = gleiche Angebotsart für dasselbe Bedürfnis; indirekt = anderes Angebot, ähnliches Bedürfnis (z. B. Fast Food).",
+            },
+            {
+              q: "Wofür steht das „O“ in SWOT?",
+              c: [
+                "Opportunities – Chancen",
+                "Organisation",
+                "Ownership – Eigentum",
+                "Output – Ergebnis",
+              ],
+              a: 0,
+              w: "Strengths, Weaknesses, Opportunities, Threats = Stärken, Schwächen, Chancen, Risiken.",
+            },
+            {
+              q: "Welche SWOT-Felder gehören zur INTERNEN Analyse?",
+              c: [
+                "Stärken und Schwächen",
+                "Chancen und Risiken",
+                "Chancen und Stärken",
+                "Nur Risiken",
+              ],
+              a: 0,
+              w: "Intern (eigenes Unternehmen): Stärken/Schwächen. Extern (Markt/Umfeld): Chancen/Risiken.",
+            },
+            {
+              q: "„Immer mehr Menschen achten auf gesunde Ernährung.“ – In welches SWOT-Feld gehört das?",
+              c: ["Chancen", "Stärken", "Schwächen", "Risiken"],
+              a: 0,
+              w: "Ein Markttrend außerhalb des Unternehmens, der helfen kann = Chance (Opportunity).",
+            },
+            {
+              q: "Welche Frage gehört NICHT zur Bewertung einer Zielgruppe?",
+              c: [
+                "Mag der Gründer die Zielgruppe persönlich?",
+                "Ist die Zielgruppe groß genug?",
+                "Ist die Zielgruppe erreichbar?",
+                "Hat sie das Bedürfnis stark?",
+              ],
+              a: 0,
+              w: "Bewertet werden Abgrenzung, Stärke des Bedürfnisses, Eignung der Lösung, Größe und Erreichbarkeit.",
+            },
+          ],
+          cards: [
+            {
+              f: "Kundenbedürfnis (Customer Need)",
+              b: "Problem/Wunsch, den ein Produkt lösen soll – Ausgangspunkt jeder Gründung.",
+            },
+            {
+              f: "Bewusstes Bedürfnis",
+              b: "Kunde kennt sein Problem und nutzt oft schon eine Lösung → es gibt Konkurrenz.",
+            },
+            {
+              f: "Latentes Bedürfnis",
+              b: "Kunde weiß nichts davon → schwer zu finden, muss überzeugt werden, aber große Chance.",
+            },
+            {
+              f: "Zielgruppe präzisieren",
+              b: "Demografisch (Alter, Beruf …), statistisch bei Firmen (Umsatz, Branche), qualitativ (neugierig …) oder über Ereignisse (gerade Abi gemacht).",
+            },
+            {
+              f: "Gute Lösung",
+              b: "Befriedigt das Bedürfnis, ist innovativ, bietet höheren Kundennutzen, ist realistisch.",
+            },
+            {
+              f: "Konkurrenzanalyse",
+              b: "Infos über direkte/indirekte Konkurrenten sammeln, Stärken/Schwächen vergleichen → Wettbewerbsvorteile finden.",
+            },
+            { f: "SWOT", b: "Intern: Stärken / Schwächen · Extern: Chancen / Risiken." },
+          ],
+          gaps: [
+            { t: "Ein dem Kunden unbewusstes Bedürfnis heißt ___.", a: ["latent", "latentes"] },
+            { t: "Bei SWOT steht T für Threats, also ___.", a: ["risiken", "bedrohungen"] },
+            { t: "Stärken und Schwächen gehören zur ___ Analyse.", a: ["internen", "interne"] },
+            {
+              t: "Ein Food Truck ist für einen Snackautomaten ein ___ Konkurrent.",
+              a: ["indirekter", "indirekt"],
+            },
+          ],
+          free: [
+            {
+              q: "Erkläre den Unterschied zwischen direkter und indirekter Konkurrenz.",
+              a: [
+                "Direkt bietet das gleiche Produkt an, indirekt ein anderes Produkt für das gleiche Bedürfnis",
+                "direkt gleiche Leistung, indirekt Ersatzprodukt",
+              ],
+              w: "Direkt: gleiche Angebotsart. Indirekt: andere Lösung für dasselbe Bedürfnis (Substitut).",
+            },
+            {
+              q: "Nenne die vier Felder der SWOT-Analyse auf Deutsch.",
+              a: ["Stärken, Schwächen, Chancen, Risiken", "Staerken Schwaechen Chancen Risiken"],
+              w: "Strengths, Weaknesses, Opportunities, Threats.",
+            },
+            {
+              q: "Nenne drei Merkmale, mit denen man eine Zielgruppe von Privatkunden genauer beschreiben kann.",
+              a: [
+                "Alter, Beruf, Interessen",
+                "Alter Geschlecht Familienstand",
+                "Alter, Einkommen, Lebensstil",
+              ],
+              w: "Z. B. Alter, Geschlecht, Beruf, Familienstand, Interessen, Lebensstil, Ernährungsbewusstsein.",
+            },
+          ],
+        },
+        {
+          id: "rechtsformen",
+          name: "🏛️ Rechtsformen: e.K., OHG, KG, GmbH",
+          mc: [
+            {
+              q: "Wie haftet ein Einzelunternehmer (e.K.)?",
+              c: [
+                "Unbeschränkt und unmittelbar mit Geschäfts- und Privatvermögen",
+                "Nur mit seiner Einlage",
+                "Gar nicht",
+                "Nur mit dem Firmenvermögen",
+              ],
+              a: 0,
+              w: "Er haftet mit allem, was er besitzt – dafür gehört ihm der ganze Gewinn.",
+            },
+            {
+              q: "Wie hoch ist das Mindeststammkapital einer GmbH?",
+              c: ["25.000 €", "1 €", "50.000 €", "Es gibt keins"],
+              a: 0,
+              w: "GmbH: 25.000 € Stammkapital. Bei OHG, KG und e.K. gibt es kein gesetzliches Mindestkapital.",
+            },
+            {
+              q: "Wie haften die Gesellschafter einer OHG?",
+              c: [
+                "Unbeschränkt, unmittelbar und gesamtschuldnerisch",
+                "Nur bis zur Höhe ihrer Einlage",
+                "Gar nicht – nur die OHG haftet",
+                "Nur der älteste Gesellschafter",
+              ],
+              a: 0,
+              w: "Jeder haftet auch privat – sogar für Schulden, die ein anderer Gesellschafter verursacht hat.",
+            },
+            {
+              q: "Wie heißt in der KG der voll haftende Gesellschafter?",
+              c: ["Komplementär", "Kommanditist", "Prokurist", "Aufsichtsrat"],
+              a: 0,
+              w: "Komplementär = Vollhafter mit Geschäftsführung; Kommanditist = Teilhafter bis zur Einlage.",
+            },
+            {
+              q: "Darf ein Kommanditist die KG nach außen vertreten?",
+              c: [
+                "Nein, er ist von der Vertretung ausgeschlossen",
+                "Ja, immer allein",
+                "Ja, aber nur bei Kunden",
+                "Nur am Wochenende",
+              ],
+              a: 0,
+              w: "Geschäftsführung und Vertretung liegen bei den Komplementären; Kommanditisten haben Kontrollrechte.",
+            },
+            {
+              q: "Wer vertritt eine GmbH nach außen?",
+              c: ["Der Geschäftsführer", "Jeder Gesellschafter", "Der Aufsichtsrat", "Die Bank"],
+              a: 0,
+              w: "Die GmbH ist eine juristische Person – sie handelt durch ihre Geschäftsführung (mind. 1 Person).",
+            },
+            {
+              q: "Ein OHG-Gesellschafter bestellt ohne Absprache Ware für 1.000 €. Ist der Vertrag gültig?",
+              c: [
+                "Ja – jeder OHG-Gesellschafter ist vertretungsberechtigt",
+                "Nein – nur alle zusammen dürfen bestellen",
+                "Nur mit Notar",
+                "Nur bis 100 €",
+              ],
+              a: 0,
+              w: "Grundsätzlich Einzelvertretung. Interne Beschränkungen gelten gegenüber Dritten nur, wenn diese sie kennen.",
+            },
+            {
+              q: "Die GmbH kann eine Rechnung nicht zahlen. Muss ein Gesellschafter privat einspringen?",
+              c: [
+                "Nein – es haftet nur das Gesellschaftsvermögen",
+                "Ja, immer mit dem Privatvermögen",
+                "Ja, aber nur der jüngste",
+                "Ja, bis 50 %",
+              ],
+              a: 0,
+              w: "Beschränkte Haftung: Gesellschafter riskieren nur ihre Einlage, nicht ihr Privatvermögen.",
+            },
+            {
+              q: "Welcher Firmenzusatz gehört zu einem Einzelunternehmen?",
+              c: ["e.K.", "OHG", "GmbH", "AG"],
+              a: 0,
+              w: "„eingetragener Kaufmann“ bzw. „eingetragene Kauffrau“: e.K., e.Kfm., e.Kfr.",
+            },
+            {
+              q: "Welches ist KEIN typisches Kriterium bei der Wahl der Rechtsform?",
+              c: [
+                "Lieblingsfarbe des Gründers",
+                "Haftung",
+                "Kapitalbeschaffung",
+                "Geschäftsführung und Vertretung",
+              ],
+              a: 0,
+              w: "Kriterien: Haftung, Kapitalbeschaffung, Mitarbeit/Geschäftsführung, Vertretung, Gewinnverteilung, Kontrolle, Mitbestimmung.",
+            },
+          ],
+          cards: [
+            {
+              f: "Einzelunternehmen (e.K.)",
+              b: "1 Inhaber · formlose Gründung · kein Mindestkapital · haftet unbeschränkt · entscheidet & vertritt allein · ganzer Gewinn/Verlust.",
+            },
+            {
+              f: "OHG",
+              b: "Personengesellschaft, mind. 2 · kein Mindestkapital · alle haften unbeschränkt, unmittelbar, gesamtschuldnerisch · alle führen & vertreten.",
+            },
+            {
+              f: "KG",
+              b: "Komplementär (Vollhafter, führt & vertritt) + Kommanditist (haftet nur mit Einlage, keine Geschäftsführung, Kontrollrechte).",
+            },
+            {
+              f: "GmbH",
+              b: "Kapitalgesellschaft / juristische Person · 25.000 € Stammkapital · Haftung nur Gesellschaftsvermögen · Geschäftsführer vertritt · Gewinn nach Anteilen.",
+            },
+            {
+              f: "Gewinnverteilung OHG (Unterrichtsregel)",
+              b: "Erst 4 % auf die Kapitaleinlage, Rest nach Köpfen. Hinweis: Seit 2024 (MoPeG) verteilt das HGB ohne Vertrag nach Beteiligungsverhältnis – in der KA gilt, was im Unterricht stand.",
+            },
+            {
+              f: "Personen- vs. Kapitalgesellschaft",
+              b: "Personen: Gesellschafter haften persönlich, arbeiten mit · Kapital: nur das Gesellschaftsvermögen haftet, Mitarbeit nicht Pflicht.",
+            },
+            {
+              f: "Kreditwürdigkeit",
+              b: "Je mehr Personen privat haften (z. B. OHG, Komplementäre), desto mehr Sicherheit für die Bank.",
+            },
+          ],
+          gaps: [
+            {
+              t: "Bei der GmbH beträgt das Stammkapital mindestens ___ Euro.",
+              a: ["25000", "25.000"],
+            },
+            { t: "In der KG haftet der ___ nur bis zur Höhe seiner Einlage.", a: ["kommanditist"] },
+            {
+              t: "OHG-Gesellschafter haften unbeschränkt, unmittelbar und ___.",
+              a: ["gesamtschuldnerisch", "solidarisch"],
+            },
+            { t: "Die GmbH ist eine ___ Person.", a: ["juristische"] },
+            { t: "Ein Einzelunternehmer trägt den Zusatz ___.", a: ["e.k.", "ek", "e.k", "e. k."] },
+          ],
+          free: [
+            {
+              q: "Drei Gesellschafter einer GmbH teilen 300.000 € Gewinn im Verhältnis 3 : 2 : 1. Wie viel bekommt jeder?",
+              a: ["150.000 €, 100.000 €, 50.000 €", "150000 100000 50000"],
+              w: "300.000 € / 6 Teile = 50.000 € je Teil → 3·50k, 2·50k, 1·50k.",
+            },
+            {
+              q: "OHG-Rechnung nach Unterrichtsregel: A hat 40.000 €, B 20.000 € eingelegt, Gewinn 50.000 €. Wie viel erhält jeder?",
+              a: ["A 25.400 €, B 24.600 €", "25400 und 24600"],
+              w: "4 %: A 1.600 €, B 800 € (= 2.400 €). Rest 47.600 € / 2 = 23.800 € → A 25.400 €, B 24.600 €.",
+            },
+            {
+              q: "Warum wählen viele Gründer eine GmbH statt einer OHG?",
+              a: [
+                "Weil sie nicht mit dem Privatvermögen haften",
+                "beschränkte Haftung",
+                "Privatvermögen ist geschützt",
+              ],
+              w: "Hauptgrund: beschränkte Haftung. Nachteil: 25.000 € Stammkapital, Notar, mehr Formalitäten.",
+            },
+            {
+              q: "Nenne drei Kriterien für die Wahl einer Rechtsform.",
+              a: [
+                "Haftung, Kapitalbeschaffung, Geschäftsführung",
+                "Haftung Gewinnverteilung Vertretung",
+                "Haftung, Kapital, Mitbestimmung",
+              ],
+              w: "Haftung, Eigenkapitalbeschaffung, Mitarbeit/Geschäftsführung, Vertretung, Gewinn-/Verlustverteilung, Kontrolle, Mitbestimmung.",
             },
           ],
         },
@@ -2736,6 +3975,166 @@ window.LERNHUB_EXT = {
                 "Verboten in Abgaben, erlaubt zum Lernen und Korrigierenlassen",
               ],
               w: "Grund der Regel: KI wiegt vor, du lernst nichts – selbst machen bleibt im Hirn.",
+            },
+          ],
+        },
+        {
+          id: "lesemethode_ki_lernen",
+          name: "📖 5-Schritt-Lesemethode & Lernen mit KI",
+          mc: [
+            {
+              q: "Was liest du beim 1. Schritt „Überblick verschaffen“?",
+              c: [
+                "Titel, Zwischenüberschriften, ersten und letzten Absatz",
+                "Den ganzen Text Wort für Wort",
+                "Nur die Quellenangabe",
+                "Nur den Mittelteil",
+              ],
+              a: 0,
+              w: "Ziel: eine erste Vermutung, worum es geht – in 1–2 Sätzen festhalten.",
+            },
+            {
+              q: "Wie solltest du beim 3. Schritt markieren?",
+              c: [
+                "Sparsam – nur Schlüsselwörter und Wichtigstes",
+                "Möglichst alles, damit nichts fehlt",
+                "Nur Fremdwörter",
+                "Gar nicht, nur lesen",
+              ],
+              a: 0,
+              w: "Wer alles markiert, markiert nichts – nur das Wesentliche soll hervorstechen.",
+            },
+            {
+              q: "Was ist ein Sinnabschnitt?",
+              c: [
+                "Ein Textteil, in dem ein Gedanke behandelt wird",
+                "Immer genau ein Absatz",
+                "Die Überschrift des Textes",
+                "Jede fünfte Zeile",
+              ],
+              a: 0,
+              w: "Ein neuer Sinnabschnitt beginnt, wo ein neuer Gedanke anfängt – nicht zwingend beim neuen Absatz.",
+            },
+            {
+              q: "Welche Reihenfolge ist richtig?",
+              c: [
+                "Überblick → genau lesen → markieren → gliedern → Hauptaussagen",
+                "Markieren → Überblick → Hauptaussagen → gliedern → lesen",
+                "Hauptaussagen → markieren → lesen → Überblick → gliedern",
+                "Gliedern → Überblick → markieren → lesen → Hauptaussagen",
+              ],
+              a: 0,
+              w: "Vom Groben zum Feinen: erst orientieren, dann verstehen, dann verdichten.",
+            },
+            {
+              q: "Was bedeutet „Cognitive Offloading“?",
+              c: [
+                "Denkarbeit an Hilfsmittel auslagern (Notizen, Handy, KI)",
+                "Das Gehirn mit Sport entlasten",
+                "Einen Text laut vorlesen",
+                "Daten auf eine Festplatte kopieren",
+              ],
+              a: 0,
+              w: "Auslagern spart Kraft – zu früh ausgelagert, fällt aber der eigentliche Lernprozess weg.",
+            },
+            {
+              q: "Was sind „Desirable Difficulties“?",
+              c: [
+                "Wünschenswerte Erschwernisse, die das langfristige Behalten verbessern",
+                "Fehler, die man vermeiden muss",
+                "Besonders schwierige Prüfungen",
+                "Schlechte Lernbedingungen",
+              ],
+              a: 0,
+              w: "Z. B. sich selbst abfragen, Lernen verteilen, Themen mischen – anstrengender, aber nachhaltiger.",
+            },
+            {
+              q: "Welche Reihenfolge empfiehlt der Artikel beim Einsatz von KI?",
+              c: [
+                "Erst selbst nachdenken, dann KI zum Prüfen und Verbessern nutzen",
+                "Erst KI fragen, dann abschreiben",
+                "KI komplett verbieten",
+                "Nur KI, eigenes Denken ist überflüssig",
+              ],
+              a: 0,
+              w: "KI soll Werkzeug bleiben, nicht Ersatz für den eigenen Kopf.",
+            },
+            {
+              q: "Der Text ist eine Pressemitteilung. Worauf solltest du deshalb achten?",
+              c: [
+                "Wer sie herausgibt und welches Interesse dahinterstehen könnte",
+                "Nur auf die Rechtschreibung",
+                "Auf die Schriftart",
+                "Auf nichts – Pressemitteilungen sind immer neutral",
+              ],
+              a: 0,
+              w: "Pressemitteilungen stammen vom Absender selbst und können eigene Angebote bewerben – Quelle kritisch einordnen.",
+            },
+          ],
+          cards: [
+            {
+              f: "1 Überblick verschaffen",
+              b: "Titel, Zwischenüberschriften, erster und letzter Absatz → Vermutung notieren.",
+            },
+            { f: "2 Genau lesen", b: "Absatz für Absatz; unbekannte Wörter notieren und klären." },
+            { f: "3 Markieren", b: "Zweiter Durchgang, sparsam Schlüsselwörter unterstreichen." },
+            {
+              f: "4 Gliedern",
+              b: "Sinnabschnitte mit Strich trennen und Randüberschriften notieren (Zeile … bis …).",
+            },
+            {
+              f: "5 Hauptaussagen",
+              b: "Je Abschnitt ein Satz in eigenen Worten; Gesamttext in max. 5 Sätzen: Problem – Begründung – Empfehlung.",
+            },
+            {
+              f: "Cognitive Offloading",
+              b: "Denken an Hilfsmittel auslagern (Kalender, Taschenrechner, KI).",
+            },
+            {
+              f: "Desirable Difficulties",
+              b: "Lernhürden, die Mühe kosten, aber das Behalten stärken (Abrufen, Verteilen, Mischen).",
+            },
+            {
+              f: "Selbst-Check-Fragen",
+              b: "Was habe ich zuerst gedacht? Warum diese Lösung? Kann ich es in eigenen Worten erklären? Wo war es schwer?",
+            },
+          ],
+          gaps: [
+            { t: "Beim Markieren gilt: lieber ___ als zu viel.", a: ["sparsam", "weniger"] },
+            {
+              t: "Zu jedem Sinnabschnitt schreibst du eine ___ an den Rand.",
+              a: ["ueberschrift", "überschrift", "randueberschrift", "randüberschrift"],
+            },
+            {
+              t: "Am Ende fasst du den Text in höchstens ___ Sätzen zusammen.",
+              a: ["5", "fuenf", "fünf"],
+            },
+            { t: "Denkarbeit an ein Hilfsmittel abgeben heißt Cognitive ___.", a: ["offloading"] },
+          ],
+          free: [
+            {
+              q: "Nenne die 5 Schritte der Lesemethode.",
+              a: [
+                "Überblick, genau lesen, markieren, gliedern, Hauptaussagen formulieren",
+                "ueberblick lesen markieren sinnabschnitte hauptaussagen",
+              ],
+              w: "Überblick → Genau lesen → Markieren → Sinnabschnitte gliedern → Hauptaussagen formulieren.",
+            },
+            {
+              q: "Warum kann es dem Lernen schaden, Hausaufgaben sofort von einer KI lösen zu lassen?",
+              a: [
+                "Weil der Denkprozess übersprungen wird, in dem Lernen passiert",
+                "man lernt nichts, weil man nicht selbst denkt",
+              ],
+              w: "Verstehen entsteht beim eigenen Ordnen, Ausprobieren und Scheitern – das „Reibungs“-Training fällt weg.",
+            },
+            {
+              q: "Wie kann man KI sinnvoll beim Lernen nutzen?",
+              a: [
+                "Erst selbst lösen, dann mit KI prüfen",
+                "zum Überprüfen und Erklären nach eigenem Versuch",
+              ],
+              w: "Erst eigener Versuch, dann KI zum Prüfen, Erklären oder Weiterentwickeln.",
             },
           ],
         },
