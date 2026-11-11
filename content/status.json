@@ -1,6 +1,6 @@
 {
-  "lastRun": "2026-11-09T12:32:00Z",
+  "lastRun": "2026-11-11T10:30:00Z",
   "queue": [],
   "error": null,
-  "note": "Auftrag 20261109-132651-frei.md enthielt nur die Begrüßung 'hallo' – kein Lernstoff ergänzt. Bitte ein konkretes Fach/Thema angeben (z. B. '10 Aufgaben zu Subnetting')."
+  "note": "Auftrag 'aktueller Stoff' (E1FI A) umgesetzt: neues ITS-Thema 'Stromkreis, Ladung & Leistung' am Ende des Fachs ITS angehaengt – 12 Uebungen (4 MC, 3 Karteikarten, 3 Lueckentext, 2 freie Eingabe). Inhalt aus dem Obsidian-Vault ITS.md (Elektrotechnik-Arbeitsblaetter 1–24, Stand 04.11.2026: Stromkreis aus Quelle/Leitung/Verbraucher, I = Q/t, P = U·I, Leitwert G = 1/R in Siemens, Spannung als Potentialdifferenz, Signalgeschwindigkeit, Spannungserzeugung durch Licht). Das zuvor bereits angelegte Thema 'PC-Montage & ESD-Schutz' blieb unveraendert; keine Duplikate, keine bestehenden Themen veraendert."
 }
