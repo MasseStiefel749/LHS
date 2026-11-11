@@ -324,7 +324,8 @@ function opencode(cwd, prompt) {
   const model = process.env.OPENCODE_MODEL;
   if (!model)
     throw new Error("Repo-Variable OPENCODE_MODEL fehlt (z. B. openrouter/… oder google/…)");
-  const r = spawnSync("opencode", ["run", "--model", model, prompt], {
+  // ERROR-Logs zeigen die echte Ursache (sonst nur "UnknownError")
+  const r = spawnSync("opencode", ["run", "--print-logs", "--log-level", "ERROR", "--model", model, prompt], {
     cwd,
     env: opencodeEnv(),
     encoding: "utf8",

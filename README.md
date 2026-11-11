@@ -279,7 +279,7 @@ Fach mit MC, Karteikarten, Fortschritt im selben Pfad-System.
      `MISTRAL_API_KEY`, `XAI_API_KEY` oder `OPENCODE_API_KEY` (OpenCode Zen).
 3. Gleiche Seite → **Variables** → `OPENCODE_MODEL` im Format
    `anbieter/modell`, passend zum Schlüssel, z. B. `google/gemini-2.5-flash`,
-   `groq/llama-3.3-70b-versatile`, `openrouter/<modell>` oder
+    `groq/openai/gpt-oss-120b`, `openrouter/<modell>` oder
    `opencode/<modell>`. Ob und wie viel kostenlos ist, legt der Anbieter fest –
    bitte dort nachsehen.
 4. **Testen ohne App:** Actions → „Aufgaben erstellen (OpenCode)“ → _Run
