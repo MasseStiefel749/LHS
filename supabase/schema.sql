@@ -958,3 +958,27 @@ grant execute on function public.pack_report(text, text, text, integer, text) to
 grant execute on function public.pack_worker_claim(integer) to service_role;
 grant execute on function public.pack_worker_done(bigint, jsonb, bigint[]) to service_role;
 grant execute on function public.pack_worker_fail(bigint, text) to service_role;
+
+-- Lernhub-KI (Edge Function "ki"): zählt Anfragen pro Nutzer und Tag. Der Primärschlüssel dient auch als Index.
+create table if not exists public.ki_usage (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  day     date not null default current_date,
+  n       integer not null default 0,
+  primary key (user_id, day)
+);
+alter table public.ki_usage enable row level security;
+
+create or replace function public.ki_take()
+returns integer language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); v integer;
+begin
+  if uid is null then raise exception 'auth'; end if;
+  insert into ki_usage (user_id, day, n) values (uid, current_date, 1)
+    on conflict (user_id, day) do update set n = ki_usage.n + 1
+    returning n into v;
+  if v > 60 then raise exception 'limit'; end if;
+  delete from ki_usage where user_id = uid and day < current_date - 7;
+  return 60 - v;
+end $$;
+revoke all on function public.ki_take() from public, anon;
+grant execute on function public.ki_take() to authenticated;

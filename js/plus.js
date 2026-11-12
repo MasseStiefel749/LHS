@@ -361,7 +361,7 @@ function renderExplain() {
     EX.msgs = [
       {
         who: "bot",
-        t: `Ich erkläre dir „${tp.name}“ so oft und so einfach du willst. Frag einfach – oder nimm eine der Schnellfragen unten.${S.chat.apiKey ? "" : "\n(Ohne KI-Key antworte ich aus dem Lernstoff. Echte KI: ⚙️ Einstellungen → KI-Chat, z. B. kostenlos lokal mit Ollama.)"}`,
+        t: `Ich erkläre dir „${tp.name}“ so oft und so einfach du willst. Frag einfach – oder nimm eine der Schnellfragen unten.${aiReady() ? "" : "\n(Ohne KI antworte ich aus dem Lernstoff. Echte KI: kostenlos einloggen – dann antwortet die Lernhub-KI.)"}`,
       },
     ];
   $("app").innerHTML = `
@@ -405,7 +405,7 @@ function renderExplain() {
       </div>
     </div>
     <div class="card">
-      <b>✨ Frag die KI zu „${esc(tp.name)}“</b> <small class="mut">${S.chat.apiKey ? "· echte KI aktiv" : "· Offline-Modus"}</small>
+      <b>✨ Frag die KI zu „${esc(tp.name)}“</b> <small class="mut">${aiReady() ? "· echte KI aktiv" : "· Offline-Modus"}</small>
       <div class="exmsgs" id="exMsgs" style="margin-top:10px">${EX.msgs.map((m) => `<div class="msg ${m.who}">${esc(m.t)}</div>`).join("")}</div>
       <div class="quick" style="background:none;padding:8px 0 0">
         ${["Erklär mir das ganz einfach", "Gib mir ein Beispiel aus der Praxis", "Wofür brauche ich das in der Ausbildung?", "Stell mir eine Prüfungsfrage"].map((x) => `<button onclick="exAsk(this.textContent)">${x}</button>`).join("")}
@@ -453,7 +453,7 @@ function exAsk(raw) {
         (a.w ? "\nWarum: " + a.w : ""),
     );
   }
-  if (S.chat.apiKey) return exAPI(q, tp);
+  if (aiReady()) return exAPI(q, tp);
   exPush("bot", exOffline(q, tp));
 }
 function exOffline(q, tp) {
@@ -517,7 +517,7 @@ function exOffline(q, tp) {
   }
   if (hits.length)
     return "Das habe ich im Lernstoff gefunden:\n" + hits.map((h) => "• " + h.f).join("\n");
-  return "Dazu finde ich nichts im Lernstoff. Probier andere Stichwörter, schau dir ein Video an (🎥) – oder trag in den Einstellungen einen KI-Key ein, dann beantwortet eine echte KI jede Frage.";
+  return "Dazu finde ich nichts im Lernstoff. Probier andere Stichwörter, schau dir ein Video an (🎥) – oder logg dich kostenlos ein, dann beantwortet die Lernhub-KI jede Frage.";
 }
 function exAPI(q, tp) {
   exPush("bot", "⏳ Denkt nach …");
@@ -530,16 +530,10 @@ ${facts}`;
     .filter((m) => m.t !== "⏳ Denkt nach …")
     .slice(-8)
     .map((m) => ({ role: m.who === "me" ? "user" : "assistant", content: m.t }));
-  fetch(S.chat.endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + S.chat.apiKey },
-    body: JSON.stringify({
-      model: S.chat.model || "gpt-4o-mini",
-      messages: [{ role: "system", content: sys }].concat(hist),
-      max_tokens: 600,
-    }),
+  aiPost({
+    messages: [{ role: "system", content: sys }].concat(hist),
+    max_tokens: 600,
   })
-    .then((r) => r.json())
     .then((j) => {
       EX.msgs = EX.msgs.filter((m) => m.t !== "⏳ Denkt nach …");
       const t =
@@ -1222,7 +1216,7 @@ function renderRunde() {
   <div class="hero" style="background:linear-gradient(135deg,#7c3aed,#1a2a63)">
     <h1>🎭 Lernrunde</h1><p>Deine Lieblingsfiguren erklären dir ein Thema – jede auf ihre eigene Art. Du hörst zu und kannst jederzeit mitreden oder selbst erklären.</p><span class="big">🎧</span>
   </div>
-  ${agentOn() ? "" : `<div class="card" style="margin-top:12px"><b>ℹ️ Offline-Modus</b><br><small class="mut">Die Figuren tragen den Lernstoff vor und antworten aus den Lernkarten. Damit sie frei in ihrer Rolle antworten: 🤖 Agent → OpenCode verbinden.</small></div>`}
+  ${aiOn() ? "" : `<div class="card" style="margin-top:12px"><b>ℹ️ Offline-Modus</b><br><small class="mut">Die Figuren tragen den Lernstoff vor und antworten aus den Lernkarten. Damit sie frei in ihrer Rolle antworten: kostenlos einloggen (Lernhub-KI).</small></div>`}
   <div class="pathtabs" style="margin-top:14px">${ids.map((id) => `<button class="${id === sid ? "on" : ""}" data-s="${esc(id)}" onclick="rundeStop();RUNDE.subj=this.dataset.s;RUNDE.tid=null;RUNDE.log=[];renderRunde()">${esc(subjById(id).name)}</button>`).join("")}</div>
   <select class="fi" onchange="rundeStop();RUNDE.tid=this.value;RUNDE.log=[];renderRunde()">
     ${subj.topics.map((t, i) => `<option value="${esc(t.id)}" ${t.id === tp.id ? "selected" : ""}>${i + 1}. ${esc(t.name)}</option>`).join("")}
@@ -1428,7 +1422,7 @@ async function rundeStart() {
   RUNDE.log = [];
   rundePaint();
   let lines = null;
-  if (agentOn()) {
+  if (aiOn()) {
     RUNDE.phase = "think";
     rundeButtons();
     const t = await bridgeAsk(
@@ -1469,7 +1463,7 @@ async function rundeSend(raw) {
   S.stats.exQ = (S.stats.exQ || 0) + 1;
   save();
   let lines = null;
-  if (agentOn()) {
+  if (aiOn()) {
     RUNDE.phase = "think";
     rundeButtons();
     const hist = RUNDE.log

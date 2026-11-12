@@ -26,7 +26,7 @@ function renderSideUser() {
 }
 
 // Buy-Me-a-Coffee-Link hier eintragen, z. B. "https://buymeacoffee.com/NAME" (leer = „kommt bald“)
-const COFFEE_URL = "";
+const COFFEE_URL = "https://buymeacoffee.com/MasseStiefel749";
 function coffeeOpen() {
   if (COFFEE_URL) openUrl(COFFEE_URL);
   else toast("☕ Kommt bald – danke, dass du Lernhub unterstützen willst!", 3500);
@@ -143,6 +143,46 @@ async function cloudToken() {
 }
 async function rpc(name, args) {
   return cloudReq("/rest/v1/rpc/" + name, args || {}, await cloudToken());
+}
+
+/* KI: eigener Key hat Vorrang, sonst die Lernhub-KI (Edge Function "ki", nur mit Konto) */
+function hubAI() {
+  return !S.chat.apiKey && !!(cloudCfg() && CLOUD);
+}
+function aiReady() {
+  return !!S.chat.apiKey || hubAI();
+}
+async function aiPost(body) {
+  if (S.chat.apiKey) {
+    const r = await fetch(S.chat.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + S.chat.apiKey },
+      body: JSON.stringify(Object.assign({ model: S.chat.model || "gpt-4o-mini" }, body)),
+    });
+    return r.json();
+  }
+  const cfg = cloudCfg();
+  if (!cfg || !CLOUD) throw new Error("Bitte einloggen");
+  const r = await fetch(cfg.url + "/functions/v1/ki", {
+    method: "POST",
+    headers: {
+      apikey: cfg.key,
+      Authorization: "Bearer " + (await cloudToken()),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const j = await r.json().catch(() => null);
+  if (r.ok && j) return j;
+  return {
+    error: {
+      message:
+        (j && j.error && j.error.message) ||
+        (r.status === 404
+          ? "Lernhub-KI ist noch nicht eingerichtet."
+          : "Lernhub-KI: HTTP " + r.status),
+    },
+  };
 }
 
 /* ---- Sync: nach dem Speichern gebündelt, nur wenn sich Zahlen geändert haben ---- */

@@ -1904,7 +1904,7 @@ function viewMc(q, perm){
   }).join("");
   const fb = LES.checked ? feedbackHTML(LES.picked===right, esc(q.w||""), "Weiter") : "";
   return `<div class="qcard"><div class="qtext">${esc(q.q)}</div>${opts}${fb}</div>
-    ${LES.checked||!agentOn()?"":`<div class="center"><button class="btn ghost sm" onclick="askHint()">✨ Tipp</button></div>`}`;
+    ${LES.checked||!aiOn()?"":`<div class="center"><button class="btn ghost sm" onclick="askHint()">✨ Tipp</button></div>`}`;
 }
 function answerMc(i){
   if(LES.checked) return;
@@ -1919,7 +1919,7 @@ function viewCard(c){
   if(!LES.flipped){
     return `<div class="qcard"><div class="qtext">Was bedeutet das?</div></div>
       <div class="flip" onclick="LES.flipped=true;renderLesson()">${esc(c.f)}<br><span class="small mut" style="font-weight:400">antippen zum Umdrehen</span></div>
-      <div class="center"><button class="btn ghost sm" onclick="speakCard()">🔊 Vorlesen</button>${agentOn()?` <button class="btn ghost sm" onclick="askHint()">✨ Tipp</button>`:""}</div>`;
+      <div class="center"><button class="btn ghost sm" onclick="speakCard()">🔊 Vorlesen</button>${aiOn()?` <button class="btn ghost sm" onclick="askHint()">✨ Tipp</button>`:""}</div>`;
   }
   const fb = LES.checked ? feedbackHTML(LES.gewusst, LES.gewusst?"Gewusst!":"Kommt nochmal – die Karte geht in die Wiederholung.", "Weiter") : "";
   return `<div class="qcard"><div class="qtext">${esc(c.f)}</div></div>
@@ -1975,7 +1975,7 @@ function viewFree(f){
     <input class="freein" id="fin" autocomplete="off" placeholder="Deine Antwort …" ${LES.checked?"disabled":""}
       onkeydown="if(event.key==='Enter'&&!LES.checked)answerFree()">
     ${fb}</div>
-    ${LES.checked||!agentOn()?"":`<div class="center"><button class="btn ghost sm" onclick="askHint()">✨ Tipp</button></div>`}`;
+    ${LES.checked||!aiOn()?"":`<div class="center"><button class="btn ghost sm" onclick="askHint()">✨ Tipp</button></div>`}`;
 }
 function answerFree(){
   if(LES.checked) return;
@@ -2570,12 +2570,12 @@ function updateChatHead(){
   const c=activeChar();
   $("chatAv").innerHTML = charAvatarHTML(c);
   $("chatName").textContent = c.name;
-  $("chatSub").textContent = agentOn() ? "🤖 über OpenCode · Lösung erst nach "+HINT_THRESHOLD+" Fehlversuchen" : "offline · Tipps nur mit OpenCode-Verbindung";
+  $("chatSub").textContent = agentOn() ? "🤖 über OpenCode · Lösung erst nach "+HINT_THRESHOLD+" Fehlversuchen" : aiReady() ? "✨ "+(hubAI()?"Lernhub-KI":"eigene KI")+" · Lösung erst nach "+HINT_THRESHOLD+" Fehlversuchen" : "offline · Tipps mit Konto (Lernhub-KI)";
 }
 function greetChat(){
   const c=activeChar(); const nm=c?c.name:"Coach";
   CHAT=[];
-  if(agentOn()){
+  if(aiOn()){
     agentAsk(agentPersona()+"\n"+agentState()+`\nDas Chat-Fenster wurde gerade geöffnet. Schreib als ${nm} eine kurze Begrüßung (1–2 Sätze) an ${accountName()||"den Lernenden"} und ${c&&c.teach?"bitte neugierig darum, dir das Thema „"+teachTopic().name+"“ zu erklären":"biete deine Hilfe an"}.`)
       .then(t=>{ if(t) pushMsg("bot",t); else localGreet(); renderQuick(); });
     return;
@@ -2585,7 +2585,7 @@ function greetChat(){
 function localGreet(){
   const c=activeChar(); const nm=c?c.name:"Coach";
   const due=dueCount();
-  CHAT.push({who:"bot", t:`${c&&c.hello?c.hello:`Hi, ich bin ${nm}!`}\n${due?`🔁 ${due} Wiederholung${due>1?"en":""} warten auf dich.`:`🔥 Dein Streak: ${streakNow()} Tage.`}${agentOn()?"":"\n🤖 Tipps und richtiges Chatten gibt's, sobald OpenCode verbunden ist (🤖 Agent)."}`});
+  CHAT.push({who:"bot", t:`${c&&c.hello?c.hello:`Hi, ich bin ${nm}!`}\n${due?`🔁 ${due} Wiederholung${due>1?"en":""} warten auf dich.`:`🔥 Dein Streak: ${streakNow()} Tage.`}${aiOn()?"":"\n✨ Tipps und richtiges Chatten gibt's, sobald du eingeloggt bist (kostenlose Lernhub-KI)."}`});
   paintChat();
 }
 function chatCtx(){
@@ -2605,7 +2605,7 @@ function chatCtx(){
   return null;
 }
 function askHint(){
-  if(!agentOn()) return toast("🤖 Tipps gibt's nur, wenn OpenCode verbunden ist");
+  if(!aiOn()) return toast("✨ Tipps gibt's mit Konto (kostenlose Lernhub-KI) – bitte einloggen");
   const c=$("chat");
   if(c.classList.contains("hidden")){
     c.classList.remove("hidden"); updateChatHead();
@@ -2617,11 +2617,11 @@ function renderQuick(){
   const ctx=chatCtx();
   const q=[];
   if(ctx){
-    if(agentOn()) q.push(["💡","Tipp",()=>chatTip(false)]);
+    if(aiOn()) q.push(["💡","Tipp",()=>chatTip(false)]);
     if(ctx.fails>=HINT_THRESHOLD||ctx.giveUp) q.push(["✅","Lösung zeigen",()=>chatSolution()]);
     else q.push(["🙋","Ich geb's auf",()=>chatGiveUp()]);
   }
-  if(activeChar().teach && agentOn()) q.push(["🎓","Frag mich was",()=>teachAsk()]);
+  if(activeChar().teach && aiOn()) q.push(["🎓","Frag mich was",()=>teachAsk()]);
   else q.push(["📚","Erklär das Thema",()=>chatExplain()]);
   q.push(["📊","Wo stehe ich?",()=>chatStats()]);
   q.push(["🔁","Was ist fällig?",()=>chatDue()]);
@@ -2635,18 +2635,19 @@ function paintChat(){
 }
 function chatTip(full){
   const ctx=chatCtx();
-  if(!agentOn()){ pushMsg("bot","🤖 Tipps gibt's nur, wenn OpenCode verbunden ist (🤖 Agent → opencode-verbinden.cmd)."); return; }
+  if(!aiOn()){ pushMsg("bot","✨ Tipps gibt's mit Konto – einloggen, dann hilft die kostenlose Lernhub-KI."); return; }
   if(!ctx){ pushMsg("bot","Öffne eine Lektion – dann kenne ich deine Frage und kann genau tippen. Oder frag mich nach einer Erklärung."); return; }
   if(full) return chatSolution();
   if(ctx.fails>=HINT_THRESHOLD||ctx.giveUp) return chatSolution();
   S.stats.hints=(S.stats.hints||0)+1; save();
   agentTip(ctx);
 }
-/* Chat und Tipps laufen über OpenCode (Bridge /tipp); ohne Verbindung keine Tipps */
+/* Chat und Tipps laufen über OpenCode (Bridge /tipp), sonst über eigenen Key bzw. die Lernhub-KI */
 var AGENT_TIPP=false;
 let AGENT_BUSY=false;
 const TIPCACHE={};
 function agentOn(){ return AGENT_TIPP && S.agent.connected && agentAllowed(); }
+function aiOn(){ return agentOn() || aiReady(); }
 const AGE_RULES="Zielgruppe: Azubis zwischen 16 und 40. Kein Fluchen, keine sexuellen Inhalte, keine Gewaltverherrlichung; Kämpfe und Kräfte nur als harmlose Bilder. Respektvoll gegenüber allen Religionen und Weltanschauungen – nicht predigen, nicht missionieren. Figuren aus Filmen, Serien oder Mythen sind nur angelehnte Lern-Figuren.";
 function agentPersona(){
   const c=activeChar(), nm=c?c.name:"Pingulin";
@@ -2676,16 +2677,21 @@ function teachTopic(){
 async function teachAsk(){
   const nm=activeChar().name;
   const t=await agentAsk(agentPersona()+"\n"+agentState()+`\nStell als ${nm} GENAU EINE neugierige Frage zum Thema, die ${accountName()||"der Lernende"} dir erklären soll (höchstens 2 Sätze). Wähle etwas Wichtiges, das noch nicht im Chat erklärt wurde.\nBisheriger Chat:\n${CHAT.filter(m=>!m.wait).slice(-6).map(m=>(m.who==="me"?"Nutzer":nm)+": "+String(m.t).slice(0,300)).join("\n")}`);
-  pushMsg("bot", t || "⚠️ OpenCode hat gerade nicht geantwortet – versuch's nochmal.");
+  pushMsg("bot", t || "⚠️ Die KI hat gerade nicht geantwortet – versuch's nochmal.");
   renderQuick();
 }
-/* Schickt einen Prompt über die Bridge an OpenCode; liefert den Antworttext oder "" (mit Lade-Anzeige) */
+/* Schickt einen Prompt an OpenCode (Bridge) bzw. an eigenen Key / Lernhub-KI; liefert den Antworttext oder "" (mit Lade-Anzeige) */
 async function bridgeAsk(prompt, who, charId){
   if(AGENT_BUSY){ toast("Moment – die KI denkt noch nach …"); return ""; }
   AGENT_BUSY=true;
   loadOn("ai", `💭 ${who||activeChar().name} denkt nach …`, charId);
   let out="";
   try{
+    if(!agentOn()){
+      const j=await aiPost({messages:[{role:"user",content:prompt}],max_tokens:800});
+      out=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||"";
+      if(!out && j.error) toast("⚠️ "+String(j.error.message||"").slice(0,160),4000);
+    } else {
     if(!window.LERNHUB_TOKEN) await loadToken();
     const post=()=>fetch(BRIDGE+"/tipp",{method:"POST",headers:{"Content-Type":"application/json","X-Lernhub-Token":window.LERNHUB_TOKEN||""},body:JSON.stringify({prompt})});
     let r=await post();
@@ -2699,6 +2705,7 @@ async function bridgeAsk(prompt, who, charId){
         if(s.done){ out=s.text||""; break; }
         if(!s.ok) break;
       }
+    }
     }
   }catch(e){}
   AGENT_BUSY=false; loadOff("ai");
@@ -2718,14 +2725,14 @@ async function agentTip(ctx){
   const t=await agentAsk(agentPersona()+"\n"+agentState()+`\n${accountName()||"Der Lernende"} hat auf „✨ Tipp“ gedrückt. ${activeChar().teach?"Du rätselst selbst mit: Stell GENAU EINE laut gedachte, neugierige Frage, die auf den richtigen Gedanken bringt (höchstens 2 Sätze).":"Gib GENAU EINEN kurzen Tipp zur aktiven Aufgabe (höchstens 3 Sätze)."} ${ctx.fails===0?"Erster Denkanstoß: welches Prinzip oder welche Formel hilft?":"Schon "+ctx.fails+"× falsch – gib einen engeren Tipp."} Nenne die Lösung nicht und umschreibe sie nicht so, dass man sie direkt ablesen kann.`);
   const same=chatCtx(); if(same && same.key!==ctx.key) return;   /* schon bei der nächsten Frage */
   if(t){ TIPCACHE[ck]=t; pushMsg("bot",t); }
-  else pushMsg("bot","⚠️ Gerade kam kein Tipp von OpenCode – versuch's gleich nochmal.");
+  else pushMsg("bot","⚠️ Gerade kam kein Tipp von der KI – versuch's gleich nochmal.");
   renderQuick();
 }
 async function agentChat(){
   const nm=activeChar().name;
   const hist=CHAT.filter(m=>!m.wait).slice(-10).map(m=>(m.who==="me"?"Nutzer":nm)+": "+String(m.t).slice(0,400)).join("\n");
   const t=await agentAsk(agentPersona()+"\n"+agentState()+`\nBisheriger Chat:\n${hist}\n\nAntworte jetzt als ${nm} auf die letzte Nachricht des Nutzers.`);
-  pushMsg("bot", t || "⚠️ OpenCode hat gerade nicht geantwortet – schreib's nochmal.");
+  pushMsg("bot", t || "⚠️ Die KI hat gerade nicht geantwortet – schreib's nochmal.");
   renderQuick();
 }
 function chatSolution(){
@@ -2773,9 +2780,7 @@ function handleChat(raw){
     if(ctx && (ctx.fails>=HINT_THRESHOLD || ctx.giveUp)) return chatSolution();
     return pushMsg("bot",`Erst ein kleiner Tipp – so lernst du mehr. Versuch es nochmal (${ctx?ctx.fails:0}/${HINT_THRESHOLD} Fehlversuche), drück „Ich geb's auf“ oder frag später nochmal nach der Lösung.`);
   }
-  if(agentOn()) return agentChat();
-  /* Mit eigenem API-Key: alles andere beantwortet die echte KI (nach denselben Regeln) */
-  if(S.chat.apiKey) return chatAPI(raw);
+  if(aiOn()) return agentChat();
   if(/(^|[^a-zäöü])(hi|hallo|hey|moin|servus|guten (morgen|tag|abend))([^a-zäöü]|$)/i.test(raw)){
     const c=activeChar();
     return pushMsg("bot",`Hallo, ${userName()}! ${c?c.name+" an deiner Seite. ":""}Wie kann ich helfen – Tipp, Erklärung oder Motivation?`);
@@ -2809,26 +2814,6 @@ function handleChat(raw){
   renderQuick();
 }
 function toggleChatIfOpen(){ if(!$("chat").classList.contains("hidden")) toggleChat(); }
-function chatAPI(raw){
-  const hist=CHAT.slice(-9).map(m=>({role:m.who==="me"?"user":"assistant",content:m.t}));   /* enthält die aktuelle Nutzerfrage als letztes */
-  pushMsg("bot","⏳ Denkt nach …");
-  const ctx=chatCtx();
-  const c=activeChar();
-  const sys = `Du bist ${c?c.name:"der Coach"} in einer Lern-App (Deutsch). Persönlichkeit: ${c?c.blurb:"freundlich, kurz, motivierend"}.
-Regeln: Antworte maximal 4 Sätze, auf Deutsch. Gib NIE direkt die Lösung einer aktiven Frage, solange der Nutzer nicht aufgegeben hat oder mindestens ${HINT_THRESHOLD} Fehlversuche hat – gib stattdessen einen kleinen Tipp.
-${ctx?`Aktive Frage: ${ctx.q} | Fehlversuche: ${ctx.fails} | Thema: ${ctx.topic}`:"Keine aktive Frage."}`;
-  fetch(S.chat.endpoint,{method:"POST",
-    headers:{"Content-Type":"application/json","Authorization":"Bearer "+S.chat.apiKey},
-    body:JSON.stringify({model:S.chat.model||"gpt-4o-mini", messages:[{role:"system",content:sys}].concat(hist), max_tokens:400})
-  }).then(r=>r.json()).then(j=>{
-    CHAT=CHAT.filter(m=>m.t!=="⏳ Denkt nach …");
-    const t=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||j.error&&j.error.message||"Keine Antwort – Endpunkt prüfen.";
-    pushMsg("bot",t); renderQuick();
-  }).catch(e=>{
-    CHAT=CHAT.filter(m=>m.t!=="⏳ Denkt nach …");
-    pushMsg("bot","⚠️ API nicht erreichbar ("+(e.message||e)+"). Offline-Tipps funktionieren weiterhin.");
-  });
-}
 /* ===================== 12) 🤖 AGENT-PANEL (OpenCode-Verbindung) ===================== */
 const BRIDGE="http://127.0.0.1:8799";
 /* Die Bridge läuft nur lokal – auf einer veröffentlichten Seite wird sie nie angesprochen (Datenschutz). */
@@ -3061,13 +3046,13 @@ function renderSettings(){
     </div>
     ${ttsCardHTML()}
     <div class="card" style="margin-top:14px">
-      <b>✨ KI-Chat (optional echte KI)</b>
-      <p class="small mut">Ohne Key gibt der Chat Tipps aus deinen Lerndaten – Lösungen erst ab ${HINT_THRESHOLD} Fehlversuchen. Mit eigenem Key (OpenAI-kompatibel, z. B. OpenAI oder lokaler Ollama-Server) antwortet eine echte KI nach denselben Regeln.</p>
+      <b>✨ KI-Chat (echte KI)</b>
+      <p class="small mut">${CLOUD?"Mit deinem Konto antwortet automatisch die kostenlose <b>Lernhub-KI</b> (Tageslimit).":"Eingeloggt antwortet automatisch die kostenlose <b>Lernhub-KI</b> (Tageslimit). Ohne Konto und ohne Key gibt der Chat Tipps aus deinen Lerndaten."} Lösungen erst ab ${HINT_THRESHOLD} Fehlversuchen. Optional eigener Key (OpenAI-kompatibel, z. B. OpenAI, Groq oder lokaler Ollama-Server) – der hat dann Vorrang.</p>
       <label class="fl">API-Key (bleibt lokal)</label><input class="fi" type="password" value="${esc(S.chat.apiKey)}" placeholder="sk-…" onchange="S.chat.apiKey=this.value.trim();save()">
       <label class="fl">Endpunkt (URL)</label><input class="fi" value="${esc(S.chat.endpoint)}" onchange="S.chat.endpoint=this.value.trim();save()">
       <label class="fl">Modell</label><input class="fi" value="${esc(S.chat.model)}" onchange="S.chat.model=this.value.trim();save()">
       <div class="center" style="margin-top:10px"><button class="btn sm" onclick="testAPI()">Verbindung testen</button>
-      <button class="btn ghost sm" onclick="S.chat.apiKey='';save();toast('Key entfernt – nur Offline-Tipps')">Key löschen</button></div>
+      <button class="btn ghost sm" onclick="S.chat.apiKey='';save();toast(CLOUD?'Key entfernt – jetzt antwortet die Lernhub-KI':'Key entfernt – nur Offline-Tipps')">Key löschen</button></div>
     </div>
     <div class="card" style="margin-top:14px">
       <b>🗣️ Sprachen</b>
@@ -3088,7 +3073,7 @@ function renderSettings(){
         <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
         <button class="btn r sm" onclick="resetAll()">Alles zurücksetzen</button>
       </div>
-      <p class="small mut">Alles liegt in diesem Browser (localStorage). Ins Internet geht nur, was du ausdrücklich nutzt: Konto/Bestenliste, Untis-Link, KI-Key.</p>
+      <p class="small mut">Alles liegt in diesem Browser (localStorage). Ins Internet geht nur, was du ausdrücklich nutzt: Konto/Bestenliste, Lernhub-KI, Untis-Link, KI-Key.</p>
     </div>
     <div class="card" style="margin-top:14px">
       <b>ℹ️ Über &amp; Recht</b>
@@ -3107,10 +3092,9 @@ function redoOnboard(){
   S.seenOnboard=false; save(); go("onboard");
 }
 function testAPI(){
-  if(!S.chat.apiKey) return toast("Erst einen API-Key eintragen");
-  fetch(S.chat.endpoint,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+S.chat.apiKey},
-    body:JSON.stringify({model:S.chat.model,messages:[{role:"user",content:"Sag nur: ok"}],max_tokens:10})})
-    .then(r=>r.json()).then(j=>toast(j.choices?"API funktioniert ✓":("Fehler: "+(j.error&&j.error.message||"Antwort unbekannt"))))
+  if(!aiReady()) return toast("Erst einloggen oder einen API-Key eintragen");
+  aiPost({messages:[{role:"user",content:"Sag nur: ok"}],max_tokens:10})
+    .then(j=>toast(j.choices?(hubAI()?"Lernhub-KI funktioniert ✓":"API funktioniert ✓"):("Fehler: "+(j.error&&j.error.message||"Antwort unbekannt"))))
     .catch(e=>toast("Nicht erreichbar: "+e.message));
 }
 function exportData(){
@@ -3182,6 +3166,8 @@ function showLegal(which){
       <p><b>Einladungslinks:</b> Ein Einladungslink enthält deinen Spitznamen (und ggf. den Klassencode). Öffnet jemand den Link und erstellt ein Konto, wird automatisch eine Freundschaftsanfrage an dich geschickt.</p>
       <p><b>Wissens-Videos:</b> Die Videos sind YouTube-Videos im erweiterten Datenschutzmodus (youtube-nocookie.com). Sobald du den Video-Feed öffnest, lädt dein Browser das gerade sichtbare Video von YouTube (Google Ireland Ltd.); dabei werden u. a. deine IP-Adresse und technische Gerätedaten an YouTube übertragen. Vorschaubilder werden von YouTube-Servern (i.ytimg.com) geladen. Welche Videos du magst oder speicherst, bleibt lokal in deinem Browser.</p>
       <p><b>Schulsuche &amp; Schulfächer:</b> Suchst du deine Schule, schickt dein Browser den Suchbegriff (bzw. bei „In meiner Nähe“ deinen auf ca. 1 km gerundeten Standort) an jedeschule.codefor.de (Open Knowledge Foundation Deutschland e. V.); dabei wird deine IP-Adresse übertragen. Gespeichert wird nur die gewählte Schule, Schulart und Stufe in deinem Browser. Fachpakete (Aufgaben) werden ohne Personenbezug aus der Lernhub-Cloud (Supabase) geladen. Forderst du mit Konto ein neues Fach an oder meldest eine fehlerhafte Aufgabe, werden Fachname, Schulname, Bundesland/Schulart/Stufe, ggf. deine Notiz und deine Konto-ID gespeichert (für Tageslimits gegen Missbrauch); die Aufgaben selbst erstellt ein KI-Modell über OpenCode, dabei werden keine personenbezogenen Daten an die KI gesendet.</p>
+      <p><b>Lernhub-KI:</b> Bist du eingeloggt und hast keinen eigenen API-Key eingetragen, gehen deine Chat-Nachrichten, die aktuelle Aufgabe und Auszüge aus dem Lernstoff über unseren Server (Supabase) an Groq, Inc. (USA), das daraus die Antwort erzeugt. Deine E-Mail und deine Konto-ID werden dabei nicht an Groq gesendet; gespeichert wird bei uns nur die Anzahl deiner KI-Anfragen pro Tag (für das Tageslimit, nach 7 Tagen gelöscht). Schreib keine persönlichen Daten in den Chat.</p>
+      <p><b>Buy me a coffee:</b> Der Knopf öffnet buymeacoffee.com in einem neuen Tab (externe Seite, eigener Datenschutz). Lernhub überträgt dabei nichts.</p>
       <p><b>Was das Internet sieht:</b> Grundsätzlich nichts. Nur wenn du selbst (a) einen API-Key in den Einstellungen einträgst, werden Chat-Anfragen an den von dir gewählten Endpunkt gesendet, (b) Video-Tipps öffnest (YouTube, externe Seite) oder (c) den OpenCode-Agenten nutzt (recherchiert lokal + Web). Mikrofon wird nur bei Sprechübungen aktiviert und nur für die Spracherkennung deines Browsers verwendet.</p>
       <p><b>Speicher löschen:</b> Einstellungen → „Alles zurücksetzen“, oder Browser-Daten löschen.</p>
       <p><b>Kontakt:</b> <a href="mailto:simon.lasarzewski@gmail.com">simon.lasarzewski@gmail.com</a></p>
