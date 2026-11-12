@@ -199,18 +199,30 @@ eigenen Browser-Speicher – Fortschritt aus der `file://`-Version per
   bei **≥2 Fehlversuchen** oder „🙋 Ich geb's auf".
 - **Mit API-Key (optional):** OpenAI-kompatibler Endpunkt (OpenAI, Groq, lokaler
   Ollama-Server …) – gleiche Regeln als System-Prompt, Key bleibt lokal.
-- **Lernhub-KI (mit Konto, ohne eigenen Key):** Chat, ✨ Tipps, „Frag mich was“
+- **Lernhub-KI (ohne eigenen Key, für alle):** Chat, ✨ Tipps, „Frag mich was“
   und Lernrunden laufen im Browser über die Edge Function `ki` (Groq). Der
   Groq-Schlüssel liegt nur als Supabase-Secret auf dem Server, nie im Browser.
-  Limit: 60 Anfragen pro Nutzer und Tag. Ist lokal OpenCode verbunden, hat
-  OpenCode Vorrang; ein eigener Key hat Vorrang vor der Lernhub-KI.
+  Limit: 60 Anfragen pro Konto und Tag; Gäste ohne Konto 15 pro Tag (gezählt
+  über einen täglich wechselnden HMAC der IP, max. 500 Gast-Anfragen pro Tag
+  insgesamt). Ist lokal OpenCode verbunden, hat OpenCode Vorrang; ein eigener
+  Key hat Vorrang vor der Lernhub-KI.
+- **Tool `aufgaben_anlegen`:** Sagt man im Chat z. B. „Mach mir Aufgaben zu
+  Bruchrechnung“, ruft die KI das Tool auf (Function Calling) und liefert nur
+  Daten (Multiple Choice, Karteikarten, Lückentext, Freitext). Die App prüft
+  sie mit `cleanTopic()` und legt sie als eigenes Fach an – mit Konto und
+  Cloud-Sync landen sie automatisch im privaten Cloud-Speicher. Niemand muss
+  dazu Code oder Dateien ändern.
 
   **Einrichten:** `supabase/schema.sql` erneut ausführen (neu: `ki_usage`,
-  `ki_take`). Dann Supabase → **Edge Functions → Secrets**: `GROQ_API_KEY`
+  `ki_take`, `ki_guest`, `ki_take_guest`). Dann Supabase → **Edge Functions → Secrets**: `GROQ_API_KEY`
   (optional `KI_MODEL`, Standard `openai/gpt-oss-120b`). Danach
   **Edge Functions → Deploy a new function → Via Editor**, Name `ki`, Inhalt
   von `supabase/functions/ki/index.ts` einfügen, deployen (oder per CLI:
   `supabase functions deploy ki`). Test: Einstellungen → „Verbindung testen“.
+
+  **Admin ohne Tageslimit** (im SQL Editor, Konto muss existieren):
+  `insert into ki_admins select id from auth.users where email = 'du@example.com' on conflict do nothing;`
+  Die Groq-Limits des eigenen Groq-Kontos gelten trotzdem.
 
 - Schnellaktionen: „Erklär das Thema", „Wo stehe ich?", „Was ist fällig?",
   „Test mich".
@@ -537,9 +549,10 @@ Crew-Gesicht und eine bestimmte Stimme bekommen.
   Push-Adresse, Startzeit und Ruhetage; ausschalten löscht sie.
 - Export/Import (JSON) in den Einstellungen. Der Export enthält **nie** den
   API-Key oder den Untis-Link; der Import wird vollständig bereinigt.
-- Lernhub-KI (eingeloggt, ohne eigenen Key): Chat-Text, aktuelle Aufgabe und
+- Lernhub-KI (ohne eigenen Key): Chat-Text, aktuelle Aufgabe und
   Lernstoff-Auszüge gehen über die Edge Function `ki` an Groq (USA); gespeichert
-  wird nur die Zahl der Anfragen pro Tag (`ki_usage`, nach 7 Tagen gelöscht).
+  wird nur die Zahl der Anfragen pro Tag (`ki_usage` je Konto, nach 7 Tagen
+  gelöscht; `ki_guest` je täglich wechselndem IP-HMAC, nach 2 Tagen gelöscht).
 - Vault-Pfad und Schul-URL (Agent-Panel) bleiben im Browser.
 - Schulsuche: Suchbegriff bzw. auf ~1 km gerundeter Standort gehen an
   jedeschule.codefor.de. Fachpakete liegen ohne Personenbezug in Supabase

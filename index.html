@@ -333,7 +333,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
   <div class="sidefoot">
     <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.3 · offline</span>
+    <span id="verLine">v1.5 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -2570,7 +2570,7 @@ function updateChatHead(){
   const c=activeChar();
   $("chatAv").innerHTML = charAvatarHTML(c);
   $("chatName").textContent = c.name;
-  $("chatSub").textContent = agentOn() ? "🤖 über OpenCode · Lösung erst nach "+HINT_THRESHOLD+" Fehlversuchen" : aiReady() ? "✨ "+(hubAI()?"Lernhub-KI":"eigene KI")+" · Lösung erst nach "+HINT_THRESHOLD+" Fehlversuchen" : "offline · Tipps mit Konto (Lernhub-KI)";
+  $("chatSub").textContent = agentOn() ? "🤖 über OpenCode · Lösung erst nach "+HINT_THRESHOLD+" Fehlversuchen" : aiReady() ? "✨ "+(hubAI()?"Lernhub-KI":"eigene KI")+" · Lösung erst nach "+HINT_THRESHOLD+" Fehlversuchen" : "offline · Tipps mit Lernhub-KI oder eigenem Key";
 }
 function greetChat(){
   const c=activeChar(); const nm=c?c.name:"Coach";
@@ -2585,7 +2585,7 @@ function greetChat(){
 function localGreet(){
   const c=activeChar(); const nm=c?c.name:"Coach";
   const due=dueCount();
-  CHAT.push({who:"bot", t:`${c&&c.hello?c.hello:`Hi, ich bin ${nm}!`}\n${due?`🔁 ${due} Wiederholung${due>1?"en":""} warten auf dich.`:`🔥 Dein Streak: ${streakNow()} Tage.`}${aiOn()?"":"\n✨ Tipps und richtiges Chatten gibt's, sobald du eingeloggt bist (kostenlose Lernhub-KI)."}`});
+  CHAT.push({who:"bot", t:`${c&&c.hello?c.hello:`Hi, ich bin ${nm}!`}\n${due?`🔁 ${due} Wiederholung${due>1?"en":""} warten auf dich.`:`🔥 Dein Streak: ${streakNow()} Tage.`}${aiOn()?"\n✨ Frag mich alles – oder sag z. B. „Mach mir Aufgaben zu Bruchrechnung“.":"\n✨ Richtiges Chatten gibt's mit der Lernhub-KI oder einem eigenen Key (Einstellungen)."}`});
   paintChat();
 }
 function chatCtx(){
@@ -2605,7 +2605,7 @@ function chatCtx(){
   return null;
 }
 function askHint(){
-  if(!aiOn()) return toast("✨ Tipps gibt's mit Konto (kostenlose Lernhub-KI) – bitte einloggen");
+  if(!aiOn()) return toast("✨ Tipps gibt's mit der Lernhub-KI oder einem eigenen Key (Einstellungen)");
   const c=$("chat");
   if(c.classList.contains("hidden")){
     c.classList.remove("hidden"); updateChatHead();
@@ -2616,6 +2616,7 @@ function askHint(){
 function renderQuick(){
   const ctx=chatCtx();
   const q=[];
+  if(KI_NEW && subjById(KI_NEW.sid)) q.push(["▶️","Neue Aufgaben üben",()=>kiPlayNew()]);
   if(ctx){
     if(aiOn()) q.push(["💡","Tipp",()=>chatTip(false)]);
     if(ctx.fails>=HINT_THRESHOLD||ctx.giveUp) q.push(["✅","Lösung zeigen",()=>chatSolution()]);
@@ -2635,7 +2636,7 @@ function paintChat(){
 }
 function chatTip(full){
   const ctx=chatCtx();
-  if(!aiOn()){ pushMsg("bot","✨ Tipps gibt's mit Konto – einloggen, dann hilft die kostenlose Lernhub-KI."); return; }
+  if(!aiOn()){ pushMsg("bot","✨ Tipps gibt's mit der Lernhub-KI oder einem eigenen Key (Einstellungen)."); return; }
   if(!ctx){ pushMsg("bot","Öffne eine Lektion – dann kenne ich deine Frage und kann genau tippen. Oder frag mich nach einer Erklärung."); return; }
   if(full) return chatSolution();
   if(ctx.fails>=HINT_THRESHOLD||ctx.giveUp) return chatSolution();
@@ -2731,9 +2732,69 @@ async function agentTip(ctx){
 async function agentChat(){
   const nm=activeChar().name;
   const hist=CHAT.filter(m=>!m.wait).slice(-10).map(m=>(m.who==="me"?"Nutzer":nm)+": "+String(m.t).slice(0,400)).join("\n");
-  const t=await agentAsk(agentPersona()+"\n"+agentState()+`\nBisheriger Chat:\n${hist}\n\nAntworte jetzt als ${nm} auf die letzte Nachricht des Nutzers.`);
+  const prompt=agentPersona()+"\n"+agentState()+`\nBisheriger Chat:\n${hist}\n\nAntworte jetzt als ${nm} auf die letzte Nachricht des Nutzers.`;
+  if(!agentOn()) return toolChat(prompt.replace("Benutze keine Tools.", KI_TOOL_RULE));
+  const t=await agentAsk(prompt);
   pushMsg("bot", t || "⚠️ Die KI hat gerade nicht geantwortet – schreib's nochmal.");
   renderQuick();
+}
+/* Tool „aufgaben_anlegen“: Die KI liefert nur Daten, die App prüft sie (cleanTopic) und legt sie als eigenes Fach an – mit Konto per Sync in der Cloud */
+const KI_TOOL_RULE="Du hast genau ein Tool: aufgaben_anlegen. Will der Nutzer neue Aufgaben, Übungen, ein Quiz oder Karteikarten zu einem Thema, rufe es auf, statt Aufgaben in den Chat zu schreiben (fehlt das Thema, frag kurz nach). Fachlich korrekt, passend zu Schule und Klasse: 6 mc (genau 4 verschiedene Antworten, a = Index der richtigen, w = kurze Erklärung), 4 cards, 2 gaps (jede Lücke genau ___), 2 free (Antwort 1–3 Wörter, Varianten in a). Kein HTML, kein Markdown. Sonst benutze keine Tools.";
+const KI_TOOLS=[{type:"function",function:{name:"aufgaben_anlegen",
+  description:"Legt neue Übungsaufgaben zu einem Thema in der Lernhub-App des Nutzers an. Nur aufrufen, wenn der Nutzer ausdrücklich neue Aufgaben möchte.",
+  parameters:{type:"object",required:["fach","thema","mc"],properties:{
+    fach:{type:"string",description:"Schulfach, z. B. Mathe"},
+    thema:{type:"string",description:"Thema, z. B. Bruchrechnung"},
+    mc:{type:"array",items:{type:"object",required:["q","c","a"],properties:{q:{type:"string"},c:{type:"array",items:{type:"string"}},a:{type:"integer"},w:{type:"string"}}}},
+    cards:{type:"array",items:{type:"object",required:["f","b"],properties:{f:{type:"string"},b:{type:"string"}}}},
+    gaps:{type:"array",items:{type:"object",required:["t","a"],properties:{t:{type:"string"},a:{type:"array",items:{type:"string"}}}}},
+    free:{type:"array",items:{type:"object",required:["q","a"],properties:{q:{type:"string"},a:{type:"array",items:{type:"string"}},w:{type:"string"}}}}
+  }}}}];
+var KI_NEW=null;
+async function toolChat(prompt){
+  if(AGENT_BUSY) return toast("Moment – ich denk noch nach …");
+  AGENT_BUSY=true;
+  const c=activeChar();
+  CHAT.push({who:"bot", t:`💭 ${c.name} denkt nach …`, wait:true}); paintChat();
+  loadOn("ai", `💭 ${c.name} denkt nach …`, c.id);
+  let j=null;
+  try{ j=await aiPost({messages:[{role:"user",content:prompt}], max_tokens:3500, tools:KI_TOOLS}); }
+  catch(e){ j={error:{message:e.message}}; }
+  AGENT_BUSY=false; loadOff("ai");
+  CHAT=CHAT.filter(m=>!m.wait); paintChat();
+  const m=(j&&j.choices&&j.choices[0]&&j.choices[0].message)||{};
+  const call=(m.tool_calls||[]).find(x=>x&&x.function&&x.function.name==="aufgaben_anlegen");
+  if(m.content) pushMsg("bot", m.content);
+  if(call) pushMsg("bot", kiAddTopic(call.function.arguments));
+  if(!m.content && !call) pushMsg("bot", "⚠️ "+String((j&&j.error&&j.error.message)||"Die KI hat gerade nicht geantwortet – schreib's nochmal.").slice(0,200));
+  renderQuick();
+}
+function kiAddTopic(raw){
+  let a;
+  try{ a=typeof raw==="string"?JSON.parse(raw):raw; }catch(e){ return "⚠️ Die Aufgaben kamen kaputt an – frag einfach nochmal."; }
+  const plain=x=>Array.isArray(x)?x.map(plain):(x&&typeof x==="object")?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,plain(v)])):typeof x==="string"?x.replace(/<[^>]*>/g,"").trim():x;
+  a=plain(a&&typeof a==="object"?a:{});
+  let fach=str(a.fach,40)||"Meine KI-Aufgaben";
+  const custom=S.custom.subjects;
+  let subj=custom.find(s=>s.name.toLowerCase()===fach.toLowerCase());
+  if(!subj && allSubjectIds().some(id=>{ const s=subjById(id); return s && s.name.toLowerCase()===fach.toLowerCase(); })){
+    fach=(fach+" (KI)").slice(0,60);
+    subj=custom.find(s=>s.name.toLowerCase()===fach.toLowerCase());
+  }
+  if(subj && subj.topics.length>=40) return `⚠️ Das Fach „${subj.name}“ ist voll (40 Themen) – lösch alte Themen oder nimm ein anderes Fach.`;
+  if(!subj && custom.length>=30) return "⚠️ Du hast schon 30 eigene Fächer – lösch erst eins.";
+  const sid=subj?subj.id:"ki"+Date.now().toString(36);
+  const t=cleanTopic({id:sid+"_"+Date.now().toString(36), name:str(a.thema,120)||"Neue Aufgaben", mc:a.mc, cards:a.cards, gaps:a.gaps, free:a.free});
+  if(!t) return "⚠️ Die KI hat keine brauchbaren Aufgaben geliefert – versuch's nochmal.";
+  if(subj) subj.topics.push(t);
+  else { subj={id:sid, name:fach, color:["#e84393","#0984e3","#6c5ce7","#00b894","#e17055"][custom.length%5], topics:[t]}; custom.push(subj); }
+  KI_NEW={sid:subj.id, tid:t.id}; save();
+  const n=t.mc.length+t.cards.length+t.gaps.length+t.free.length;
+  return `✅ ${n} Aufgaben zu „${t.name}“ angelegt (Fach „${subj.name}“). ${window.syncReady&&syncReady()?"Sie sind in deiner Cloud gesichert.":CLOUD?"Sie werden gesichert, sobald der Cloud-Sync an ist.":"Mit kostenlosem Konto werden sie auch in der Cloud gesichert."}`;
+}
+function kiPlayNew(){
+  if(!KI_NEW || !subjById(KI_NEW.sid)) return;
+  const n=KI_NEW; KI_NEW=null; toggleChatIfOpen(); startLesson(n.sid, n.tid);
 }
 function chatSolution(){
   const ctx=chatCtx();
@@ -3047,12 +3108,12 @@ function renderSettings(){
     ${ttsCardHTML()}
     <div class="card" style="margin-top:14px">
       <b>✨ KI-Chat (echte KI)</b>
-      <p class="small mut">${CLOUD?"Mit deinem Konto antwortet automatisch die kostenlose <b>Lernhub-KI</b> (Tageslimit).":"Eingeloggt antwortet automatisch die kostenlose <b>Lernhub-KI</b> (Tageslimit). Ohne Konto und ohne Key gibt der Chat Tipps aus deinen Lerndaten."} Lösungen erst ab ${HINT_THRESHOLD} Fehlversuchen. Optional eigener Key (OpenAI-kompatibel, z. B. OpenAI, Groq oder lokaler Ollama-Server) – der hat dann Vorrang.</p>
+      <p class="small mut">${CLOUD?"Mit deinem Konto antwortet automatisch die kostenlose <b>Lernhub-KI</b> (Tageslimit).":"Es antwortet automatisch die kostenlose <b>Lernhub-KI</b> (als Gast mit kleinerem Tageslimit, mit Konto mehr)."} Sag im Chat z. B. „Mach mir Aufgaben zu …“ – dann legt die KI ein eigenes Fach mit Übungen an. Lösungen erst ab ${HINT_THRESHOLD} Fehlversuchen. Optional eigener Key (OpenAI-kompatibel, z. B. OpenAI, Groq oder lokaler Ollama-Server) – der hat dann Vorrang.</p>
       <label class="fl">API-Key (bleibt lokal)</label><input class="fi" type="password" value="${esc(S.chat.apiKey)}" placeholder="sk-…" onchange="S.chat.apiKey=this.value.trim();save()">
       <label class="fl">Endpunkt (URL)</label><input class="fi" value="${esc(S.chat.endpoint)}" onchange="S.chat.endpoint=this.value.trim();save()">
       <label class="fl">Modell</label><input class="fi" value="${esc(S.chat.model)}" onchange="S.chat.model=this.value.trim();save()">
       <div class="center" style="margin-top:10px"><button class="btn sm" onclick="testAPI()">Verbindung testen</button>
-      <button class="btn ghost sm" onclick="S.chat.apiKey='';save();toast(CLOUD?'Key entfernt – jetzt antwortet die Lernhub-KI':'Key entfernt – nur Offline-Tipps')">Key löschen</button></div>
+      <button class="btn ghost sm" onclick="S.chat.apiKey='';save();toast(hubAI()?'Key entfernt – jetzt antwortet die Lernhub-KI':'Key entfernt – nur Offline-Tipps')">Key löschen</button></div>
     </div>
     <div class="card" style="margin-top:14px">
       <b>🗣️ Sprachen</b>
@@ -3083,7 +3144,7 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.3 · Open Source (MIT) · keine externen Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.5 · Open Source (MIT) · keine externen Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){
@@ -3166,7 +3227,7 @@ function showLegal(which){
       <p><b>Einladungslinks:</b> Ein Einladungslink enthält deinen Spitznamen (und ggf. den Klassencode). Öffnet jemand den Link und erstellt ein Konto, wird automatisch eine Freundschaftsanfrage an dich geschickt.</p>
       <p><b>Wissens-Videos:</b> Die Videos sind YouTube-Videos im erweiterten Datenschutzmodus (youtube-nocookie.com). Sobald du den Video-Feed öffnest, lädt dein Browser das gerade sichtbare Video von YouTube (Google Ireland Ltd.); dabei werden u. a. deine IP-Adresse und technische Gerätedaten an YouTube übertragen. Vorschaubilder werden von YouTube-Servern (i.ytimg.com) geladen. Welche Videos du magst oder speicherst, bleibt lokal in deinem Browser.</p>
       <p><b>Schulsuche &amp; Schulfächer:</b> Suchst du deine Schule, schickt dein Browser den Suchbegriff (bzw. bei „In meiner Nähe“ deinen auf ca. 1 km gerundeten Standort) an jedeschule.codefor.de (Open Knowledge Foundation Deutschland e. V.); dabei wird deine IP-Adresse übertragen. Gespeichert wird nur die gewählte Schule, Schulart und Stufe in deinem Browser. Fachpakete (Aufgaben) werden ohne Personenbezug aus der Lernhub-Cloud (Supabase) geladen. Forderst du mit Konto ein neues Fach an oder meldest eine fehlerhafte Aufgabe, werden Fachname, Schulname, Bundesland/Schulart/Stufe, ggf. deine Notiz und deine Konto-ID gespeichert (für Tageslimits gegen Missbrauch); die Aufgaben selbst erstellt ein KI-Modell über OpenCode, dabei werden keine personenbezogenen Daten an die KI gesendet.</p>
-      <p><b>Lernhub-KI:</b> Bist du eingeloggt und hast keinen eigenen API-Key eingetragen, gehen deine Chat-Nachrichten, die aktuelle Aufgabe und Auszüge aus dem Lernstoff über unseren Server (Supabase) an Groq, Inc. (USA), das daraus die Antwort erzeugt. Deine E-Mail und deine Konto-ID werden dabei nicht an Groq gesendet; gespeichert wird bei uns nur die Anzahl deiner KI-Anfragen pro Tag (für das Tageslimit, nach 7 Tagen gelöscht). Schreib keine persönlichen Daten in den Chat.</p>
+      <p><b>Lernhub-KI:</b> Hast du keinen eigenen API-Key eingetragen, gehen deine Chat-Nachrichten, die aktuelle Aufgabe und Auszüge aus dem Lernstoff über unseren Server (Supabase) an Groq, Inc. (USA), das daraus die Antwort erzeugt. Deine E-Mail, deine Konto-ID und deine IP-Adresse werden dabei nicht an Groq gesendet. Gespeichert wird bei uns nur die Anzahl deiner KI-Anfragen pro Tag (für das Tageslimit): mit Konto zu deiner Konto-ID (nach 7 Tagen gelöscht), als Gast zu einem täglich wechselnden, nicht umkehrbaren Kennwert aus deiner IP-Adresse (die IP selbst wird nicht gespeichert, nach 2 Tagen gelöscht). Von der KI angelegte Aufgaben liegen als eigenes Fach in deinem Browser und – mit Konto und Cloud-Sync – in deinem privaten Cloud-Speicher. Schreib keine persönlichen Daten in den Chat.</p>
       <p><b>Buy me a coffee:</b> Der Knopf öffnet buymeacoffee.com in einem neuen Tab (externe Seite, eigener Datenschutz). Lernhub überträgt dabei nichts.</p>
       <p><b>Was das Internet sieht:</b> Grundsätzlich nichts. Nur wenn du selbst (a) einen API-Key in den Einstellungen einträgst, werden Chat-Anfragen an den von dir gewählten Endpunkt gesendet, (b) Video-Tipps öffnest (YouTube, externe Seite) oder (c) den OpenCode-Agenten nutzt (recherchiert lokal + Web). Mikrofon wird nur bei Sprechübungen aktiviert und nur für die Spracherkennung deines Browsers verwendet.</p>
       <p><b>Speicher löschen:</b> Einstellungen → „Alles zurücksetzen“, oder Browser-Daten löschen.</p>

@@ -361,7 +361,7 @@ function renderExplain() {
     EX.msgs = [
       {
         who: "bot",
-        t: `Ich erkläre dir „${tp.name}“ so oft und so einfach du willst. Frag einfach – oder nimm eine der Schnellfragen unten.${aiReady() ? "" : "\n(Ohne KI antworte ich aus dem Lernstoff. Echte KI: kostenlos einloggen – dann antwortet die Lernhub-KI.)"}`,
+        t: `Ich erkläre dir „${tp.name}“ so oft und so einfach du willst. Frag einfach – oder nimm eine der Schnellfragen unten.${aiReady() ? "" : "\n(Ohne KI antworte ich aus dem Lernstoff. Echte KI: eigenen Key in den Einstellungen eintragen.)"}`,
       },
     ];
   $("app").innerHTML = `
@@ -517,7 +517,7 @@ function exOffline(q, tp) {
   }
   if (hits.length)
     return "Das habe ich im Lernstoff gefunden:\n" + hits.map((h) => "• " + h.f).join("\n");
-  return "Dazu finde ich nichts im Lernstoff. Probier andere Stichwörter, schau dir ein Video an (🎥) – oder logg dich kostenlos ein, dann beantwortet die Lernhub-KI jede Frage.";
+  return "Dazu finde ich nichts im Lernstoff. Probier andere Stichwörter, schau dir ein Video an (🎥) – oder frag die KI im Chat.";
 }
 function exAPI(q, tp) {
   exPush("bot", "⏳ Denkt nach …");
@@ -1216,7 +1216,7 @@ function renderRunde() {
   <div class="hero" style="background:linear-gradient(135deg,#7c3aed,#1a2a63)">
     <h1>🎭 Lernrunde</h1><p>Deine Lieblingsfiguren erklären dir ein Thema – jede auf ihre eigene Art. Du hörst zu und kannst jederzeit mitreden oder selbst erklären.</p><span class="big">🎧</span>
   </div>
-  ${aiOn() ? "" : `<div class="card" style="margin-top:12px"><b>ℹ️ Offline-Modus</b><br><small class="mut">Die Figuren tragen den Lernstoff vor und antworten aus den Lernkarten. Damit sie frei in ihrer Rolle antworten: kostenlos einloggen (Lernhub-KI).</small></div>`}
+  ${aiOn() ? "" : `<div class="card" style="margin-top:12px"><b>ℹ️ Offline-Modus</b><br><small class="mut">Die Figuren tragen den Lernstoff vor und antworten aus den Lernkarten. Damit sie frei in ihrer Rolle antworten: eigenen KI-Key in den Einstellungen eintragen.</small></div>`}
   <div class="pathtabs" style="margin-top:14px">${ids.map((id) => `<button class="${id === sid ? "on" : ""}" data-s="${esc(id)}" onclick="rundeStop();RUNDE.subj=this.dataset.s;RUNDE.tid=null;RUNDE.log=[];renderRunde()">${esc(subjById(id).name)}</button>`).join("")}</div>
   <select class="fi" onchange="rundeStop();RUNDE.tid=this.value;RUNDE.log=[];renderRunde()">
     ${subj.topics.map((t, i) => `<option value="${esc(t.id)}" ${t.id === tp.id ? "selected" : ""}>${i + 1}. ${esc(t.name)}</option>`).join("")}

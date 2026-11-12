@@ -968,11 +968,19 @@ create table if not exists public.ki_usage (
 );
 alter table public.ki_usage enable row level security;
 
+-- KI-Admins ohne Tageslimit. Nur per SQL Editor pflegen (siehe README), für Clients unsichtbar.
+create table if not exists public.ki_admins (
+  user_id uuid primary key references auth.users(id) on delete cascade
+);
+alter table public.ki_admins enable row level security;
+revoke all on public.ki_admins from anon, authenticated;
+
 create or replace function public.ki_take()
 returns integer language plpgsql security definer set search_path = public as $$
 declare uid uuid := auth.uid(); v integer;
 begin
   if uid is null then raise exception 'auth'; end if;
+  if exists (select 1 from ki_admins where user_id = uid) then return 9999; end if;
   insert into ki_usage (user_id, day, n) values (uid, current_date, 1)
     on conflict (user_id, day) do update set n = ki_usage.n + 1
     returning n into v;
@@ -982,3 +990,32 @@ begin
 end $$;
 revoke all on function public.ki_take() from public, anon;
 grant execute on function public.ki_take() to authenticated;
+
+-- Lernhub-KI für Gäste (ohne Konto): Zählung pro Tag über einen HMAC-Wert der IP (Schlüssel nur in der Edge Function,
+-- wechselt täglich). Die IP selbst wird nie gespeichert; Zeilen sind nach 2 Tagen weg. Nur die Edge Function (service_role) darf zählen.
+create table if not exists public.ki_guest (
+  h   text not null check (h ~ '^[0-9a-f]{32}$'),
+  day date not null default current_date,
+  n   integer not null default 0,
+  primary key (h, day)
+);
+create index if not exists ki_guest_day_idx on public.ki_guest (day);
+alter table public.ki_guest enable row level security;
+revoke all on public.ki_guest from anon, authenticated;
+
+create or replace function public.ki_take_guest(p_h text)
+returns integer language plpgsql security definer set search_path = public as $$
+declare v integer; total integer;
+begin
+  if p_h is null or p_h !~ '^[0-9a-f]{32}$' then raise exception 'bad'; end if;
+  select coalesce(sum(n), 0) into total from ki_guest where day = current_date;
+  if total >= 500 then raise exception 'busy'; end if;
+  insert into ki_guest (h, day, n) values (p_h, current_date, 1)
+    on conflict (h, day) do update set n = ki_guest.n + 1
+    returning n into v;
+  if v > 15 then raise exception 'limit'; end if;
+  delete from ki_guest where day < current_date - 1;
+  return 15 - v;
+end $$;
+revoke all on function public.ki_take_guest(text) from public, anon, authenticated;
+grant execute on function public.ki_take_guest(text) to service_role;

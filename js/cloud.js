@@ -145,9 +145,9 @@ async function rpc(name, args) {
   return cloudReq("/rest/v1/rpc/" + name, args || {}, await cloudToken());
 }
 
-/* KI: eigener Key hat Vorrang, sonst die Lernhub-KI (Edge Function "ki", nur mit Konto) */
+/* KI: eigener Key hat Vorrang, sonst die Lernhub-KI (Edge Function "ki"; Gäste mit kleinerem Tageslimit) */
 function hubAI() {
-  return !S.chat.apiKey && !!(cloudCfg() && CLOUD);
+  return !S.chat.apiKey && !!cloudCfg();
 }
 function aiReady() {
   return !!S.chat.apiKey || hubAI();
@@ -162,12 +162,14 @@ async function aiPost(body) {
     return r.json();
   }
   const cfg = cloudCfg();
-  if (!cfg || !CLOUD) throw new Error("Bitte einloggen");
+  if (!cfg) throw new Error("Lernhub-KI ist nicht eingerichtet");
+  let token = cfg.key;
+  if (CLOUD) token = await cloudToken().catch(() => cfg.key);
   const r = await fetch(cfg.url + "/functions/v1/ki", {
     method: "POST",
     headers: {
       apikey: cfg.key,
-      Authorization: "Bearer " + (await cloudToken()),
+      Authorization: "Bearer " + token,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
