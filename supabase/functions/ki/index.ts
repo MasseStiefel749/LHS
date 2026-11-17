@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
         messages: clean,
         max_completion_tokens: oss ? max + 600 : max,
         ...(oss ? { reasoning_effort: "low" } : {}),
-        ...(tools.length ? { tools, tool_choice: "auto", parallel_tool_calls: false } : {}),
+        ...(tools.length ? { tools, tool_choice: "auto" } : {}),
       }),
     });
   } catch {
@@ -113,10 +113,11 @@ Deno.serve(async (req) => {
   const j = await r.json().catch(() => null);
   if (!r.ok) {
     console.error("groq", r.status, j?.error?.code, j?.error?.message);
-    if (j?.error?.code === "tool_use_failed") return fail("Die KI hat die Aufgaben nicht sauber erstellt – bitte nochmal versuchen.", 502);
+    if (j?.error?.code === "tool_use_failed") return fail("Die KI hat das Ergebnis nicht sauber erstellt – bitte nochmal versuchen.", 502);
+    const why = r.status === 400 && typeof j?.error?.message === "string" ? `: ${j.error.message.slice(0, 120)}` : "";
     return r.status === 429
       ? fail("Die Lernhub-KI ist gerade ausgelastet – bitte gleich nochmal versuchen.", 429)
-      : fail(`KI-Fehler (HTTP ${r.status})`, 502);
+      : fail(`KI-Fehler (HTTP ${r.status})${why}`, 502);
   }
   const msg = j?.choices?.[0]?.message ?? {};
   const content = typeof msg.content === "string" ? msg.content : "";

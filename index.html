@@ -178,6 +178,10 @@ a{color:var(--pri);cursor:pointer}
 .cinput input{flex:1;border:2px solid var(--line);border-radius:13px;padding:11px 13px;font-size:14.5px;outline:none;background:#fff}
 .cinput input:focus{border-color:var(--pri)}
 .cinput button{border:0;border-radius:13px;background:var(--pri);color:#fff;font-size:17px;width:46px;cursor:pointer}
+.cinput .cfile{background:var(--card);border:2px solid var(--line);color:inherit;width:42px;flex:none}
+.cdoc{display:flex;align-items:center;gap:6px;padding:8px 10px 0;background:#f7f8fd;font-size:12.5px;font-weight:700}
+.cdoc span{background:var(--card);border:1.5px solid var(--line);border-radius:99px;padding:5px 11px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cdoc button{background:none;border:0;color:inherit;font-size:15px;cursor:pointer;padding:4px}
 /* ---------- Modal / Toast ---------- */
 #modal{position:fixed;inset:0;background:rgba(20,22,40,.55);z-index:90;display:grid;place-items:center;padding:16px}
 #modalbox{background:var(--card);border-radius:20px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;padding:22px;animation:pop .18s}
@@ -269,7 +273,7 @@ body.dark .fb.bad{background:rgba(255,93,115,.12);color:#ff9aa9}
 body.dark .gapin,body.dark .freein,body.dark input.fi,body.dark select.fi,body.dark textarea.ta{background:#0f1322}
 body.dark .gapin.ok{background:rgba(52,211,153,.14)} body.dark .gapin.bad{background:rgba(255,93,115,.14)}
 body.dark select option{background:#131828;color:var(--ink)}
-body.dark #msgs,body.dark .quick,body.dark .cinput{background:#0f1322}
+body.dark #msgs,body.dark .quick,body.dark .cinput,body.dark .cdoc{background:#0f1322}
 body.dark .cinput input{background:#0b0e1a}
 body.dark .msg.sys{background:rgba(251,191,36,.1);color:#fbbf24}
 body.dark .sayline.me{background:rgba(52,211,153,.14)}
@@ -333,7 +337,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
   <div class="sidefoot">
     <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.5 · offline</span>
+    <span id="verLine">v1.6 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -356,7 +360,10 @@ details.exsec summary{cursor:pointer;font-weight:800}
   </div>
   <div id="msgs"></div>
   <div class="quick" id="quickRow"></div>
+  <div class="cdoc hidden" id="chatDoc"></div>
   <div class="cinput">
+    <button class="cfile" onclick="$('chatFile').click()" title="Datei anhängen (PDF, Word, Text, Foto)" aria-label="Datei anhängen">📎</button>
+    <input type="file" id="chatFile" hidden onchange="chatAttach(this)">
     <input id="chatIn" placeholder="Frag mich … (Enter)" autocomplete="off">
     <button onclick="sendChat()" title="Senden">➤</button>
   </div>
@@ -369,6 +376,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
 <script src="js/extra.js"></script>
 <script src="js/plus.js"></script>
 <script src="js/cloud.js"></script>
+<script src="js/dateien.js"></script>
 <script src="js/social.js"></script>
 <script src="js/konto.js"></script>
 <script src="js/methoden.js"></script>
@@ -379,7 +387,6 @@ details.exsec summary{cursor:pointer;font-weight:800}
 <script src="js/invite.js"></script>
 <script src="content/schulfaecher.js"></script>
 <script src="js/schulen.js"></script>
-<script src="content/bridge-token.js"></script>
 <script>
 "use strict";
 /* =========================================================================
@@ -438,6 +445,7 @@ function cleanSubject(s){
   if(!topics.length) return null;
   const o = {id:s.id, name:str(s.name,60)||s.id, color:/^#[0-9a-f]{6}$/i.test(s.color||"")?s.color:"#7c5cff", topics};
   if(/^[a-z]{2}-[A-Z]{2}$/.test(s.lang||"")) o.lang=s.lang;
+  if(typeof s.school==="string" && s.school) o.school=s.school.slice(0,120);
   return o;
 }
 function cleanChar(c){
@@ -453,7 +461,9 @@ function cleanChar(c){
     voicePitch: num(c.voicePitch,0.5,2,1), voiceRate: num(c.voiceRate,0.5,2,1),
     color: /^#[0-9a-f]{6}$/i.test(c.color||"") ? c.color : "#7c5cff",
     blurb: str(c.blurb,200),
+    style: str(c.style,200),
     face: FACE_IDS.includes(c.face) ? c.face : "",
+    look: cleanLook(c.look),
     sex: c.sex==="f" || c.sex==="m" ? c.sex : "",
     voiceName: str(c.voiceName,100)
   };
@@ -1692,7 +1702,10 @@ function skipOnboard(){ S.seenOnboard=true; save(); go("home"); }
 
 /* ===================== 6) HOME & LERNPFAD ===================== */
 const SUBJECT_NAMES = {ITS:"IT-Systeme", SAE:"Software & Anwendungsentwicklung", BWL:"BWL", Deutsch:"Deutsch", GK:"Gemeinschaftskunde", WK:"Wirtschaftskunde", BE:"Berufsenglisch"};
-function allSubjectIds(){ const sch=window.schoolSubjectIds&&schoolSubjectIds(); return (sch||Object.keys(DATA)).concat((S.custom.subjects||[]).map(s=>s.id)); }
+/* KI-Fächer gehören zur Schule, für die sie erstellt wurden; eigene Fächer ohne Schule gelten überall */
+function schoolTag(){ return String(S.profile.sid||S.profile.school||"").slice(0,120); }
+function customVisible(s){ return !s.school || s.school===schoolTag(); }
+function allSubjectIds(){ const sch=window.schoolSubjectIds&&schoolSubjectIds(); return (sch||Object.keys(DATA)).concat((S.custom.subjects||[]).filter(customVisible).map(s=>s.id)); }
 function subjById(id){
   const s = DATA[id] || (window.schoolSubj&&schoolSubj(id)) || (S.custom.subjects||[]).find(x=>x.id===id);
   if(s && !s.name) s.name = SUBJECT_NAMES[id] || id;          /* Alt-Daten hatten keinen Anzeigenamen */
@@ -2374,7 +2387,7 @@ function nextCallLine(){ CALL.line++; CALL.transcript=""; CALL.feedback=null; CA
 /* ===================== 10) CHARAKTERE ===================== */
 function activeChar(){ return S.chars.find(c=>c.id===S.activeChar) || castById(S.activeChar) || S.chars[0] || castById("fritz"); }
 function charAvatarHTML(c){
-  if(c.face) return faceSVG(c);
+  if(c.face || c.look) return faceSVG(c);
   return `<span class="talker talker-pic" data-talk="${esc(c.id)}" data-m="X">${c.img ? `<img src="${c.img}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : esc(c.emoji||"🦉")}</span>`;
 }
 function defaultChar(){ return {id:"c"+Date.now(), name:"Coach", emoji:"🦉", img:"", face:"", sex:"", voiceName:"", traits:{freundlich:70,ernst:40,chaos:30,motivation:60}, voicePitch:1, voiceRate:1, color:"#7c5cff", blurb:"Dein Lernbegleiter – erklärt, motiviert, gibt aber erst nach der Schwelle die Lösung."}; }
@@ -2400,7 +2413,7 @@ function renderChars(){
 let EC=null; /* Bearbeitung */
 function editChar(id){
   const found = id ? S.chars.find(c=>c.id===id) : null;
-  EC = found ? Object.assign({}, found, {traits:Object.assign({}, found.traits)}) : defaultChar();
+  EC = found ? Object.assign({}, found, {traits:Object.assign({}, found.traits), look:found.look?Object.assign({}, found.look):null}) : defaultChar();
   EC._new = !found;
   renderCharEdit();
 }
@@ -2420,11 +2433,19 @@ function renderCharEdit(){
     <label class="fl" style="display:block;margin-top:12px">Eigenes Bild oder Video (≤ 5 MB)</label>
     <input class="fi" type="file" accept="image/*,video/*" onchange="ecFile(this)">
     <div style="margin-top:10px;text-align:center">
-      ${c.img?`<img src="${c.img}" style="max-height:150px;border-radius:14px;border:2px solid var(--line)">`:c.face?`<span style="display:inline-block;width:110px;height:118px">${faceSVG(c)}</span>`:`<span style="font-size:44px">${c.emoji}</span>`}
+      ${c.img?`<img src="${c.img}" style="max-height:150px;border-radius:14px;border:2px solid var(--line)">`:(c.face||c.look)?`<span style="display:inline-block;width:110px;height:118px">${faceSVG(c)}</span>`:`<span style="font-size:44px">${c.emoji}</span>`}
       ${c.color?`<div class="small mut" style="margin-top:6px">Farbwelt: <span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:${c.color};vertical-align:-2px"></span> ${esc(c.blurb||"")}</div>`:""}
     </div>
     <div style="margin-top:8px"><button class="btn ghost sm" onclick="ecFile(null);">Bild entfernen</button>
     ${S.chat.apiKey?`<button class="btn sm" onclick="ecAI()">🪄 Mit KI analysieren</button>`:`<button class="btn ghost sm" onclick="aiCharHelp()">🪄 KI-Analyse (Key nötig)</button>`}</div>
+    <div class="card" style="margin-top:12px;padding:12px">
+      <b>🪄 Mit KI erstellen</b><br><small class="mut">Kurz beschreiben oder Idee antippen – die KI füllt die Vorlage: Name, sprechendes Gesicht, Persönlichkeit, Sprechstil, Regler, Stimme und Farbe.</small>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${CHAR_IDEAS.map((x,i)=>`<button class="chip" onclick="EC._idea=CHAR_IDEAS[${i}];$('ecIdea').value=EC._idea">${esc(x.split(",")[0])}</button>`).join("")}</div>
+      <input class="fi" id="ecIdea" maxlength="200" placeholder="z. B. grummeliger Pirat, der Mathe liebt" value="${esc(c._idea||"")}" oninput="EC._idea=this.value">
+      <button class="btn sm" style="margin-top:8px" onclick="ecKI()">🪄 Charakter erstellen</button>
+    </div>
+    <label class="fl">Persönlichkeit</label><textarea class="fi" rows="2" maxlength="200" oninput="EC.blurb=this.value">${esc(c.blurb||"")}</textarea>
+    <label class="fl">Sprechstil</label><textarea class="fi" rows="2" maxlength="200" placeholder="Typische Wörter, Lieblingsspruch …" oninput="EC.style=this.value">${esc(c.style||"")}</textarea>
     <hr class="sep">
     ${slider("freundlich","Freundlichkeit")}${slider("ernst","Ernsthaftigkeit")}${slider("chaos","Chaos-Level")}${slider("motivation","Motivation")}
     ${faceVoiceEditHTML(c)}
@@ -2536,6 +2557,42 @@ function ecAI(){
     renderCharEdit(); toast("Charakter von der KI analysiert ✓");
   }).catch(e=>{ toastModal(`<h2 style="margin-top:0">KI-Analyse fehlgeschlagen</h2><p class="mut">${esc(e.message||e)}<br>Prüfe API-Key und Endpunkt in den Einstellungen. Ohne Key funktioniert die lokale Farb-Analyse (Bild hochladen → automatisch).</p><button class="btn" onclick="renderCharEdit()">Zurück</button>`); });
 }
+const CHAR_IDEAS=["🏴‍☠️ Pirat, grummelig, liebt Mathe und Schatzkarten","🤖 Roboter, übereifrig, hat einen Fakten-Tick","👵 Oma, herzlich, erklärt alles mit Backrezepten","🧙 Zauberer, weise, spricht gern in Rätseln","⚽ Trainer, sieht jede Aufgabe als Spielzug","🎤 Rapper, erklärt in kurzen Reimen","🕵️ Detektiv, löst Fehler wie Fälle","🐉 Drache, klein, schüchtern aber mutig"];
+/* Ergebnis des Tools „charakter_anlegen“ prüfen; cleanChar begrenzt alle Werte */
+function kiChar(raw){
+  let a;
+  try{ a=typeof raw==="string"?JSON.parse(raw):raw; }catch(e){ return null; }
+  if(!a || typeof a!=="object") return null;
+  const plain=x=>typeof x==="string"?x.replace(/<[^>]*>/g,"").trim():"";
+  const name=plain(a.name).slice(0,40);
+  if(!name) return null;
+  return cleanChar({name, emoji:plain(a.emoji), blurb:plain(a.blurb), style:plain(a.style), traits:a.traits, voicePitch:a.voicePitch, voiceRate:a.voiceRate, color:a.color, sex:a.sex, look:a.look||randomLook()});
+}
+function kiAddChar(raw){
+  const c=kiChar(raw);
+  if(!c) return "⚠️ Der Charakter kam kaputt an – frag einfach nochmal.";
+  if(S.chars.length>=30) return "⚠️ Du hast schon 30 eigene Charaktere – lösch erst einen.";
+  S.chars.push(c); S.activeChar=c.id; save(); updateChatHead();
+  return `✅ ${c.emoji} ${c.name} ist da und jetzt aktiv! Anpassen kannst du ${c.sex==="f"?"sie":"ihn"} unter 🧸 Charaktere.`;
+}
+async function ecKI(){
+  if(!aiReady()) return aiCharHelp();
+  const idea=str(EC._idea||"",200).trim();
+  if(!idea) return toast("Beschreib kurz, wie dein Charakter sein soll – oder tipp eine Idee an.");
+  const cur=EC;
+  loadOn("aichar", "🪄 Charakter wird erstellt …");
+  let j=null;
+  try{ j=await aiPost({messages:[{role:"user",content:`Erstelle einen Lern-Begleiter für die Lern-App Lernhub nach dieser Idee: „${idea}“. Rufe dafür das Tool charakter_anlegen auf.`}], max_tokens:1500, tools:[KI_CHAR_TOOL]}); }
+  catch(e){ j={error:{message:e.message}}; }
+  loadOff("aichar");
+  if(EC!==cur) return;
+  const m=(j&&j.choices&&j.choices[0]&&j.choices[0].message)||{};
+  const call=(m.tool_calls||[]).find(x=>x&&x.function&&x.function.name==="charakter_anlegen");
+  const c=call && kiChar(call.function.arguments);
+  if(!c) return toast("⚠️ "+String((j&&j.error&&j.error.message)||"Die KI hat keinen Charakter geliefert – nochmal versuchen.").slice(0,160));
+  EC=Object.assign({}, EC, {name:c.name, emoji:c.emoji, blurb:c.blurb, style:c.style, traits:c.traits, voicePitch:c.voicePitch, voiceRate:c.voiceRate, color:c.color, sex:c.sex||EC.sex, look:c.look, face:""});
+  renderCharEdit(); toast("Charakter erstellt ✓ – anpassen und speichern");
+}
 function aiCharHelp(){
   toastModal(`<h2 style="margin-top:0">🪄 Wie Charakter-Analyse funktioniert</h2>
   <p><b>Immer (offline):</b> Bild oder Video hochladen → die App wertet Farbe, Helligkeit und Sättigung lokal aus und leitet daraus Persönlichkeit und Stimme ab. Nichts verlässt deinen Rechner.</p>
@@ -2585,7 +2642,7 @@ function greetChat(){
 function localGreet(){
   const c=activeChar(); const nm=c?c.name:"Coach";
   const due=dueCount();
-  CHAT.push({who:"bot", t:`${c&&c.hello?c.hello:`Hi, ich bin ${nm}!`}\n${due?`🔁 ${due} Wiederholung${due>1?"en":""} warten auf dich.`:`🔥 Dein Streak: ${streakNow()} Tage.`}${aiOn()?"\n✨ Frag mich alles – oder sag z. B. „Mach mir Aufgaben zu Bruchrechnung“.":"\n✨ Richtiges Chatten gibt's mit der Lernhub-KI oder einem eigenen Key (Einstellungen)."}`});
+  CHAT.push({who:"bot", t:`${c&&c.hello?c.hello:`Hi, ich bin ${nm}!`}\n${due?`🔁 ${due} Wiederholung${due>1?"en":""} warten auf dich.`:`🔥 Dein Streak: ${streakNow()} Tage.`}${aiOn()?"\n✨ Frag mich alles – oder sag z. B. „Mach mir Aufgaben zu Bruchrechnung“ oder „Mach mir einen Charakter: lustiger Pirat“.":"\n✨ Richtiges Chatten gibt's mit der Lernhub-KI oder einem eigenen Key (Einstellungen)."}`});
   paintChat();
 }
 function chatCtx(){
@@ -2731,15 +2788,19 @@ async function agentTip(ctx){
 }
 async function agentChat(){
   const nm=activeChar().name;
-  const hist=CHAT.filter(m=>!m.wait).slice(-10).map(m=>(m.who==="me"?"Nutzer":nm)+": "+String(m.t).slice(0,400)).join("\n");
-  const prompt=agentPersona()+"\n"+agentState()+`\nBisheriger Chat:\n${hist}\n\nAntworte jetzt als ${nm} auf die letzte Nachricht des Nutzers.`;
-  if(!agentOn()) return toolChat(prompt.replace("Benutze keine Tools.", KI_TOOL_RULE));
+  const hist=CHAT.filter(m=>!m.wait&&m.who!=="sys").slice(-10).map(m=>(m.who==="me"?"Nutzer":nm)+": "+String(m.t).slice(0,400)).join("\n");
+  let head=agentPersona()+"\n"+agentState();
+  if(!agentOn()) head=head.replace("Benutze keine Tools.", KI_TOOL_RULE);
+  const tail=`\nBisheriger Chat:\n${hist}\n\nAntworte jetzt als ${nm} auf die letzte Nachricht des Nutzers.`;
+  const prompt=head+(CHAT_DOC?docBlock(CHAT_DOC, 15400-head.length-tail.length):"")+tail;
+  if(!agentOn()) return toolChat(prompt);
   const t=await agentAsk(prompt);
   pushMsg("bot", t || "⚠️ Die KI hat gerade nicht geantwortet – schreib's nochmal.");
   renderQuick();
 }
 /* Tool „aufgaben_anlegen“: Die KI liefert nur Daten, die App prüft sie (cleanTopic) und legt sie als eigenes Fach an – mit Konto per Sync in der Cloud */
-const KI_TOOL_RULE="Du hast genau ein Tool: aufgaben_anlegen. Will der Nutzer neue Aufgaben, Übungen, ein Quiz oder Karteikarten zu einem Thema, rufe es auf, statt Aufgaben in den Chat zu schreiben (fehlt das Thema, frag kurz nach). Fachlich korrekt, passend zu Schule und Klasse: 6 mc (genau 4 verschiedene Antworten, a = Index der richtigen, w = kurze Erklärung), 4 cards, 2 gaps (jede Lücke genau ___), 2 free (Antwort 1–3 Wörter, Varianten in a). Kein HTML, kein Markdown. Sonst benutze keine Tools.";
+const KI_TASK_RULE="Fachlich korrekt, passend zu Schule und Klasse: 6 mc (genau 4 verschiedene Antworten, a = Index der richtigen, w = kurze Erklärung), 4 cards, 2 gaps (jede Lücke genau ___), 2 free (Antwort 1–3 Wörter, Varianten in a). Kein HTML, kein Markdown.";
+const KI_TOOL_RULE="Du hast zwei Tools. charakter_anlegen: Will der Nutzer einen neuen Lern-Charakter oder Begleiter, rufe es auf und fülle die Vorlage komplett aus (fehlt eine Idee, schlag kurz zwei vor). aufgaben_anlegen: Will der Nutzer neue Aufgaben, Übungen, ein Quiz oder Karteikarten zu einem Thema, rufe es auf, statt Aufgaben in den Chat zu schreiben (fehlt das Thema, frag kurz nach). "+KI_TASK_RULE+" Sonst benutze keine Tools.";
 const KI_TOOLS=[{type:"function",function:{name:"aufgaben_anlegen",
   description:"Legt neue Übungsaufgaben zu einem Thema in der Lernhub-App des Nutzers an. Nur aufrufen, wenn der Nutzer ausdrücklich neue Aufgaben möchte.",
   parameters:{type:"object",required:["fach","thema","mc"],properties:{
@@ -2750,6 +2811,31 @@ const KI_TOOLS=[{type:"function",function:{name:"aufgaben_anlegen",
     gaps:{type:"array",items:{type:"object",required:["t","a"],properties:{t:{type:"string"},a:{type:"array",items:{type:"string"}}}}},
     free:{type:"array",items:{type:"object",required:["q","a"],properties:{q:{type:"string"},a:{type:"array",items:{type:"string"}},w:{type:"string"}}}}
   }}}}];
+/* Vorlage für gute Charaktere: klares Wesen, eine Macke, eigener Sprechstil, passende Regler und Stimme */
+const KI_CHAR_TOOL={type:"function",function:{name:"charakter_anlegen",
+  description:"Legt einen Lern-Begleiter (Charakter) mit sprechendem Gesicht in der Lernhub-App an. Vorlage für einen guten Charakter: klares Wesen und Hobby, eine liebenswerte Macke, eigener Sprechstil mit Lieblingsspruch, motiviert und erklärt geduldig, verrät aber keine Lösungen. Kindgerecht, freundlich, keine echten Personen und keine geschützten Figuren aus Filmen oder Spielen. Regler, Stimme und Aussehen (look) passen zur Persönlichkeit, Farben harmonieren. Kein HTML, kein Markdown.",
+  parameters:{type:"object",required:["name","emoji","blurb","style","traits","voicePitch","voiceRate","color","look"],properties:{
+    name:{type:"string",description:"Kurzer, einprägsamer Name (höchstens 20 Zeichen)"},
+    emoji:{type:"string",description:"Genau ein passendes Emoji"},
+    blurb:{type:"string",description:"Persönlichkeit in 1–2 Sätzen: Wesen, Macke, wie er motiviert (höchstens 200 Zeichen)"},
+    style:{type:"string",description:"Sprechstil: typische Wörter, Satzbau, Lieblingsspruch (höchstens 200 Zeichen)"},
+    traits:{type:"object",required:["freundlich","ernst","chaos","motivation"],description:"Charakter-Regler, je 0 bis 100",properties:{freundlich:{type:"integer"},ernst:{type:"integer"},chaos:{type:"integer"},motivation:{type:"integer"}}},
+    voicePitch:{type:"number",description:"Stimmlage von 0.7 (tief) bis 1.4 (hoch)"},
+    voiceRate:{type:"number",description:"Sprechtempo von 0.8 bis 1.3"},
+    sex:{type:"string",enum:["f","m"],description:"f = weibliche, m = männliche Stimme"},
+    color:{type:"string",description:"Passende Hex-Farbe, z. B. #ff8800"},
+    look:{type:"object",description:"Aussehen des sprechenden Gesichts (Anime-Stil)",required:["skin","hair","hairColor","eyes","outfit","acc","beard","ears"],properties:{
+      skin:{type:"string",enum:LOOK_OPTS.skin,description:"Hautton; gruen/blau/lila für Fantasy-Wesen"},
+      hair:{type:"string",enum:LOOK_OPTS.hair},
+      hairColor:{type:"string",description:"Haarfarbe als Hex"},
+      eyes:{type:"string",description:"Augenfarbe als Hex"},
+      outfit:{type:"string",description:"Kleidungsfarbe als Hex"},
+      acc:{type:"string",enum:LOOK_OPTS.acc,description:"Ein Extra passend zur Rolle, z. B. piratenhut für Piraten"},
+      beard:{type:"string",enum:LOOK_OPTS.beard},
+      ears:{type:"string",enum:LOOK_OPTS.ears}
+    }}
+  }}}};
+KI_TOOLS.push(KI_CHAR_TOOL);
 var KI_NEW=null;
 async function toolChat(prompt){
   if(AGENT_BUSY) return toast("Moment – ich denk noch nach …");
@@ -2763,23 +2849,43 @@ async function toolChat(prompt){
   AGENT_BUSY=false; loadOff("ai");
   CHAT=CHAT.filter(m=>!m.wait); paintChat();
   const m=(j&&j.choices&&j.choices[0]&&j.choices[0].message)||{};
-  const call=(m.tool_calls||[]).find(x=>x&&x.function&&x.function.name==="aufgaben_anlegen");
+  const call=(m.tool_calls||[]).find(x=>x&&x.function&&/^(aufgaben|charakter)_anlegen$/.test(x.function.name));
   if(m.content) pushMsg("bot", m.content);
-  if(call) pushMsg("bot", kiAddTopic(call.function.arguments));
+  if(call) pushMsg("bot", call.function.name==="charakter_anlegen" ? kiAddChar(call.function.arguments) : kiAddTopic(call.function.arguments));
   if(!m.content && !call) pushMsg("bot", "⚠️ "+String((j&&j.error&&j.error.message)||"Die KI hat gerade nicht geantwortet – schreib's nochmal.").slice(0,200));
   renderQuick();
 }
-function kiAddTopic(raw){
+/* Aufgaben ohne OpenCode (z. B. am Handy): die KI füllt aufgaben_anlegen, optional mit einer Datei als Grundlage */
+async function kiMakeTasks(wish, fach, doc){
+  if(!aiReady()) return toast("Die Lernhub-KI ist hier nicht eingerichtet – eigenen Key in den Einstellungen eintragen");
+  if(AGENT_BUSY) return toast("Moment – die KI arbeitet noch …");
+  AGENT_BUSY=true; loadOn("ai","✨ Die KI erstellt deine Aufgaben …", activeChar().id);
+  let prompt=`Erstelle neue Übungsaufgaben für die Lern-App Lernhub. Lernender: ${S.profile.school}, Klasse ${S.profile.klasse}${(window.schoolDesc&&schoolDesc())?", "+schoolDesc():""}.${fach?" Fach: "+fach+".":""} Thema/Wunsch: ${wish||"der Inhalt der angehängten Datei"}. Rufe dafür das Tool aufgaben_anlegen auf. ${KI_TASK_RULE}`;
+  if(doc) prompt+=docBlock(doc, 15400-prompt.length);
+  let j=null;
+  try{ j=await aiPost({messages:[{role:"user",content:prompt}], max_tokens:3500, tools:[KI_TOOLS[0]]}); }
+  catch(e){ j={error:{message:e.message}}; }
+  AGENT_BUSY=false; loadOff("ai");
+  const m=(j&&j.choices&&j.choices[0]&&j.choices[0].message)||{};
+  const call=(m.tool_calls||[]).find(x=>x&&x.function&&x.function.name==="aufgaben_anlegen");
+  if(!call){ toast("⚠️ "+String((j&&j.error&&j.error.message)||m.content||"Die KI hat keine Aufgaben geliefert – versuch's nochmal.").slice(0,200),5000); return false; }
+  const res=kiAddTopic(call.function.arguments, fach), ok=res.startsWith("✅");
+  toastModal(`<h2 style="margin-top:0">${ok?"✨ Fertig!":"⚠️ Hat nicht geklappt"}</h2><p>${esc(res)}</p>
+    ${ok?`<button class="btn g" onclick="closeModal();kiPlayNew()">▶️ Jetzt üben</button> `:""}<button class="btn ghost" onclick="closeModal();if(V.view==='agent')renderAgent()">Schließen</button>`);
+  return ok;
+}
+function kiAddTopic(raw, fachPref){
   let a;
   try{ a=typeof raw==="string"?JSON.parse(raw):raw; }catch(e){ return "⚠️ Die Aufgaben kamen kaputt an – frag einfach nochmal."; }
   const plain=x=>Array.isArray(x)?x.map(plain):(x&&typeof x==="object")?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,plain(v)])):typeof x==="string"?x.replace(/<[^>]*>/g,"").trim():x;
   a=plain(a&&typeof a==="object"?a:{});
-  let fach=str(a.fach,40)||"Meine KI-Aufgaben";
+  let fach=str(fachPref,40).trim()||str(a.fach,40)||"Meine KI-Aufgaben";
   const custom=S.custom.subjects;
-  let subj=custom.find(s=>s.name.toLowerCase()===fach.toLowerCase());
+  const mine=n=>custom.find(s=>customVisible(s) && s.name.toLowerCase()===n.toLowerCase());
+  let subj=mine(fach);
   if(!subj && allSubjectIds().some(id=>{ const s=subjById(id); return s && s.name.toLowerCase()===fach.toLowerCase(); })){
     fach=(fach+" (KI)").slice(0,60);
-    subj=custom.find(s=>s.name.toLowerCase()===fach.toLowerCase());
+    subj=mine(fach);
   }
   if(subj && subj.topics.length>=40) return `⚠️ Das Fach „${subj.name}“ ist voll (40 Themen) – lösch alte Themen oder nimm ein anderes Fach.`;
   if(!subj && custom.length>=30) return "⚠️ Du hast schon 30 eigene Fächer – lösch erst eins.";
@@ -2787,10 +2893,10 @@ function kiAddTopic(raw){
   const t=cleanTopic({id:sid+"_"+Date.now().toString(36), name:str(a.thema,120)||"Neue Aufgaben", mc:a.mc, cards:a.cards, gaps:a.gaps, free:a.free});
   if(!t) return "⚠️ Die KI hat keine brauchbaren Aufgaben geliefert – versuch's nochmal.";
   if(subj) subj.topics.push(t);
-  else { subj={id:sid, name:fach, color:["#e84393","#0984e3","#6c5ce7","#00b894","#e17055"][custom.length%5], topics:[t]}; custom.push(subj); }
+  else { subj={id:sid, name:fach, color:["#e84393","#0984e3","#6c5ce7","#00b894","#e17055"][custom.length%5], school:schoolTag(), topics:[t]}; custom.push(subj); }
   KI_NEW={sid:subj.id, tid:t.id}; save();
   const n=t.mc.length+t.cards.length+t.gaps.length+t.free.length;
-  return `✅ ${n} Aufgaben zu „${t.name}“ angelegt (Fach „${subj.name}“). ${window.syncReady&&syncReady()?"Sie sind in deiner Cloud gesichert.":CLOUD?"Sie werden gesichert, sobald der Cloud-Sync an ist.":"Mit kostenlosem Konto werden sie auch in der Cloud gesichert."}`;
+  return `✅ ${n} Aufgaben zu „${t.name}“ angelegt (Fach „${subj.name}“${subj.school?", gespeichert für "+S.profile.school:""}). ${window.syncReady&&syncReady()?"Sie sind in deiner Cloud gesichert.":CLOUD?"Sie werden gesichert, sobald der Cloud-Sync an ist.":"Mit kostenlosem Konto werden sie auch in der Cloud gesichert."}`;
 }
 function kiPlayNew(){
   if(!KI_NEW || !subjById(KI_NEW.sid)) return;
@@ -2898,10 +3004,10 @@ async function pingAgent(silent){
   const redraw=()=>{ if(V.view==="agent" && (!silent || was!==S.agent.connected || wasFull!==S.agent.full) && !typingNow()) renderAgent(); };
   if(!agentAllowed()){ S.agent.connected=false; redraw(); if(!silent) toast("Der Agent ist nur in der lokalen App verfügbar"); return null; }
   try{
-    if(!window.LERNHUB_TOKEN) await loadToken();      /* nur lokal geladen, nie von einer veröffentlichten Seite */
     const ctl=new AbortController(); const h=setTimeout(()=>ctl.abort(),4000);
     const r=await fetch(BRIDGE+"/ping",{signal:ctl.signal}); clearTimeout(h);
     const j=await r.json();
+    if(j.ok && !window.LERNHUB_TOKEN) await loadToken();      /* nur lokal geladen, nie von einer veröffentlichten Seite */
     S.agent.connected=!!j.ok; S.agent.oc=j.opencode||null; S.agent.full=!!j.full; S.agent.lastPing=Date.now(); AGENT_TIPP=!!j.tipp; TTS_ON=!!j.tts;
     const cbxChanged=await cbxCheck(j.cbx);
     if(cbxChanged && V.view==="settings" && !typingNow()) render();
@@ -2928,6 +3034,7 @@ function agentChanged(wasOn){
 function renderAgent(){
   const pf=$("agFree"); if(pf && pf.value) AGENT_PREFILL=pf.value;   /* getippten Text beim Neuzeichnen retten */
   const pc=$("agPc"); if(pc) AGENT_PC=pc.value;
+  const akF=$("akFach"), akW=$("akWish"); if(akF) AG_KI.fach=akF.value; if(akW) AG_KI.wish=akW.value;
   const conn=S.agent.connected;
   const topic = V.subj&&subjById(V.subj) ? nextLessonFor(V.subj) : null;
   const queue = (S.agent.status&&S.agent.status.queue)||[];
@@ -2939,10 +3046,11 @@ function renderAgent(){
   <div class="card" style="margin-top:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
     <span class="agentdot ${conn?'on':''}" style="width:14px;height:14px"></span>
     <div><b>${conn?"✅ Verbunden mit der Bridge":"⛔ Nicht verbunden"}</b><br>
-      <small class="mut">${conn?`OpenCode: ${esc(S.agent.oc||"installiert")} · wartet auf Aufträge`:"Die lokale Verbindung (opencode-verbinden.cmd) läuft nicht"}</small></div>
+      <small class="mut">${conn?`OpenCode: ${esc(S.agent.oc||"installiert")} · wartet auf Aufträge`:agentAllowed()?"Die lokale Verbindung (opencode-verbinden.cmd) läuft nicht":"OpenCode läuft nur am PC – hier erstellt die KI deine Aufgaben"}</small></div>
     <button class="btn sm" style="margin-left:auto" onclick="pingAgent()">Verbindung prüfen</button>
   </div>
-  ${conn?agentQueueHTML(queue):agentSetupHTML()}
+  ${agentKiHTML()}
+  ${conn?agentQueueHTML(queue):agentAllowed()?agentSetupHTML():""}
   ${agentConfigHTML()}
   <h2 class="h2">Aufträge an den Agenten</h2>
   <div class="grid">
@@ -2979,6 +3087,38 @@ function agentSetupHTML(){
   </div>`;
 }
 /* Vault-Pfad & Schul-Website: bleiben lokal, werden in die Aufträge/Prompts eingebaut */
+const AG_KI={fach:"", wish:"", doc:null};
+function agentKiHTML(){
+  const subj=V.subj&&subjById(V.subj), d=AG_KI.doc;
+  return `<div class="card" style="margin-top:14px;border-color:var(--pri)">
+    <b>✨ Neue Aufgaben mit der KI</b> <small class="mut">· klappt überall, auch am Handy – ohne OpenCode</small>
+    <label class="fl">Fach</label><input class="fi" id="akFach" maxlength="40" value="${esc(AG_KI.fach||(subj?subj.name:""))}" placeholder="z. B. Mathe">
+    <label class="fl">Thema oder Wunsch</label><textarea class="ta" id="akWish" maxlength="600" placeholder="z. B. „Bruchrechnung: Kürzen und Erweitern“ oder „Aufgaben zur angehängten Mitschrift“">${esc(AG_KI.wish)}</textarea>
+    <div class="center" style="margin-top:10px">
+      <button class="btn ghost sm" onclick="$('akFile').click()">📎 ${d?esc(d.name):"Datei als Grundlage (optional)"}</button>${d?` <button class="btn ghost sm" onclick="AG_KI.doc=null;renderAgent()" title="Datei entfernen" aria-label="Datei entfernen">✕</button>`:""}
+      <input type="file" id="akFile" hidden accept="${DOC_ACCEPT}" onchange="agKiFile(this)">
+      <button class="btn" onclick="agKiGo()">Aufgaben erstellen</button></div>
+    <p class="small mut">Wird als eigenes Fach für <b>${esc(S.profile.school)}</b> gespeichert${CLOUD?" – mit deinem Konto auch in der Cloud":""}. Datei: PDF, Word, PowerPoint, Text oder Foto (z. B. Arbeitsblatt).</p></div>`;
+}
+async function agKiFile(inp){
+  const f=inp.files&&inp.files[0]; inp.value="";
+  if(!f) return;
+  if(DOC_BUSY) return toast("Moment – die Datei wird noch gelesen …");
+  DOC_BUSY=true; toast("⏳ "+f.name+" wird gelesen …",60000);
+  try{ AG_KI.doc=await docRead(f, s=>toast("⏳ "+s,60000)); toast("📎 "+AG_KI.doc.name+" ist bereit"); }
+  catch(e){ toast("⚠️ "+e.message,4500); }
+  DOC_BUSY=false;
+  if(V.view==="agent") renderAgent();
+}
+async function agKiGo(){
+  const fach=(($("akFach")||{}).value||"").trim().slice(0,40), wish=(($("akWish")||{}).value||"").trim().slice(0,600);
+  AG_KI.fach=fach; AG_KI.wish=wish;
+  if(!wish && !AG_KI.doc) return toast("Schreib ein Thema oder häng eine Datei an");
+  if(await kiMakeTasks(wish, fach, AG_KI.doc)){
+    AG_KI.wish=""; AG_KI.doc=null; const w=$("akWish"); if(w) w.value="";
+    if(V.view==="agent") renderAgent();
+  }
+}
 function agentConfigHTML(){
   return `<div class="card" style="margin-top:14px">
     <b>⚙️ Quellen für den Agenten</b>
@@ -3014,7 +3154,7 @@ function loadToken(){
   return new Promise(res=>{
     const s=document.createElement("script");
     s.src="content/bridge-token.js?v="+Date.now();
-    s.onload=()=>res(true); s.onerror=()=>res(false);
+    s.onload=()=>{ s.remove(); res(true); }; s.onerror=()=>{ s.remove(); res(false); };
     document.body.appendChild(s);
   });
 }
@@ -3033,6 +3173,15 @@ function agentFullHTML(){
 }
 function requestAgent(typ){
   const topic = V.subj&&subjById(V.subj) ? nextLessonFor(V.subj) : null;
+  /* Ohne Bridge (z. B. am Handy) erstellt die KI die Aufgaben direkt */
+  if(!(S.agent.connected && agentAllowed()) && aiReady() && ["aufgaben","pruefung","frei"].includes(typ)){
+    const subj=V.subj&&subjById(V.subj);
+    if(typ==="frei"){ const el=$("agFree"), t=el?el.value.trim():""; if(!t) return toast("Erst einen Text schreiben!");
+      return kiMakeTasks(t.slice(0,600), "", null).then(ok=>{ if(ok){ AGENT_PREFILL=""; if(el) el.value=""; } }); }
+    if(!topic){ toast("Schreib oben bei „✨ Neue Aufgaben mit der KI“ ein Thema"); const w=$("akWish"); if(w) w.focus(); return; }
+    return kiMakeTasks(typ==="pruefung"?`Prüfungsnahe Übungen wie in einer Klassenarbeit zum Thema „${topic.name}“`:`Neue Übungen zum Thema „${topic.name}“`, subj?subj.name:"", null);
+  }
+  if(!agentAllowed() && typ!=="pc") return toast("Das geht nur am PC mit OpenCode – neue Aufgaben erstellst du oben mit ✨ der KI");
   let text="";
   const base=` (Klasse ${S.profile.klasse}, Schule ${S.profile.school}). `;
   if(typ==="aufgaben") text=`AUFTRAG neue Aufgaben: Erstelle 8–12 neue Übungs-Aufgaben (Multiple Choice, Karteikarten, Lückentext, freie Eingabe) für das Thema „${topic?topic.name:"aktueller Stoff"}“${base}Quellen: ${vaultLabel()} und ${schoolLabel()}. Schreibe das Ergebnis ausschließlich nach content/erweiterungen.js im Schema aus AGENT.md.`;
@@ -3108,7 +3257,7 @@ function renderSettings(){
     ${ttsCardHTML()}
     <div class="card" style="margin-top:14px">
       <b>✨ KI-Chat (echte KI)</b>
-      <p class="small mut">${CLOUD?"Mit deinem Konto antwortet automatisch die kostenlose <b>Lernhub-KI</b> (Tageslimit).":"Es antwortet automatisch die kostenlose <b>Lernhub-KI</b> (als Gast mit kleinerem Tageslimit, mit Konto mehr)."} Sag im Chat z. B. „Mach mir Aufgaben zu …“ – dann legt die KI ein eigenes Fach mit Übungen an. Lösungen erst ab ${HINT_THRESHOLD} Fehlversuchen. Optional eigener Key (OpenAI-kompatibel, z. B. OpenAI, Groq oder lokaler Ollama-Server) – der hat dann Vorrang.</p>
+      <p class="small mut">${CLOUD?"Mit deinem Konto antwortet automatisch die kostenlose <b>Lernhub-KI</b> (Tageslimit).":"Es antwortet automatisch die kostenlose <b>Lernhub-KI</b> (als Gast mit kleinerem Tageslimit, mit Konto mehr)."} Sag im Chat z. B. „Mach mir Aufgaben zu …“ – dann legt die KI ein eigenes Fach mit Übungen an – oder „Mach mir einen Charakter: …“ für einen neuen Lern-Begleiter. Lösungen erst ab ${HINT_THRESHOLD} Fehlversuchen. Optional eigener Key (OpenAI-kompatibel, z. B. OpenAI, Groq oder lokaler Ollama-Server) – der hat dann Vorrang.</p>
       <label class="fl">API-Key (bleibt lokal)</label><input class="fi" type="password" value="${esc(S.chat.apiKey)}" placeholder="sk-…" onchange="S.chat.apiKey=this.value.trim();save()">
       <label class="fl">Endpunkt (URL)</label><input class="fi" value="${esc(S.chat.endpoint)}" onchange="S.chat.endpoint=this.value.trim();save()">
       <label class="fl">Modell</label><input class="fi" value="${esc(S.chat.model)}" onchange="S.chat.model=this.value.trim();save()">
@@ -3144,7 +3293,7 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.5 · Open Source (MIT) · keine externen Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.6 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){
@@ -3229,7 +3378,7 @@ function showLegal(which){
       <p><b>Schulsuche &amp; Schulfächer:</b> Suchst du deine Schule, schickt dein Browser den Suchbegriff (bzw. bei „In meiner Nähe“ deinen auf ca. 1 km gerundeten Standort) an jedeschule.codefor.de (Open Knowledge Foundation Deutschland e. V.); dabei wird deine IP-Adresse übertragen. Gespeichert wird nur die gewählte Schule, Schulart und Stufe in deinem Browser. Fachpakete (Aufgaben) werden ohne Personenbezug aus der Lernhub-Cloud (Supabase) geladen. Forderst du mit Konto ein neues Fach an oder meldest eine fehlerhafte Aufgabe, werden Fachname, Schulname, Bundesland/Schulart/Stufe, ggf. deine Notiz und deine Konto-ID gespeichert (für Tageslimits gegen Missbrauch); die Aufgaben selbst erstellt ein KI-Modell über OpenCode, dabei werden keine personenbezogenen Daten an die KI gesendet.</p>
       <p><b>Lernhub-KI:</b> Hast du keinen eigenen API-Key eingetragen, gehen deine Chat-Nachrichten, die aktuelle Aufgabe und Auszüge aus dem Lernstoff über unseren Server (Supabase) an Groq, Inc. (USA), das daraus die Antwort erzeugt. Deine E-Mail, deine Konto-ID und deine IP-Adresse werden dabei nicht an Groq gesendet. Gespeichert wird bei uns nur die Anzahl deiner KI-Anfragen pro Tag (für das Tageslimit): mit Konto zu deiner Konto-ID (nach 7 Tagen gelöscht), als Gast zu einem täglich wechselnden, nicht umkehrbaren Kennwert aus deiner IP-Adresse (die IP selbst wird nicht gespeichert, nach 2 Tagen gelöscht). Von der KI angelegte Aufgaben liegen als eigenes Fach in deinem Browser und – mit Konto und Cloud-Sync – in deinem privaten Cloud-Speicher. Schreib keine persönlichen Daten in den Chat.</p>
       <p><b>Buy me a coffee:</b> Der Knopf öffnet buymeacoffee.com in einem neuen Tab (externe Seite, eigener Datenschutz). Lernhub überträgt dabei nichts.</p>
-      <p><b>Was das Internet sieht:</b> Grundsätzlich nichts. Nur wenn du selbst (a) einen API-Key in den Einstellungen einträgst, werden Chat-Anfragen an den von dir gewählten Endpunkt gesendet, (b) Video-Tipps öffnest (YouTube, externe Seite) oder (c) den OpenCode-Agenten nutzt (recherchiert lokal + Web). Mikrofon wird nur bei Sprechübungen aktiviert und nur für die Spracherkennung deines Browsers verwendet.</p>
+      <p><b>Was das Internet sieht:</b> Grundsätzlich nichts. Nur wenn du selbst (a) einen API-Key in den Einstellungen einträgst, werden Chat-Anfragen an den von dir gewählten Endpunkt gesendet, (b) Video-Tipps öffnest (YouTube, externe Seite) oder (c) den OpenCode-Agenten nutzt (recherchiert lokal + Web). Hängst du im KI-Chat eine Datei an, liest dein Browser den Text aus und schickt nur diesen Text mit der Anfrage; für PDFs und Fotos lädt er dafür einmalig pdf.js bzw. die Texterkennung (tesseract.js) von jsDelivr. Mikrofon wird nur bei Sprechübungen aktiviert und nur für die Spracherkennung deines Browsers verwendet.</p>
       <p><b>Speicher löschen:</b> Einstellungen → „Alles zurücksetzen“, oder Browser-Daten löschen.</p>
       <p><b>Kontakt:</b> <a href="mailto:simon.lasarzewski@gmail.com">simon.lasarzewski@gmail.com</a></p>
       <button class="btn" onclick="closeModal()">Schließen</button>`);

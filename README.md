@@ -112,13 +112,14 @@ den Lerndaten. Ohne Chatterbox nutzt die App die normalen Browser-Stimmen.
 
 ### 7. Probleme?
 
-| Problem               | Lösung                                                                                      |
-| --------------------- | ------------------------------------------------------------------------------------------- |
-| Mikrofon geht nicht   | Edge/Chrome nehmen und Mikrofon-Zugriff erlauben (Schloss-Symbol links in der Adressleiste) |
-| Keine Stimme zu hören | Ton am PC an? ⚙️ Einstellungen → Stimmen → andere Stimme wählen                             |
-| Fortschritt weg       | Anderer Browser oder Browserdaten gelöscht → mit Konto einloggen bzw. Backup importieren    |
-| 🤖 Agent bleibt rot   | `opencode-verbinden.cmd` muss im Hintergrund laufen (Fenster offen lassen)                  |
-| Untis lädt nicht      | Link neu erstellen (WebUntis → ⋯ → iCal-Abo) oder `.ics` herunterladen und importieren      |
+| Problem               | Lösung                                                                                              |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| Mikrofon geht nicht   | Edge/Chrome nehmen und Mikrofon-Zugriff erlauben (Schloss-Symbol links in der Adressleiste)         |
+| Keine Stimme zu hören | Ton am PC an? ⚙️ Einstellungen → Stimmen → andere Stimme wählen                                     |
+| Fortschritt weg       | Anderer Browser oder Browserdaten gelöscht → mit Konto einloggen bzw. Backup importieren            |
+| 🤖 Agent bleibt rot   | `opencode-verbinden.cmd` muss im Hintergrund laufen (Fenster offen lassen)                          |
+| `git pull` scheitert  | Der eigene Agent hat `content/erweiterungen.js` geändert → `git stash`, `git pull`, `git stash pop` |
+| Untis lädt nicht      | Link neu erstellen (WebUntis → ⋯ → iCal-Abo) oder `.ics` herunterladen und importieren              |
 
 Fehler gefunden oder Idee? → auf GitHub ein **Issue** aufmachen oder Simon Bescheid sagen.
 
@@ -211,7 +212,23 @@ eigenen Browser-Speicher – Fortschritt aus der `file://`-Version per
   Daten (Multiple Choice, Karteikarten, Lückentext, Freitext). Die App prüft
   sie mit `cleanTopic()` und legt sie als eigenes Fach an – mit Konto und
   Cloud-Sync landen sie automatisch im privaten Cloud-Speicher. Niemand muss
-  dazu Code oder Dateien ändern.
+  dazu Code oder Dateien ändern. Die Fächer gehören zur gewählten Schule
+  (Feld `school`) und erscheinen nur, solange diese Schule eingestellt ist.
+- **Ohne OpenCode (z. B. am Handy):** 🤖 Agent → „✨ Neue Aufgaben mit der KI“
+  (Fach, Thema, optional Datei). Auch „Neue Aufgaben“, „Prüfungsstoff“ und
+  „Freier Auftrag“ laufen ohne Bridge über die KI statt über OpenCode.
+- **📎 Dateien im Chat:** PDF (pdf.js), Word/PowerPoint/Excel/OpenOffice
+  (entpackt der Browser), Text und Fotos (Texterkennung mit tesseract.js).
+  Der Browser liest den Text aus; an die KI geht nur Text (gekürzt aufs
+  Anfrage-Limit). pdf.js und tesseract.js werden erst bei Bedarf von jsDelivr
+  geladen (feste Version, SRI).
+- **Tool `charakter_anlegen`:** „Mach mir einen Charakter: lustiger Pirat“ im
+  Chat – oder 🧸 Charaktere → Neuer Charakter → „🪄 Mit KI erstellen“ (mit
+  Ideen zum Antippen). Die KI füllt eine Vorlage (Name, Emoji, Persönlichkeit,
+  Sprechstil, Regler, Stimme, Farbe und Aussehen); die App prüft sie mit `cleanChar()`.
+  Das Aussehen (`look`) baut ein sprechendes Anime-Gesicht wie bei der Crew
+  (Frisur, Haut, Augen, Outfit, Extras wie Piratenhut oder Krone, Bart, Ohren) –
+  im Editor anpassbar oder per 🎲 zufällig.
 
   **Einrichten:** `supabase/schema.sql` erneut ausführen (neu: `ki_usage`,
   `ki_take`, `ki_guest`, `ki_take_guest`). Dann Supabase → **Edge Functions → Secrets**: `GROQ_API_KEY`
@@ -553,6 +570,9 @@ Crew-Gesicht und eine bestimmte Stimme bekommen.
   Lernstoff-Auszüge gehen über die Edge Function `ki` an Groq (USA); gespeichert
   wird nur die Zahl der Anfragen pro Tag (`ki_usage` je Konto, nach 7 Tagen
   gelöscht; `ki_guest` je täglich wechselndem IP-HMAC, nach 2 Tagen gelöscht).
+- 📎 Angehängte Dateien werden im Browser gelesen; nur der Text geht mit der
+  Anfrage an die KI. Beim ersten PDF bzw. Foto lädt der Browser pdf.js bzw.
+  tesseract.js samt Sprachdaten von jsDelivr bzw. tessdata.projectnaptha.com.
 - Vault-Pfad und Schul-URL (Agent-Panel) bleiben im Browser.
 - Schulsuche: Suchbegriff bzw. auf ~1 km gerundeter Standort gehen an
   jedeschule.codefor.de. Fachpakete liegen ohne Personenbezug in Supabase

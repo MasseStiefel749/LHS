@@ -1,6 +1,6 @@
 {
-  "lastRun": "2026-11-11T10:30:00Z",
+  "lastRun": "2026-11-17T00:00:00Z",
   "queue": [],
   "error": null,
-  "note": "Auftrag 'aktueller Stoff' (E1FI A) umgesetzt: neues ITS-Thema 'Stromkreis, Ladung & Leistung' am Ende des Fachs ITS angehaengt – 12 Uebungen (4 MC, 3 Karteikarten, 3 Lueckentext, 2 freie Eingabe). Inhalt aus dem Obsidian-Vault ITS.md (Elektrotechnik-Arbeitsblaetter 1–24, Stand 04.11.2026: Stromkreis aus Quelle/Leitung/Verbraucher, I = Q/t, P = U·I, Leitwert G = 1/R in Siemens, Spannung als Potentialdifferenz, Signalgeschwindigkeit, Spannungserzeugung durch Licht). Das zuvor bereits angelegte Thema 'PC-Montage & ESD-Schutz' blieb unveraendert; keine Duplikate, keine bestehenden Themen veraendert."
+  "note": "35 offene Auftraege geprueft (alle identisch, erstellt 2026-11-11 10:15-10:26 Uhr, Thema 'Stromkreis, Ladung & Leistung'). Das Thema ist bereits als ITS-Thema 'stromkreis_ladung_leistung' in content/erweiterungen.js enthalten (8 MC, 3 Karteikarten, 3 Lueckentext, 2 freie Eingabe; Quelle: Obsidian-Vault ITS.md, Elektrotechnik-Arbeitsblaetter 1-24, Stand 04.11.2026, umgesetzt im Lauf vom 11.11.2026). Gemaess Regel 'keine Duplikate' wurden keine weiteren Uebungen angelegt; stattdessen wurden alle 35 Auftragsdateien mit 'erledigt: ja' markiert. Keine Fehler offen."
 }

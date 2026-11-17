@@ -1,0 +1,4 @@
+# Windows-Skripte mit CRLF ausliefern (auch im GitHub-ZIP) – cmd.exe verspringt sich bei LF in goto-Labels
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf

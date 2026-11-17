@@ -12,6 +12,7 @@ content/bridge-token.js
 # Lokales / Geheimes
 .env
 .env.*
+supabase/.temp/
 node_modules/
 __pycache__/
 *.wav
