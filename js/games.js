@@ -1,6 +1,6 @@
 /* =========================================================================
    js/games.js – 🎮 Minispiele für die Lernpause.
-   Snake, 2048, Lern-Memory, Reaktionstest, Tic-Tac-Toe, Binär-Blitz.
+   Snake, 2048, Lern-Memory, Reaktionstest, Tic-Tac-Toe, Binär-Blitz, Stapelturm.
    Kein XP (Pause soll Pause bleiben) – nur lokale Bestwerte in S.games.
    ========================================================================= */
 let GAMES = { cur: null, timers: [], key: null, raf: 0, g: null };
@@ -47,6 +47,13 @@ const GAME_LIST = [
     d: "Schalte die Bits, bis die Dezimalzahl stimmt. 60 Sekunden.",
     best: (b) => (b ? `${b} Zahlen` : ""),
   },
+  {
+    id: "stack",
+    ic: "🏗️",
+    name: "Stapelturm",
+    d: "Im richtigen Moment tippen – wie hoch kommt dein Turm?",
+    best: (b) => (b ? `${b} Etagen` : ""),
+  },
 ];
 
 function gamesState() {
@@ -57,7 +64,7 @@ function gamesState() {
   ["w", "d", "l"].forEach((k) => {
     g.best.ttt[k] = Math.max(0, +g.best.ttt[k] || 0);
   });
-  ["snake", "g2048", "memory", "react", "binary"].forEach((k) => {
+  ["snake", "g2048", "memory", "react", "binary", "stack"].forEach((k) => {
     const v = +g.best[k];
     g.best[k] = isFinite(v) && v > 0 ? Math.round(v) : 0;
   });
@@ -188,6 +195,7 @@ function renderGames() {
       react: gReact,
       ttt: gTTT,
       binary: gBinary,
+      stack: gStack,
     }[GAMES.cur];
     if (fn) return fn();
     GAMES.cur = null;
@@ -866,4 +874,210 @@ function bnDraw() {
     b.classList.toggle("on", !!g.bits[i]);
     b.firstElementChild.textContent = g.bits[i];
   });
+}
+
+/* ---------------- 🏗️ Stapelturm ---------------- */
+const ST = { W: 300, H: 440, BH: 22, GROUND: 60 };
+function gStack() {
+  GAMES.g = {
+    tower: [{ x: 60, w: 180, hue: 200 }],
+    cur: null,
+    dir: 1,
+    speed: 0.14,
+    score: 0,
+    combo: 0,
+    run: false,
+    over: false,
+    cam: 0,
+    fx: [],
+    flash: null,
+    t: 0,
+  };
+  stSpawn();
+  $("app").innerHTML = `${gHead("stack")}
+  <div class="gstage">
+    <div class="gscore">Etagen: <b id="stScore">0</b></div>
+    <canvas id="stCv" class="gcanvas" style="aspect-ratio:${ST.W}/${ST.H}" aria-label="Stapelturm-Spielfeld"></canvas>
+    <p class="small mut" id="stMsg">Tippen oder Leertaste: Block fallen lassen. 3× perfekt hintereinander = Block wächst wieder!</p>
+  </div>`;
+  const cv = $("stCv"),
+    dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(ST.W * dpr);
+  cv.height = Math.round(ST.H * dpr);
+  cv.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    stTap();
+  });
+  gKeys((e) => {
+    if (e.key === " " || e.key === "Enter" || e.key === "ArrowDown") {
+      e.preventDefault();
+      stTap();
+    }
+  });
+  GAMES.raf = requestAnimationFrame(stLoop);
+}
+function stSpawn() {
+  const g = GAMES.g,
+    top = g.tower[g.tower.length - 1],
+    lvl = g.tower.length;
+  g.dir = lvl % 2 ? 1 : -1;
+  g.cur = { x: g.dir > 0 ? 0 : ST.W - top.w, w: top.w, hue: (200 + lvl * 11) % 360 };
+}
+function stTap() {
+  const g = GAMES.g;
+  if (!g || GAMES.cur !== "stack") return;
+  if (g.over) {
+    gStack();
+    GAMES.g.run = true;
+    return;
+  }
+  if (!g.run) {
+    g.run = true;
+    return;
+  }
+  stDrop();
+}
+function stDrop() {
+  const g = GAMES.g,
+    c = g.cur,
+    lvl = g.tower.length,
+    prev = g.tower[lvl - 1],
+    l = Math.max(c.x, prev.x),
+    r = Math.min(c.x + c.w, prev.x + prev.w);
+  if (r - l <= 0) {
+    g.fx.push({ ...c, lvl, vy: 0, rot: 0, vr: g.dir * 0.004 });
+    g.cur = null;
+    return stOver();
+  }
+  if (Math.abs(c.x - prev.x) < 4) {
+    g.combo++;
+    c.x = prev.x;
+    if (g.combo >= 3) c.w = Math.min(ST.W - 20, c.w + 8);
+    c.x = Math.max(0, Math.min(ST.W - c.w, c.x));
+    g.flash = { txt: g.combo >= 3 ? `Perfekt ×${g.combo} – Block wächst!` : "Perfekt!", t: 900 };
+    if (navigator.vibrate) navigator.vibrate(15);
+  } else {
+    g.combo = 0;
+    const cut = c.x < prev.x ? { x: c.x, w: prev.x - c.x } : { x: r, w: c.x + c.w - r };
+    g.fx.push({ ...cut, hue: c.hue, lvl, vy: 0, rot: 0, vr: (c.x < prev.x ? -1 : 1) * 0.003 });
+    c.x = l;
+    c.w = r - l;
+  }
+  g.tower.push({ x: c.x, w: c.w, hue: c.hue });
+  g.score++;
+  g.speed = Math.min(0.42, g.speed + 0.006);
+  const s = $("stScore");
+  if (s) {
+    s.textContent = g.score;
+    s.classList.remove("pop");
+    void s.offsetWidth;
+    s.classList.add("pop");
+  }
+  stSpawn();
+}
+function stOver() {
+  const g = GAMES.g;
+  g.over = true;
+  g.run = false;
+  const rec = g.score > 0 && gBest("stack", g.score),
+    m = $("stMsg");
+  if (m)
+    m.innerHTML = `💥 Eingestürzt – ${g.score} Etagen${rec ? " · <b>Neuer Rekord! 🏆</b>" : ""}. Tippen für neue Runde.`;
+  if (rec) {
+    const b = $("gBest");
+    if (b) b.textContent = "🏆 " + g.score + " Etagen";
+  }
+}
+function stY(lvl) {
+  return ST.H - ST.GROUND - (lvl + 1) * ST.BH;
+}
+function stLoop(t) {
+  const g = GAMES.g,
+    cv = $("stCv");
+  if (!g || GAMES.cur !== "stack" || !cv) return;
+  const dt = Math.min(32, t - (g.t || t));
+  g.t = t;
+  const c = g.cur;
+  if (g.run && c) {
+    c.x += g.dir * g.speed * dt;
+    if (c.x <= 0) {
+      c.x = 0;
+      g.dir = 1;
+    } else if (c.x + c.w >= ST.W) {
+      c.x = ST.W - c.w;
+      g.dir = -1;
+    }
+  }
+  g.fx.forEach((f) => {
+    f.vy += 0.0016 * dt;
+    f.y = (f.y ?? stY(f.lvl)) + f.vy * dt;
+    f.rot += f.vr * dt;
+  });
+  g.fx = g.fx.filter((f) => f.y + g.cam < ST.H + 60);
+  const target = Math.max(0, (g.tower.length + 2) * ST.BH - ST.H * 0.55);
+  g.cam += (target - g.cam) * Math.min(1, dt * 0.006);
+  if (g.flash) g.flash.t -= dt;
+  stDraw(cv);
+  GAMES.raf = requestAnimationFrame(stLoop);
+}
+function stBlock(c, x, y, w, hue) {
+  c.fillStyle = `hsl(${hue} 70% 56%)`;
+  c.fillRect(x, y, w, ST.BH);
+  c.fillStyle = `hsl(${hue} 80% 70%)`;
+  c.fillRect(x, y, w, 4);
+  c.fillStyle = `hsl(${hue} 60% 42%)`;
+  c.fillRect(x, y + ST.BH - 3, w, 3);
+}
+function stDraw(cv) {
+  const g = GAMES.g,
+    c = cv.getContext("2d"),
+    k = cv.width / ST.W,
+    h = Math.min(1, g.score / 40);
+  c.setTransform(k, 0, 0, k, 0, 0);
+  const sky = c.createLinearGradient(0, 0, 0, ST.H);
+  sky.addColorStop(0, `hsl(${215 + h * 30} 65% ${88 - h * 76}%)`);
+  sky.addColorStop(1, `hsl(${200 + h * 40} 70% ${96 - h * 66}%)`);
+  c.fillStyle = sky;
+  c.fillRect(0, 0, ST.W, ST.H);
+  if (h > 0.4) {
+    c.fillStyle = `rgba(255,255,255,${(h - 0.4) * 1.6})`;
+    for (let i = 0; i < 40; i++) c.fillRect((i * 73) % ST.W, (i * 131 + g.cam * 0.2) % ST.H, 2, 2);
+  }
+  c.save();
+  c.translate(0, g.cam);
+  c.fillStyle = gCss("--green", "#2ecc71");
+  c.fillRect(0, ST.H - ST.GROUND, ST.W, ST.GROUND + 4000);
+  g.tower.forEach((b, i) => stBlock(c, b.x, stY(i), b.w, b.hue));
+  if (g.cur && !g.over) stBlock(c, g.cur.x, stY(g.tower.length), g.cur.w, g.cur.hue);
+  g.fx.forEach((f) => {
+    c.save();
+    c.translate(f.x + f.w / 2, f.y + ST.BH / 2);
+    c.rotate(f.rot);
+    stBlock(c, -f.w / 2, -ST.BH / 2, f.w, f.hue);
+    c.restore();
+  });
+  c.restore();
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  if (g.flash && g.flash.t > 0) {
+    c.globalAlpha = Math.min(1, g.flash.t / 300);
+    c.font = "bold 20px system-ui";
+    c.fillStyle = h > 0.5 ? "#fff" : "#1f2340";
+    c.fillText("✨ " + g.flash.txt, ST.W / 2, 40);
+    c.globalAlpha = 1;
+  }
+  if (!g.run && !g.over) {
+    c.font = "bold 22px system-ui";
+    c.fillStyle = "#1f2340";
+    c.fillText("Tippe zum Start", ST.W / 2, ST.H / 2 - 40);
+  }
+  if (g.over) {
+    c.fillStyle = "rgba(0,0,0,.35)";
+    c.fillRect(0, 0, ST.W, ST.H);
+    c.font = "bold 26px system-ui";
+    c.fillStyle = "#fff";
+    c.fillText(`💥 ${g.score} Etagen`, ST.W / 2, ST.H / 2 - 14);
+    c.font = "16px system-ui";
+    c.fillText("Tippen für neue Runde", ST.W / 2, ST.H / 2 + 18);
+  }
 }
