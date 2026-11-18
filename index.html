@@ -114,7 +114,7 @@ a{color:var(--pri);cursor:pointer}
 .nbtn.rev{background:linear-gradient(180deg,#6ee7b7,#2ecc71);border-bottom-color:#1f9d57;color:#08532c}
 .nbtn.vid{background:linear-gradient(180deg,#7dd3fc,#3fa9f5);border-bottom-color:#1f7ac2;color:#fff}
 .nbtn.spk{background:linear-gradient(180deg,#fca5a5,#ff5c7a);border-bottom-color:#d63b58;color:#fff}
-.nbtn.lock{cursor:not-allowed;opacity:.75}
+.nbtn.lock{cursor:pointer;opacity:.75}
 .nbtn .lbl{position:absolute;top:72px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;color:var(--mut);white-space:normal;width:max-content;max-width:min(190px,40vw);line-height:1.25;text-align:center;background:rgba(244,245,251,.85);padding:1px 7px;border-radius:8px}
 .node:nth-child(odd) .lbl{left:0;transform:none;text-align:left}
 .node:nth-child(even) .lbl{left:50%;transform:translateX(-50%);text-align:center}
@@ -337,7 +337,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
   <div class="sidefoot">
     <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.7 · offline</span>
+    <span id="verLine">v1.8 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -1777,7 +1777,7 @@ function renderPathNodes(subjId){
     const cls = st==="done"?"done":st==="now"?"now":"lock";
     const icon = st==="done"?"👑":st==="now"?"▶️":"🔒";
     const label = `${esc(t.name)}${st==="done"?" ✓ "+p.lessons+"×":st==="now"?" – jetzt dran":""}`;
-    html += `<div class="node"><button class="nbtn ${cls}" ${st==="lock"?`disabled aria-disabled="true" title="Gesperrt – erst „${esc(subj.topics[i-1].name)}“ abschließen"`:""} data-s="${esc(subjId)}" data-t="${esc(t.id)}" onclick="startLesson(this.dataset.s,this.dataset.t)">${icon}<span class="lbl">${label}</span></button></div>`;
+    html += `<div class="node"><button class="nbtn ${cls}" ${st==="lock"?`title="Gesperrt – tippen zum Vorspringen"`:""} data-s="${esc(subjId)}" data-t="${esc(t.id)}" onclick="startLesson(this.dataset.s,this.dataset.t)">${icon}<span class="lbl">${label}</span></button></div>`;
     if(i>0 && i%2===0 && st!=="lock"){
       html += `<div class="node"><button class="nbtn vid" data-s="${esc(subjId)}" data-t="${esc(t.id)}" onclick="suggestVideo(this.dataset.s,this.dataset.t)">🎥<span class="lbl">Video-Tipp</span></button></div>`;
     }
@@ -1821,10 +1821,15 @@ function buildItems(tp, n){
   pool.sort((a,b)=>b.key-a.key);
   return pool.slice(0, Math.min(n||8, pool.length)).map(({kind,idx})=>({kind,idx}));
 }
-function startLesson(subjId, tid, mode){
+function startLesson(subjId, tid, mode, jump){
   const subj=subjById(subjId); if(!subj) return go("home");
   const tp=subj.topics.find(t=>t.id===tid); if(!tp) return go("home");
-  if(mode!=="review" && topicState(subjId, subj.topics.indexOf(tp))==="lock") return toast("🔒 Gesperrt – schließe zuerst das vorherige Thema ab");
+  if(!jump && mode!=="review" && topicState(subjId, subj.topics.indexOf(tp))==="lock"){
+    return toastModal(`<h2 style="margin-top:0">🔒 Noch gesperrt</h2>
+      <p><b>${esc(tp.name)}</b> kommt im Lernpfad erst später. Du kannst trotzdem vorspringen – z. B. wenn bald eine Klassenarbeit ansteht.</p>
+      <div class="mbtns"><button class="btn" data-s="${esc(subjId)}" data-t="${esc(tid)}" onclick="closeModal();startLesson(this.dataset.s,this.dataset.t,null,true)">🚀 Trotzdem lernen</button>
+      <button class="btn ghost" onclick="closeModal()">Abbrechen</button></div>`);
+  }
   heartsRefill();
   if(S.profile.hearts && S.hearts.v<=0){ V.view="lesson"; LES={outOfHearts:true}; return renderLesson(); }
   LES={mode:mode||"lesson", subjId, tid, items:buildItems(tp, mode==="review"?6:8).map(o=>({kind:o.kind, idx:o.idx, tid})), i:0, ok:0, wrong:[], xp:0, flipped:false, checked:false};
@@ -2069,7 +2074,7 @@ function renderLessonDone(){
       S.progress[LES.tid].lessons++;
       if(S.progress[LES.tid].lessons===LESSONS_TO_UNLOCK){
         const tps=subjById(LES.subjId).topics, ix=tps.findIndex(t=>t.id===LES.tid);
-        if(tps[ix+1]) LES.unlocked=tps[ix+1].name;
+        if(tps[ix+1] && topicState(LES.subjId, ix+1)==="now") LES.unlocked=tps[ix+1].name;
       }
       S.stats.lessons=(S.stats.lessons||0)+1;
       S.stats.lastSubject=LES.subjId; S.stats.lastLessonDay=today();
@@ -3293,7 +3298,7 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.7 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.8 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){
@@ -3331,7 +3336,7 @@ function importData(input){
 }
 function howWorks(){
   toastModal(`<h2 style="margin-top:0">ℹ️ Wie Lernhub funktioniert</h2>
-  <p><b>Lernpfad wie Duolingo:</b> Neue Themen sind gesperrt (🔒), bis du das vorherige mit einer Lektion abgeschlossen hast (👑). Falsch beantwortete Aufgaben kommen am Ende der Lektion nochmal – erst wenn alles sitzt, ist sie geschafft. Dazwischen: 🔁 Wiederholungen (Spaced Repetition) und 🎥 Video-Tipps.</p>
+  <p><b>Lernpfad wie Duolingo:</b> Neue Themen sind gesperrt (🔒), bis du das vorherige mit einer Lektion abgeschlossen hast (👑) – vor einer Klassenarbeit kannst du aber jederzeit vorspringen. Falsch beantwortete Aufgaben kommen am Ende der Lektion nochmal – erst wenn alles sitzt, ist sie geschafft. Dazwischen: 🔁 Wiederholungen (Spaced Repetition) und 🎥 Video-Tipps.</p>
   <p><b>4 Aufgabenarten:</b> Multiple Choice, Karteikarten, Lückentext, freie Eingabe – die Mischung richtet sich nach deinem Lernstil aus dem Start-Quiz.</p>
   <p><b>Akku &amp; Streak:</b> Jeder Fehler kostet eine Akku-Zelle (abschaltbar), alle ${BATT_MIN} Minuten lädt eine nach, jeden neuen Tag ist er wieder voll. Täglich lernen hält die 🔥-Streak – sie ist dein Rückkehr-Grund.</p>
   <p><b>🏠 Dashboard, 🧠 Erklär-Modus, 📝 Notizen, 📅 Planer:</b> Alles Wichtige auf einen Blick, Themen mit Erklärung + KI-Chat, eigene Notizen, Stundenplan (Untis) und Erinnerungen, die so lange nerven, bis dein Tagesziel erreicht ist.</p>
