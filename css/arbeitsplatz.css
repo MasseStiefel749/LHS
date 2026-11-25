@@ -1,0 +1,1258 @@
+/* 🧑‍💻 Arbeitsplatz – Fenster, Dock, Apps. Handy: ein Fenster als Tab (oder zwei übereinander mit ⬓). */
+body.wsview #app {
+    max-width: none;
+    padding: 8px 10px 0
+}
+
+.ws {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 76px);
+    min-height: 420px
+}
+
+body.wsfull .ws {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    height: 100dvh;
+    background: var(--bg);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom))
+}
+
+body.wsfull #mnav,
+body.wsfull #fab {
+    display: none !important
+}
+
+.wsbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 2px 2px 8px;
+    scrollbar-width: thin
+}
+
+.wsdock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 54px;
+    padding: 5px 6px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit;
+    flex: 0 0 auto
+}
+
+.wsdock span {
+    font-size: 20px;
+    line-height: 1.1
+}
+
+.wsdock small {
+    font-size: 11px;
+    font-weight: 700
+}
+
+.wsdock:hover {
+    border-color: var(--pri);
+    transform: translateY(-1px)
+}
+
+.wsgap {
+    flex: 1
+}
+
+.wstool {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 9px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    flex: 0 0 auto
+}
+
+.wstool:hover {
+    border-color: var(--pri)
+}
+
+.wsonlymob {
+    display: none
+}
+
+.wstabs {
+    display: none
+}
+
+.wsdesk {
+    position: relative;
+    flex: 1;
+    border: 1px dashed var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: repeating-linear-gradient(45deg, transparent 0 14px, rgba(124, 92, 255, .03) 14px 28px)
+}
+
+.wsdesk.dragging iframe {
+    pointer-events: none
+}
+
+.wsdesk[data-snap="l"]::after,
+.wsdesk[data-snap="r"]::after,
+.wsdesk[data-snap="m"]::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 999999;
+    background: rgba(124, 92, 255, .14);
+    border: 2px dashed var(--pri);
+    border-radius: 12px;
+    pointer-events: none
+}
+
+.wsdesk[data-snap="l"]::after {
+    left: 0;
+    width: 50%
+}
+
+.wsdesk[data-snap="r"]::after {
+    right: 0;
+    width: 50%
+}
+
+.wsdesk[data-snap="m"]::after {
+    left: 0;
+    right: 0
+}
+
+.wsempty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    max-width: 520px;
+    margin: auto
+}
+
+.wsempty[hidden] {
+    display: none
+}
+
+.wswin {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(20, 20, 60, .16);
+    overflow: hidden;
+    min-width: 0
+}
+
+.wswin.act {
+    border-color: var(--pri);
+    box-shadow: 0 12px 34px rgba(124, 92, 255, .25)
+}
+
+.wswin.max {
+    border-radius: 0
+}
+
+.wshead {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px 5px 10px;
+    background: var(--pri-l);
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    flex: 0 0 auto
+}
+
+.wshead:active {
+    cursor: grabbing
+}
+
+.wstitle {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px
+}
+
+.wsbtns {
+    display: flex;
+    gap: 2px
+}
+
+.wsbtns button {
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    width: 26px;
+    height: 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px
+}
+
+.wsbtns button:hover {
+    background: var(--card)
+}
+
+.wsbtns button:last-child:hover {
+    background: var(--red);
+    color: #fff
+}
+
+.wsbody {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    container-type: inline-size;
+    overflow: hidden
+}
+
+.wsrs {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 18px;
+    height: 18px;
+    cursor: nwse-resize;
+    touch-action: none;
+    background: linear-gradient(135deg, transparent 50%, var(--line) 50% 60%, transparent 60% 70%, var(--line) 70% 80%, transparent 80%)
+}
+
+.wscur {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 999998;
+    pointer-events: none;
+    transition: transform .6s cubic-bezier(.3, .9, .3, 1), opacity .5s;
+    display: flex;
+    align-items: flex-start;
+    gap: 2px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .25))
+}
+
+.wscur span {
+    background: var(--pri);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 8px;
+    margin-top: 18px;
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.wscur.fade {
+    opacity: 0
+}
+
+.wscur[hidden] {
+    display: none
+}
+
+.wsmini {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 4px 12px 4px 4px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .15);
+    font-size: 13px;
+    max-width: 80vw
+}
+
+.wsmini button {
+    border: 0;
+    background: var(--pri);
+    color: #fff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer
+}
+
+.wsmini span {
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+@media (min-width: 901px) {
+    .wsmini {
+        bottom: 18px
+    }
+}
+
+.wsmenu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0
+}
+
+/* Gemeinsame Leiste in Apps */
+.wcbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+    flex: 0 0 auto
+}
+
+.wcbar .btn.sm {
+    padding: 6px 12px
+}
+
+.wcbar .fi {
+    margin: 0
+}
+
+/* 💻 Code */
+.wcode {
+    display: flex;
+    flex-direction: column;
+    height: 100%
+}
+
+.wcfiles {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    flex: 1;
+    min-width: 0;
+    scrollbar-width: thin
+}
+
+.wcfiles button {
+    border: 0;
+    background: transparent;
+    color: var(--mut);
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    white-space: nowrap
+}
+
+.wcfiles button.on {
+    background: var(--pri-l);
+    color: var(--ink);
+    font-weight: 700
+}
+
+.wcmain {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column
+}
+
+.wced {
+    flex: 1.3;
+    min-height: 120px;
+    position: relative;
+    display: flex;
+    flex-direction: column
+}
+
+.wcload {
+    padding: 12px
+}
+
+.wcta {
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    border: 0;
+    resize: none;
+    padding: 10px;
+    font: 14px/1.5 ui-monospace, Consolas, monospace;
+    background: var(--card);
+    color: var(--ink);
+    tab-size: 2;
+    outline: none
+}
+
+.wcout {
+    flex: 1;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--line)
+}
+
+.wcohead {
+    display: flex;
+    align-items: center;
+    padding: 3px 8px;
+    font-size: 12px;
+    background: var(--bg)
+}
+
+.wcin textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 5px 10px;
+    font: 12.5px/1.4 ui-monospace, Consolas, monospace;
+    background: var(--card);
+    color: var(--ink);
+    resize: vertical
+}
+
+.wcobody {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column
+}
+
+.wcframe {
+    flex: 1.4;
+    width: 100%;
+    border: 0;
+    background: #fff;
+    min-height: 80px
+}
+
+.wcframe.tall {
+    flex: 1
+}
+
+.wcframe.hide {
+    display: none
+}
+
+.wcpre {
+    flex: 1;
+    margin: 0;
+    overflow: auto;
+    padding: 6px 10px;
+    font: 12.5px/1.45 ui-monospace, Consolas, monospace;
+    background: #1e1e2e;
+    color: #e6e6f0;
+    min-height: 50px;
+    white-space: pre-wrap;
+    word-break: break-word
+}
+
+.wcl.warn {
+    color: #ffd479
+}
+
+.wcframe:not(.hide)+.wcpre {
+    flex: .6
+}
+
+.wcl.error {
+    color: #ff8a9a
+}
+
+.wcl.info {
+    color: #9fb7ff
+}
+
+@container (min-width: 700px) {
+    .wcmain {
+        flex-direction: row
+    }
+
+    .wcout {
+        border-top: 0;
+        border-left: 1px solid var(--line)
+    }
+}
+
+/* 🌐 Web */
+.wweb,
+.wmus {
+    display: flex;
+    flex-direction: column;
+    height: 100%
+}
+
+.wwbar {
+    display: flex;
+    gap: 4px;
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--line);
+    align-items: center
+}
+
+.wwbar .fi {
+    flex: 1;
+    margin: 0;
+    min-width: 0;
+    padding: 7px 10px
+}
+
+.wwbody {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    position: relative
+}
+
+.wwframe {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    background: #fff
+}
+
+.wwhint {
+    position: absolute;
+    bottom: 4px;
+    right: 8px;
+    background: var(--card);
+    padding: 2px 8px;
+    border-radius: 8px;
+    opacity: .85;
+    pointer-events: none
+}
+
+.wwtiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+    padding: 8px
+}
+
+.wwtile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    text-align: left;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit
+}
+
+.wwtile span {
+    font-size: 22px
+}
+
+.wwtile small {
+    color: var(--mut);
+    font-size: 11.5px
+}
+
+.wwtile:hover {
+    border-color: var(--pri)
+}
+
+/* 🎵 Musik */
+.wmlist {
+    flex: 1;
+    min-height: 0;
+    overflow: auto
+}
+
+.wmrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--line)
+}
+
+.wmrow:hover,
+.wmrow.on {
+    background: var(--pri-l)
+}
+
+.wmsec {
+    margin: 10px 10px 4px;
+    font-weight: 700
+}
+
+.wmtag {
+    font-style: normal;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 0 5px;
+    border-radius: 6px;
+    background: var(--pri-l);
+    color: var(--pri)
+}
+
+#wmFav.on {
+    background: var(--pri-l)
+}
+
+.wmrow a.wstool {
+    text-decoration: none
+}
+
+.wmrow img,
+.wmbar img {
+    border-radius: 8px;
+    object-fit: cover;
+    flex: 0 0 auto
+}
+
+.wmrow>div {
+    flex: 1;
+    min-width: 0
+}
+
+.wmrow b,
+.wmrow small,
+.wmnow b,
+.wmnow small {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.wmrow small,
+.wmnow small {
+    color: var(--mut);
+    font-size: 12px
+}
+
+.wmart {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--pri-l);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto
+}
+
+.wmbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+    flex-wrap: wrap
+}
+
+.wmnow {
+    flex: 1;
+    min-width: 140px
+}
+
+.wmnow input[type=range] {
+    width: 100%;
+    margin: 4px 0 0
+}
+
+.wmctl {
+    display: flex;
+    align-items: center;
+    gap: 4px
+}
+
+.wmctl button {
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 18px;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%
+}
+
+.wmctl button.big {
+    background: var(--pri);
+    color: #fff
+}
+
+.wmctl input[type=range] {
+    width: 70px
+}
+
+.wmnote {
+    margin: 4px 10px 6px;
+    font-size: 11.5px
+}
+
+/* 📄 Text */
+.wtext {
+    display: flex;
+    flex-direction: column;
+    height: 100%
+}
+
+.wtpage {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: var(--bg);
+    padding: 12px
+}
+
+.wtname {
+    display: block;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto 6px;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-weight: 700;
+    color: var(--mut);
+    outline: none
+}
+
+.wted {
+    max-width: 760px;
+    min-height: 60%;
+    margin: 0 auto;
+    background: #fff;
+    color: #1b1b2b;
+    padding: 36px 42px;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+    outline: none;
+    line-height: 1.55;
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    font-size: 15px
+}
+
+.wted h1 {
+    font-size: 26px;
+    margin: 0 0 10px
+}
+
+.wted h2 {
+    font-size: 20px;
+    margin: 16px 0 8px
+}
+
+.wted code {
+    background: #eef;
+    padding: 1px 4px;
+    border-radius: 4px
+}
+
+@container (max-width: 520px) {
+    .wted {
+        padding: 18px 16px
+    }
+}
+
+.wtfoot {
+    padding: 3px 10px;
+    border-top: 1px solid var(--line)
+}
+
+/* 📊 Tabelle */
+.wsheet {
+    display: flex;
+    flex-direction: column;
+    height: 100%
+}
+
+.wscell {
+    min-width: 34px;
+    text-align: center;
+    font-size: 13px
+}
+
+.wsfx {
+    flex: 1;
+    min-width: 120px;
+    padding: 6px 10px;
+    font-family: ui-monospace, Consolas, monospace
+}
+
+.wsgrid {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    outline: none
+}
+
+.wsgrid table {
+    border-collapse: collapse;
+    font-size: 13px;
+    background: var(--card)
+}
+
+.wsgrid th {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    color: var(--mut);
+    font-weight: 600;
+    border: 1px solid var(--line);
+    padding: 2px 6px;
+    z-index: 1
+}
+
+.wsgrid tbody th {
+    left: 0;
+    position: sticky;
+    z-index: 1;
+    min-width: 30px
+}
+
+.wsgrid td {
+    border: 1px solid var(--line);
+    min-width: 84px;
+    max-width: 160px;
+    height: 24px;
+    padding: 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: cell;
+    color: var(--ink)
+}
+
+.wsgrid td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums
+}
+
+.wsgrid td.err {
+    color: var(--red)
+}
+
+.wsgrid td.sel {
+    outline: 2px solid var(--pri);
+    outline-offset: -2px;
+    background: var(--pri-l)
+}
+
+/* 🖼️ Folien */
+.wfol {
+    display: flex;
+    flex-direction: column;
+    height: 100%
+}
+
+.wfmain {
+    flex: 1;
+    min-height: 0;
+    display: flex
+}
+
+.wfthumbs {
+    width: 132px;
+    flex: 0 0 auto;
+    overflow: auto;
+    padding: 6px;
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+}
+
+.wfthumb {
+    position: relative;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+    font-size: 4px
+}
+
+.wfthumb.on {
+    border-color: var(--pri)
+}
+
+.wfthumb small {
+    position: absolute;
+    left: 3px;
+    top: 1px;
+    font-size: 9px;
+    color: var(--mut);
+    z-index: 1
+}
+
+.wfedit {
+    flex: 1;
+    min-width: 0;
+    overflow: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+.wfedit .fi,
+.wfedit .ta {
+    margin: 0
+}
+
+.wslide {
+    aspect-ratio: 16/9;
+    background: #fff;
+    color: #1b1b2b;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+    padding: 5% 6%;
+    overflow: hidden;
+    box-sizing: border-box;
+    border-top: .9em solid var(--sc)
+}
+
+.wslide h2 {
+    color: var(--sc);
+    margin: 0 0 .6em;
+    font-size: 2.2em;
+    line-height: 1.15
+}
+
+.wslide ul {
+    margin: 0;
+    padding-left: 1.2em
+}
+
+.wslide li {
+    font-size: 1.35em;
+    margin: .35em 0
+}
+
+.wfthumb .wslide {
+    font-size: 4px
+}
+
+#wfPrev {
+    font-size: clamp(6px, 1.4cqi, 13px)
+}
+
+.wfcols {
+    display: flex;
+    gap: 6px
+}
+
+.wfcol {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer
+}
+
+.wfcol.on {
+    border-color: var(--ink)
+}
+
+.wfshow {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    cursor: pointer
+}
+
+.wfshow .wslide {
+    width: min(100vw, 177.7vh);
+    font-size: min(2.2vw, 3.9vh);
+    border-radius: 0
+}
+
+.wfnr {
+    position: absolute;
+    bottom: 10px;
+    right: 16px;
+    color: #aaa
+}
+
+@container (max-width: 520px) {
+    .wfmain {
+        flex-direction: column
+    }
+
+    .wfthumbs {
+        width: auto;
+        flex-direction: row;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        overflow-x: auto
+    }
+
+    .wfthumb {
+        width: 96px;
+        flex: 0 0 auto
+    }
+}
+
+/* 🤖 KI */
+.wki {
+    display: flex;
+    flex-direction: column;
+    height: 100%
+}
+
+.wklog {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+}
+
+.wkm {
+    padding: 8px 11px;
+    border-radius: 12px;
+    max-width: 92%;
+    line-height: 1.45;
+    font-size: 14px;
+    word-break: break-word
+}
+
+.wkm.du {
+    align-self: flex-end;
+    background: var(--pri);
+    color: #fff
+}
+
+.wkm.ki {
+    align-self: flex-start;
+    background: var(--bg)
+}
+
+.wkm.tool {
+    align-self: flex-start;
+    font-size: 12px;
+    color: var(--mut);
+    padding: 2px 6px
+}
+
+.wkhello {
+    text-align: center;
+    padding: 10px
+}
+
+.wkideas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center
+}
+
+.wkform {
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    border-top: 1px solid var(--line);
+    align-items: flex-end
+}
+
+.wkform textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px;
+    font: inherit;
+    background: var(--card);
+    color: var(--ink);
+    min-width: 0
+}
+
+.wkext {
+    padding: 0 10px 6px
+}
+
+body.dark .wted,
+body.dark .wslide {
+    background: #fdfdff
+}
+
+body.dark .wcframe,
+body.dark .wwframe {
+    background: #fff
+}
+
+/* Handy: Fenster als Tabs, optional zwei übereinander */
+@media (max-width: 760px) {
+    body.wsview #app {
+        padding: 4px 4px 0
+    }
+
+    .ws {
+        height: calc(100dvh - 130px)
+    }
+
+    body.wsfull .ws {
+        height: 100dvh
+    }
+
+    .wsonlymob {
+        display: inline-flex
+    }
+
+    .wsdock {
+        min-width: 48px;
+        padding: 4px
+    }
+
+    .wstabs {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        padding: 0 0 6px
+    }
+
+    .wstabs:empty {
+        display: none
+    }
+
+    .wstabs button {
+        flex: 0 0 auto;
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 16px;
+        padding: 5px 6px 5px 10px;
+        font: inherit;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px
+    }
+
+    .wstabs button.on {
+        border-color: var(--pri);
+        background: var(--pri-l);
+        font-weight: 700
+    }
+
+    .wstabs button.on2 {
+        border-style: dashed;
+        border-color: var(--pri)
+    }
+
+    .wsx {
+        padding: 0 4px;
+        opacity: .6
+    }
+
+    .wswin {
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 10px
+    }
+
+    .wswin:not(.act):not(.act2) {
+        display: none
+    }
+
+    .wsdesk.split .wswin.act {
+        height: calc(var(--wsr, 50%) - 4px) !important
+    }
+
+    .wsdesk.split .wswin.act2 {
+        top: calc(var(--wsr, 50%) + 4px) !important;
+        height: calc(100% - var(--wsr, 50%) - 4px) !important
+    }
+
+    .wsdesk.split .wssbar {
+        display: block;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(var(--wsr, 50%) - 10px);
+        height: 20px;
+        z-index: 2000000000;
+        touch-action: none;
+        cursor: row-resize
+    }
+
+    .wsdesk.split .wssbar::after {
+        content: "";
+        display: block;
+        width: 56px;
+        height: 6px;
+        margin: 7px auto;
+        border-radius: 3px;
+        background: var(--pri);
+        opacity: .75
+    }
+
+    .wsdesk.wsdrag iframe {
+        pointer-events: none
+    }
+
+    .wsdesk:not(.split) .wswin.act2 {
+        display: none
+    }
+
+    .wshead {
+        cursor: default
+    }
+
+    .wsbtns button:not(:last-child),
+    .wsrs {
+        display: none
+    }
+}
+
+.wssbar {
+    display: none
+}

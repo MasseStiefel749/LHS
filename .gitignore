@@ -14,5 +14,7 @@ content/bridge-token.js
 .env.*
 supabase/.temp/
 node_modules/
+*.jks
+*.keystore
 __pycache__/
 *.wav

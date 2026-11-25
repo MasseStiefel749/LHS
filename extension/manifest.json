@@ -1,0 +1,59 @@
+{
+    "manifest_version": 3,
+    "name": "Lernhub Begleiter",
+    "version": "1.1.0",
+    "description": "Lernhub in der Seitenleiste – die Lernhub-KI kann (wenn du es erlaubst) Tabs öffnen, den aktiven Tab lesen, darauf zeigen, klicken und tippen.",
+    "minimum_chrome_version": "121",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "lernhub-begleiter@massestiefel749.github.io",
+            "strict_min_version": "128.0"
+        }
+    },
+    "icons": {
+        "128": "icon.png"
+    },
+    "action": {
+        "default_title": "Lernhub öffnen",
+        "default_icon": "icon.png"
+    },
+    "side_panel": {
+        "default_path": "panel.html"
+    },
+    "sidebar_action": {
+        "default_panel": "panel.html",
+        "default_title": "Lernhub",
+        "default_icon": "icon.png",
+        "open_at_install": false
+    },
+    "background": {
+        "service_worker": "background.js",
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "permissions": [
+        "sidePanel",
+        "scripting",
+        "storage",
+        "contextMenus"
+    ],
+    "optional_host_permissions": [
+        "https://*/*",
+        "http://*/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://massestiefel749.github.io/LHS/*",
+                "http://127.0.0.1/*",
+                "http://localhost/*"
+            ],
+            "js": [
+                "bridge.js"
+            ],
+            "all_frames": true,
+            "run_at": "document_start"
+        }
+    ]
+}

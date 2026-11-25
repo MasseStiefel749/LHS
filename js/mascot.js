@@ -930,8 +930,9 @@ function voiceList(lang) {
 function charVoice(c, lang) {
   const pool = voiceList(lang);
   if (!pool.length) return null;
-  if (c && c.voiceName) {
-    const v = pool.find((x) => x.name === c.voiceName);
+  const name = charVoiceCfg(c).sys || (c && c.voiceName);
+  if (name) {
+    const v = pool.find((x) => x.name === name);
     if (v) return v;
   }
   let pref = pool;
@@ -1030,9 +1031,7 @@ const EDGE_LANG = {
   tr: { f: "tr-TR-EmelNeural", m: "tr-TR-AhmetNeural" },
 };
 function ttsReady() {
-  return (
-    TTS_ON && S.agent && S.agent.connected && (typeof agentAllowed !== "function" || agentAllowed())
-  );
+  return TTS_ON && S.agent && S.agent.connected;
 }
 function edgeVoice(c, lang) {
   const L = String(lang || "de")
@@ -1047,6 +1046,7 @@ function edgeVoice(c, lang) {
   let voice;
   if (L === "de")
     voice =
+      charVoiceCfg(c).edge ||
       (c && c.tts) ||
       (base && base.tts) ||
       EDGE_DE[sex][((c && c.vIdx) || 0) % EDGE_DE[sex].length];
@@ -1236,7 +1236,7 @@ function sayAs(c, text, lang, onDone) {
     return;
   }
   if (onDone) TTS_WAITERS.push(onDone);
-  const eng = ttsEngine();
+  const eng = charVoiceCfg(c).engine || ttsEngine();
   if (eng === "fish") return void sayFish(c, text, lang || "de-DE");
   if (eng === "cbx" && cbxReady()) return void sayCbx(c, text, lang || "de-DE");
   if (eng !== "system" && ttsReady()) return void sayEdge(c, text, lang || "de-DE");
@@ -1249,12 +1249,7 @@ function ttsEngine() {
   return e === "system" || e === "cbx" || e === "fish" ? e : "edge";
 }
 function cbxReady() {
-  return (
-    CBX.ready &&
-    S.agent &&
-    S.agent.connected &&
-    (typeof agentAllowed !== "function" || agentAllowed())
-  );
+  return CBX.ready && S.agent && S.agent.connected;
 }
 /* Liefert true, wenn sich der Status geändert hat */
 async function cbxCheck(installed) {
@@ -1499,7 +1494,7 @@ async function sayFish(c, text, lang) {
   const seq = TTS_SEQ;
   loadOn("tts", `🐟 Fish-Speech-Stimme von ${c.name || "der Figur"} wird erzeugt …`, c.id, 300);
   const cloud = fishCloud(),
-    voiceId = cloud && S.profile.fishVoice;
+    voiceId = cloud && (charVoiceCfg(c).fish || S.profile.fishVoice);
   if (cloud && !window.LERNHUB_TOKEN && typeof loadToken === "function") await loadToken();
   const ref = voiceId ? null : await fishRef(c);
   if (seq !== TTS_SEQ) return;
@@ -1630,7 +1625,7 @@ function ttsCardHTML() {
     `<button class="choice ${eng === k ? "sel" : ""}" onclick="ttsPick('${k}')">${label} <span class="small mut">– ${desc}${ok ? "" : " (gerade nicht verfügbar)"}</span></button>`;
   const fishNote = fishCloud()
     ? FISH.ready
-      ? `✅ Fish-Audio-Cloud bereit (${esc(FISH_MODELS[fishModel()])}). ${S.profile.fishVoice ? "Alle Figuren sprechen mit der gewählten Stimme." : "Jede Figur bekommt ihre Edge-Stimme als Vorlage."} Der Text geht dabei an fish.audio.`
+      ? `✅ Fish-Audio-Cloud bereit (${esc(FISH_MODELS[fishModel()])}). ${S.profile.fishVoice ? "Alle Figuren ohne eigene Fish-Stimme sprechen mit der gewählten Stimme." : "Jede Figur bekommt ihre Edge-Stimme als Vorlage."} Der Text geht dabei an fish.audio.`
       : !on
         ? "Bridge nicht verbunden (🤖 Agent) – die Cloud läuft über die Bridge."
         : !FISH.bridge
@@ -1641,7 +1636,7 @@ function ttsCardHTML() {
       : `Nicht erreichbar unter ${esc(fishUrl())}. Fish Speech läuft nicht im Lernhub, du startest den Server selbst (z. B. per Docker-Image <code>fishaudio/fish-speech:server-cuda</code> auf Port 8080, Anleitung: speech.fish.audio). Braucht viel Leistung (Modell S2-Pro: ca. 24 GB Grafikspeicher, auf CPU sehr langsam). Lizenz: Fish Audio Community/Research License – nur privat bzw. nicht kommerziell.`;
   return `<div class="card" style="margin-top:14px">
       <b>🔊 Stimmen der Figuren (Sprachmodell)</b>
-      <p class="small mut">Ist das gewählte Modell nicht erreichbar, springt automatisch das nächste ein (KI-Modell → Edge → System).</p>
+      <p class="small mut">Ist das gewählte Modell nicht erreichbar, springt automatisch das nächste ein (KI-Modell → Edge → System). Jede Figur kann auch ihr eigenes Modell und ihre eigene Stimme bekommen: 🧸 Charaktere → 🎙️.</p>
       ${opt("system", "💻 System", "Browser-Stimme, offline, eher robotisch", true)}
       ${opt("edge", "☁️ Edge Neural", "natürliche Microsoft-Stimmen, braucht Internet + Bridge", TTS_ON && on)}
       ${opt("cbx", "🧠 Chatterbox (KI, lokal)", "sehr realistisch mit Gefühl, läuft auf deinem PC – nichts geht ins Internet", cbxReady())}
@@ -1964,6 +1959,118 @@ function chatSay(i) {
   if (m) sayAs(activeChar(), m.t, "de-DE");
 }
 
+/* ===================== Stimme pro Figur (Crew und eigene Charaktere) ===================== */
+const VOICE_ENGINES = {
+  system: "💻 System (Browser)",
+  edge: "☁️ Edge Neural",
+  cbx: "🧠 Chatterbox (KI, lokal)",
+  fish: "🐟 Fish Speech (KI)",
+};
+const EDGE_PICK = {
+  weiblich: EDGE_DE.f.concat("en-US-AvaMultilingualNeural"),
+  männlich: EDGE_DE.m.concat("en-US-AndrewMultilingualNeural"),
+};
+function charVoiceCfg(c) {
+  const all = S.profile && S.profile.voices;
+  return c && all && Object.prototype.hasOwnProperty.call(all, c.id) ? all[c.id] : {};
+}
+function edgeLabel(v) {
+  const m = String(v || "").match(/^[a-z]{2}-([A-Z]{2})-([A-Za-z]+?)(Multilingual)?Neural$/);
+  return m ? `${m[2]} (${m[1]}${m[3] ? ", mehrsprachig" : ""})` : v;
+}
+function voiceChar(id) {
+  if (typeof EC !== "undefined" && EC && EC.id === id) return EC;
+  return voiceAllChars().find((c) => c.id === id) || null;
+}
+function voiceSet(id, k, val) {
+  if (!/^[\w-]{1,40}$/.test(id) || /^(__proto__|constructor|prototype)$/.test(id)) return;
+  val = String(val || "").trim();
+  if (k === "engine") val = VOICE_ENGINES[val] ? val : "";
+  else if (k === "edge") val = Object.values(EDGE_PICK).flat().includes(val) ? val : "";
+  else if (k === "sys") val = val.slice(0, 100);
+  else if (k === "fish") {
+    const m = val.match(/[a-f0-9]{32}/i);
+    if (val && !m) toast("Keine Stimm-ID gefunden – kopiere den Link einer Stimme von fish.audio");
+    val = m ? m[0].toLowerCase() : "";
+  } else return;
+  const all = S.profile.voices || (S.profile.voices = {});
+  const o = Object.assign({}, all[id]);
+  if (val) o[k] = val;
+  else delete o[k];
+  if (Object.keys(o).length) all[id] = o;
+  else delete all[id];
+  // Die alte Browser-Stimme am Charakter würde sonst „Automatisch“ überstimmen
+  if (k === "sys" && typeof EC !== "undefined" && EC && EC.id === id) EC.voiceName = "";
+  save();
+}
+function voiceReset(id) {
+  if (S.profile.voices) delete S.profile.voices[id];
+  if (typeof EC !== "undefined" && EC && EC.id === id) EC.voiceName = "";
+  save();
+}
+function voiceTry(id) {
+  const c = voiceChar(id);
+  if (c) sayAs(c, `Hallo! Ich bin ${c.name || "dein Coach"}. So klinge ich.`, "de-DE");
+}
+/* re = was nach einer Änderung neu gezeichnet wird (Editor oder Crew-Fenster) */
+function voiceOptsHTML(c, re) {
+  const v = charVoiceCfg(c),
+    id = esc(c.id),
+    eng = v.engine || ttsEngine();
+  const set = (k) => `voiceSet('${id}','${k}',this.value);${re}`;
+  const base = castById(c.id);
+  const auto =
+    c.tts ||
+    (base && base.tts) ||
+    EDGE_DE[c.sex === "f" ? "f" : "m"][(c.vIdx || 0) % EDGE_DE.f.length];
+  let html = `<label class="fl">Sprachmodell</label>
+    <select class="fi" onchange="${set("engine")}">
+      <option value="">Wie in den Einstellungen (${esc(VOICE_ENGINES[ttsEngine()])})</option>
+      ${Object.keys(VOICE_ENGINES)
+        .map((k) => `<option value="${k}" ${v.engine === k ? "selected" : ""}>${esc(VOICE_ENGINES[k])}</option>`)
+        .join("")}
+    </select>`;
+  if (eng === "system") {
+    const sys = voiceList("de").concat(voiceList("en")),
+      cur = v.sys || c.voiceName || "";
+    html += `<label class="fl">Browser-Stimme</label>
+    <select class="fi" onchange="${set("sys")}"><option value="">Automatisch</option>
+      ${sys.map((x) => `<option value="${esc(x.name)}" ${cur === x.name ? "selected" : ""}>${esc(x.name)} (${esc(x.lang)})</option>`).join("")}
+    </select>
+    ${sys.length ? "" : '<p class="small mut">Keine Stimmen gefunden – dein Browser lädt sie evtl. noch. Fenster schließen und erneut öffnen.</p>'}`;
+  } else {
+    html += `<label class="fl">Stimme${eng === "edge" ? "" : " (Vorlage für die KI-Stimme)"}</label>
+    <select class="fi" onchange="${set("edge")}"><option value="">Automatisch – ${esc(edgeLabel(auto))}</option>
+      ${Object.keys(EDGE_PICK)
+        .map(
+          (g) =>
+            `<optgroup label="${g}">${EDGE_PICK[g].map((x) => `<option value="${x}" ${v.edge === x ? "selected" : ""}>${esc(edgeLabel(x))}</option>`).join("")}</optgroup>`,
+        )
+        .join("")}
+    </select>`;
+    if (eng === "fish" && fishCloud())
+      html += `<label class="fl">Fish-Audio-Stimme (optional: Link oder ID von fish.audio/m/…)</label>
+    <input class="fi" value="${esc(v.fish || "")}" placeholder="${S.profile.fishVoice ? "leer = Stimme aus den Einstellungen" : "leer = Edge-Stimme als Vorlage"}" onchange="${set("fish")}">`;
+    if (eng === "cbx") html += `<p class="small mut">Eine aufgenommene eigene Stimme (⚙️ Einstellungen → 🎙️) hat bei Chatterbox Vorrang.</p>`;
+  }
+  return (
+    html +
+    `<p class="small mut">Gilt nur für ${esc(c.name || "diese Figur")} und wird sofort gespeichert. Ist das Modell nicht erreichbar, springt die nächste Stimme ein.</p>
+    <div class="center"><button class="btn ghost sm" onclick="voiceTry('${id}')">🔊 Probehören</button>${
+      Object.keys(v).length
+        ? ` <button class="btn ghost sm" onclick="voiceReset('${id}');${re}">↺ Zurücksetzen</button>`
+        : ""
+    }</div>`
+  );
+}
+function voicePick(id) {
+  const c = voiceChar(id);
+  if (!c) return;
+  toastModal(`<h2 style="margin-top:0">🎙️ Stimme von ${esc(c.name)}</h2>
+    ${voiceOptsHTML(c, `voicePick('${esc(c.id)}')`)}
+    <div class="center" style="margin-top:12px"><button class="btn" onclick="closeModal();renderChars()">Fertig</button></div>`);
+}
+
 /* ===================== Crew-Auswahl (Charaktere) ===================== */
 function castHTML() {
   const act = (activeChar() || {}).id;
@@ -1973,7 +2080,7 @@ function castHTML() {
     (c) => `<div class="castcard ${act === c.id ? "on" : ""}" style="--cc:${c.color}">
     <div class="castface" onclick="castHello('${c.id}')">${faceSVG(c)}</div>
     <b>${esc(c.name)}</b><small class="mut">${esc(c.role)}</small>
-    <div class="castbtns"><button class="btn ghost sm" onclick="castHello('${c.id}')">🔊 Hallo</button><button class="btn sm ${act === c.id ? "g" : ""}" onclick="castPick('${c.id}')">${act === c.id ? "✓ Aktiv" : "Wählen"}</button></div></div>`,
+    <div class="castbtns"><button class="btn ghost sm" onclick="castHello('${c.id}')">🔊 Hallo</button><button class="btn ghost sm" title="Stimme wählen" aria-label="Stimme von ${esc(c.name)} wählen" onclick="voicePick('${c.id}')">🎙️${charVoiceCfg(c).engine || charVoiceCfg(c).edge || charVoiceCfg(c).fish || charVoiceCfg(c).sys ? "✓" : ""}</button><button class="btn sm ${act === c.id ? "g" : ""}" onclick="castPick('${c.id}')">${act === c.id ? "✓ Aktiv" : "Wählen"}</button></div></div>`,
   ).join("")}</div>
   <p class="small mut">🙏 ${esc(DUO_CREDIT)}</p>`;
 }
@@ -1993,7 +2100,6 @@ function castPick(id) {
 }
 /* Auswahl im Charakter-Editor: Gesicht + Stimme */
 function faceVoiceEditHTML(c) {
-  const vs = voiceList("de").concat(voiceList("en"));
   const sel = "border-color:var(--pri);background:var(--pri-l)",
     own = !c.face && c.look;
   const pick = (k, label) =>
@@ -2021,11 +2127,8 @@ function faceVoiceEditHTML(c) {
   </div>`
       : ""
   }
-  <label class="fl" style="display:block;margin-top:12px">Eigene Stimme</label>
-  <select class="fi" onchange="EC.voiceName=this.value">
-    <option value="">Automatisch</option>
-    ${vs.map((v) => `<option value="${esc(v.name)}" ${c.voiceName === v.name ? "selected" : ""}>${esc(v.name)} (${esc(v.lang)})</option>`).join("")}
-  </select>
+  <label class="fl" style="display:block;margin-top:12px">🎙️ Eigene Stimme</label>
+  ${voiceOptsHTML(c, "renderCharEdit()")}
   <div style="display:flex;gap:6px;margin-top:6px">
     ${[
       ["", "egal"],
@@ -2037,6 +2140,5 @@ function faceVoiceEditHTML(c) {
           `<button class="choice ${(c.sex || "") === k ? "sel" : ""}" style="flex:1" onclick="EC.sex='${k}';renderCharEdit()">${l}</button>`,
       )
       .join("")}
-  </div>
-  ${vs.length ? "" : '<p class="small mut">Keine Stimmen gefunden – dein Browser lädt sie evtl. noch. Fenster schließen und erneut öffnen.</p>'}`;
+  </div>`;
 }

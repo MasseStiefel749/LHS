@@ -1,0 +1,74 @@
+{
+    "name": "lernhub-desktop",
+    "productName": "Lernhub",
+    "version": "1.15.0",
+    "description": "Lernhub – Lernen wie im Spiel",
+    "homepage": "https://massestiefel749.github.io/LHS/",
+    "author": {
+        "name": "MasseStiefel749",
+        "email": "MasseStiefel749@users.noreply.github.com"
+    },
+    "license": "SEE LICENSE IN www/LICENSE",
+    "private": true,
+    "main": "main.js",
+    "scripts": {
+        "www": "node ../build-web.mjs desktop/www",
+        "start": "npm run www && electron .",
+        "dist": "npm run www && electron-builder --publish never"
+    },
+    "devDependencies": {
+        "electron": "^45.5.0",
+        "electron-builder": "^26.18.0"
+    },
+    "build": {
+        "appId": "io.github.massestiefel749.lernhub",
+        "productName": "Lernhub",
+        "files": [
+            "main.js",
+            "www/**/*"
+        ],
+        "directories": {
+            "output": "dist"
+        },
+        "win": {
+            "target": [
+                "nsis",
+                "portable"
+            ],
+            "icon": "www/icons/icon-512.png"
+        },
+        "nsis": {
+            "artifactName": "Lernhub-Windows-Setup.${ext}",
+            "oneClick": true,
+            "perMachine": false
+        },
+        "portable": {
+            "artifactName": "Lernhub-Windows-Portable.${ext}"
+        },
+        "mac": {
+            "target": [
+                {
+                    "target": "dmg",
+                    "arch": [
+                        "universal"
+                    ]
+                }
+            ],
+            "icon": "www/icons/icon-512.png",
+            "category": "public.app-category.education",
+            "identity": "-",
+            "hardenedRuntime": false,
+            "artifactName": "Lernhub-Mac.${ext}"
+        },
+        "linux": {
+            "target": [
+                "AppImage",
+                "deb"
+            ],
+            "icon": "www/icons/icon-512.png",
+            "category": "Education",
+            "maintainer": "MasseStiefel749 <MasseStiefel749@users.noreply.github.com>",
+            "artifactName": "Lernhub-Linux.${ext}"
+        }
+    }
+}

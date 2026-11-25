@@ -1,0 +1,19 @@
+{
+    "name": "lernhub-mobile",
+    "version": "1.15.0",
+    "private": true,
+    "description": "Lernhub als Android-App (Capacitor)",
+    "scripts": {
+        "www": "node ../build-web.mjs mobile/www",
+        "android": "npm run www && node prepare-android.mjs"
+    },
+    "dependencies": {
+        "@capacitor/android": "^8.6.2",
+        "@capacitor/core": "^8.6.2",
+        "@capacitor/filesystem": "^8.1.5",
+        "@capacitor/share": "^8.0.3"
+    },
+    "devDependencies": {
+        "@capacitor/cli": "^8.6.2"
+    }
+}

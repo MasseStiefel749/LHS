@@ -1,0 +1,11 @@
+{
+    "appId": "io.github.massestiefel749.lernhub",
+    "appName": "Lernhub",
+    "webDir": "www",
+    "server": {
+        "androidScheme": "https"
+    },
+    "android": {
+        "allowMixedContent": false
+    }
+}

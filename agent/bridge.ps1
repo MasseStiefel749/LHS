@@ -32,6 +32,9 @@ $QueueDir = Join-Path $ContentDir "auftraege"
 $StatusFile = Join-Path $ContentDir "status.json"
 $ExtFile = Join-Path $ContentDir "erweiterungen.js"
 $TokenFile = Join-Path $ContentDir "bridge-token.js"
+# Browser-Herkuenfte, die die Bridge nutzen duerfen: die Online-Version und der lokale Dev-Server (Ports 5500-5529).
+$OriginOk = '^(https://massestiefel749\.github\.io|app://lernhub|http://(127\.0\.0\.1|localhost):55[0-2]\d)$'
+$script:CorsOrigin = "*"
 New-Item -ItemType Directory -Force -Path $QueueDir | Out-Null
 
 # Port zuerst belegen: laeuft schon eine Bridge, darf deren Token nicht ueberschrieben werden.
@@ -163,6 +166,13 @@ function Send-Bytes($s, [byte[]]$head, [byte[]]$body) {
   if ($body -and $body.Length -gt 0) { $s.Write($body, 0, $body.Length) }
   $s.Flush()
 }
+function Get-CorsHead {
+  "Access-Control-Allow-Origin: $script:CorsOrigin`r`n" +
+  "Access-Control-Allow-Headers: Content-Type, X-Lernhub-Token, X-Fish-Key, X-Fish-Model, X-Ki-Key`r`n" +
+  "Access-Control-Allow-Methods: GET, POST, OPTIONS`r`n" +
+  "Access-Control-Allow-Private-Network: true`r`n" +
+  "Vary: Origin`r`n"
+}
 function Send-Json($s, $obj, [int]$code = 200) {
   $json = $obj | ConvertTo-Json -Depth 8 -Compress
   $body = if ($code -eq 204) { New-Object byte[] 0 } else { [System.Text.Encoding]::UTF8.GetBytes($json) }
@@ -170,20 +180,16 @@ function Send-Json($s, $obj, [int]$code = 200) {
   $headStr = "HTTP/1.1 $code $statusText`r`n" +
   "Content-Type: application/json; charset=utf-8`r`n" +
   "Content-Length: $($body.Length)`r`n" +
-  "Access-Control-Allow-Origin: *`r`n" +
-  "Access-Control-Allow-Headers: Content-Type, X-Lernhub-Token, X-Fish-Key, X-Fish-Model`r`n" +
-  "Access-Control-Allow-Methods: GET, POST, OPTIONS`r`n" +
+  (Get-CorsHead) +
   "Cache-Control: no-store`r`n" +
   "Connection: close`r`n`r`n"
   Send-Bytes $s ([System.Text.Encoding]::ASCII.GetBytes($headStr)) $body
 }
-function Send-Audio($s, [byte[]]$body) {
+function Send-Audio($s, [byte[]]$body, [string]$type = "audio/mpeg") {
   $headStr = "HTTP/1.1 200 OK`r`n" +
-  "Content-Type: audio/mpeg`r`n" +
+  "Content-Type: $type`r`n" +
   "Content-Length: $($body.Length)`r`n" +
-  "Access-Control-Allow-Origin: *`r`n" +
-  "Access-Control-Allow-Headers: Content-Type, X-Lernhub-Token, X-Fish-Key, X-Fish-Model`r`n" +
-  "Access-Control-Allow-Methods: GET, POST, OPTIONS`r`n" +
+  (Get-CorsHead) +
   "Cache-Control: no-store`r`n" +
   "Connection: close`r`n`r`n"
   Send-Bytes $s ([System.Text.Encoding]::ASCII.GetBytes($headStr)) $body
@@ -247,6 +253,7 @@ while ($true) {
   try {
     $stream = $client.GetStream()
     $stream.ReadTimeout = 5000
+    $script:CorsOrigin = "*"
     $raw = Read-Headers $stream
     if (-not $raw) { continue }
     $lines = $raw -split "`r`n"
@@ -262,8 +269,28 @@ while ($true) {
     if ($headers["host"] -notmatch '^(127\.0\.0\.1|localhost)(:\d+)?$') {
       Send-Json $stream ([pscustomobject]@{ ok = $false; error = "host" }) 403; continue
     }
+    # Fremde Webseiten (Origin gesetzt, aber nicht erlaubt) bekommen gar nichts; "null" = lokal geoeffnete Datei.
+    $origin = "$($headers['origin'])"
+    $fromApp = $origin -cmatch $OriginOk
+    if ($fromApp) { $script:CorsOrigin = $origin }
+    elseif ($origin -and $origin -ne "null") {
+      Send-Json $stream ([pscustomobject]@{ ok = $false; error = "origin" }) 403; continue
+    }
 
     if ($method -eq "OPTIONS") { Send-Json $stream ([pscustomobject]@{ ok = $true }) 204; continue }
+
+    # Online-Version holt sich den Token hier. Den Origin-Header kann eine Webseite nicht faelschen.
+    if ($method -eq "GET" -and $path -eq "/token") {
+      if (-not $fromApp) { Send-Json $stream ([pscustomobject]@{ ok = $false; error = "origin" }) 403; continue }
+      Send-Json $stream ([pscustomobject]@{ ok = $true; token = $Token }); continue
+    }
+    # Neue Inhalte des Agenten fuer die Online-Version (lokal laedt die App die Datei direkt)
+    if ($method -eq "GET" -and $path -eq "/erweiterungen.js") {
+      if ($headers["x-lernhub-token"] -ne $Token) { Send-Json $stream ([pscustomobject]@{ ok = $false; error = "token" }) 403; continue }
+      $js = ""
+      try { $js = [System.IO.File]::ReadAllText($ExtFile, [System.Text.Encoding]::UTF8) } catch {}
+      Send-Audio $stream ([System.Text.Encoding]::UTF8.GetBytes($js)) "text/javascript; charset=utf-8"; continue
+    }
 
     if ($method -eq "GET" -and $path -eq "/ping") {
       # opencode --version dauert; nur jede Minute neu pruefen, sonst laufen App-Pings in den Timeout
@@ -359,6 +386,32 @@ while ($true) {
         $code = 0
         try { $code = [int]$_.Exception.Response.StatusCode } catch {}
         Send-Json $stream ([pscustomobject]@{ ok = $false; error = "fish"; status = $code }) 502
+      }
+      continue
+    }
+    # NVIDIA erlaubt keine Browser-Anfragen (CORS) – die Bridge reicht sie mit dem Key des Nutzers durch.
+    if ($method -eq "POST" -and $path -eq "/nvidia") {
+      $len = 0
+      if ($headers.ContainsKey("content-length")) { [void][int]::TryParse($headers["content-length"], [ref]$len) }
+      if ($len -gt 200000) { Send-Json $stream ([pscustomobject]@{ ok = $false; error = "zu gross" }) 413; continue }
+      $bodyBytes = if ($len -gt 0) { Read-Exact $stream $len } else { New-Object byte[] 0 }
+      if ($headers["x-lernhub-token"] -ne $Token) {
+        Send-Json $stream ([pscustomobject]@{ ok = $false; error = "token" }) 403; continue
+      }
+      $nvKey = "$($headers['x-ki-key'])"
+      if ($len -le 0 -or $nvKey -cnotmatch '^nvapi-[A-Za-z0-9_-]{20,200}$') {
+        Send-Json $stream ([pscustomobject]@{ error = [pscustomobject]@{ message = "Das ist kein NVIDIA-Key (beginnt mit nvapi-)." } }) 400; continue
+      }
+      try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        $res = Invoke-WebRequest -Uri "https://integrate.api.nvidia.com/v1/chat/completions" -Method Post -UseBasicParsing -TimeoutSec 90 `
+          -Headers @{ Authorization = "Bearer $nvKey" } -ContentType "application/json" -Body $bodyBytes
+        Send-Audio $stream ($res.RawContentStream.ToArray()) "application/json; charset=utf-8"
+      }
+      catch {
+        $code = 0
+        try { $code = [int]$_.Exception.Response.StatusCode } catch {}
+        Send-Json $stream ([pscustomobject]@{ ok = $false; error = "nvidia"; status = $code }) 502
       }
       continue
     }

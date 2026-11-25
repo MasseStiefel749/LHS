@@ -26,9 +26,20 @@ function docScript(src, integrity) {
     s.src = src;
     s.integrity = integrity;
     s.crossOrigin = "anonymous";
-    s.onload = res;
-    s.onerror = () =>
+    /* Monacos AMD-„define“ (Arbeitsplatz) würde UMD-Bibliotheken wie pdf.js als Modul registrieren statt global */
+    const amd = !/monaco-editor/.test(src) && window.define && window.define.amd ? window.define : null;
+    if (amd) window.define = undefined;
+    const done = () => {
+      if (amd) window.define = amd;
+    };
+    s.onload = () => {
+      done();
+      res();
+    };
+    s.onerror = () => {
+      done();
       rej(new Error("Der Datei-Leser konnte nicht geladen werden – bist du online?"));
+    };
     document.head.appendChild(s);
   });
 }

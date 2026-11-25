@@ -1,0 +1,148 @@
+# Baut Lernhub als Programm für Windows, Mac, Linux und als Android-App (APK)
+# und hängt die Dateien an das GitHub-Release. Startet automatisch, sobald ein Release veröffentlicht wird.
+# Von Hand: Actions → „Apps bauen“ → Run workflow (optional mit Tag, z. B. v1.15, um ein vorhandenes Release zu ergänzen).
+name: Apps bauen
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release-Tag, an das die Apps angehängt werden (leer = nur als Artefakt)"
+        type: string
+        default: ""
+
+concurrency:
+  group: apps-${{ github.event.release.tag_name || inputs.tag || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
+
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG || github.ref }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Version aus dem Tag
+        if: env.TAG != ''
+        run: |
+          v="${TAG#v}"
+          if [[ "$v" =~ ^[0-9]+\.[0-9]+$ ]]; then v="$v.0"; fi
+          npm version "$v" --no-git-tag-version --allow-same-version
+
+      - run: npm install --no-audit --no-fund
+
+      - name: Bauen
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lernhub-${{ matrix.os }}
+          path: |
+            apps/desktop/dist/Lernhub-*
+            !apps/desktop/dist/*.blockmap
+
+      - name: An das Release hängen
+        if: env.TAG != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          files=()
+          for f in dist/Lernhub-*; do [[ "$f" == *.blockmap ]] || files+=("$f"); done
+          gh release upload "$TAG" "${files[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG || github.ref }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Version aus dem Tag
+        if: env.TAG != ''
+        run: |
+          v="${TAG#v}"
+          if [[ "$v" =~ ^[0-9]+\.[0-9]+$ ]]; then v="$v.0"; fi
+          npm version "$v" --no-git-tag-version --allow-same-version
+
+      - run: npm install --no-audit --no-fund
+
+      - name: Android-Projekt erzeugen
+        run: npm run android
+
+      # Mit eigenem Schlüssel (Secrets, siehe README) lassen sich Updates einfach drüberinstallieren.
+      # Ohne Schlüssel entsteht eine Test-APK – für ein Update muss die alte App vorher gelöscht werden.
+      - name: APK bauen
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cd android
+          chmod +x gradlew
+          if [ -n "$KS_B64" ]; then
+            ./gradlew assembleRelease --no-daemon
+            bt="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/lernhub.jks"
+            "$bt/zipalign" -p -f 4 app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/aligned.apk"
+            "$bt/apksigner" sign --ks "$RUNNER_TEMP/lernhub.jks" --ks-pass env:KS_PASS \
+              --ks-key-alias "$KS_ALIAS" --key-pass env:KEY_PASS \
+              --out ../Lernhub-Android.apk "$RUNNER_TEMP/aligned.apk"
+            rm -f "$RUNNER_TEMP/lernhub.jks"
+          else
+            echo "::warning::Kein ANDROID_KEYSTORE_BASE64-Secret – es wird eine Test-APK gebaut (Updates nur nach Deinstallieren)."
+            ./gradlew assembleDebug --no-daemon
+            cp app/build/outputs/apk/debug/app-debug.apk ../Lernhub-Android.apk
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lernhub-android
+          path: apps/mobile/Lernhub-Android.apk
+
+      - name: An das Release hängen
+        if: env.TAG != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" Lernhub-Android.apk --clobber --repo "$GITHUB_REPOSITORY"

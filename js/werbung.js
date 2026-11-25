@@ -12,7 +12,8 @@ function adsCfg() {
 function adsLoadPref() {
   try {
     const o = JSON.parse(localStorage.getItem(ADS_KEY) || "null");
-    if (o && typeof o === "object") ADS = { asked: !!o.asked, on: o.on === true, pers: o.pers === true };
+    if (o && typeof o === "object")
+      ADS = { asked: !!o.asked, on: o.on === true, pers: o.pers === true };
   } catch (e) {}
 }
 function adsStore() {

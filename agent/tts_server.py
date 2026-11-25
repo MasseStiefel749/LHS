@@ -138,6 +138,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Lernhub-Token")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        # Chrome erlaubt der Online-Version (https) den Zugriff auf 127.0.0.1 nur mit diesem Header
+        self.send_header("Access-Control-Allow-Private-Network", "true")
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         if body:

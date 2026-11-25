@@ -157,7 +157,7 @@ function hubAI() {
   return !kiOwn() && !!cloudCfg();
 }
 function aiReady() {
-  return kiOwn() || hubAI();
+  return kiChain().length > 0;
 }
 // Der Key darf nur verschlüsselt raus – http nur zum eigenen PC
 function kiEndpointOk(u) {
@@ -166,43 +166,137 @@ function kiEndpointOk(u) {
     /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//i.test(u)
   );
 }
-async function aiPost(body) {
-  if (kiOwn()) {
-    if (!kiEndpointOk(S.chat.endpoint))
-      return {
-        error: { message: "Der Endpunkt muss mit https:// beginnen (http nur für localhost)." },
-      };
-    const headers = { "Content-Type": "application/json" };
-    if (S.chat.apiKey) headers.Authorization = "Bearer " + S.chat.apiKey;
-    const r = await fetch(S.chat.endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(Object.assign({ model: S.chat.model || "gpt-4o-mini" }, body)),
-    });
-    let j = await r.json().catch(() => null);
-    if (Array.isArray(j)) j = j[0];
-    if (j && typeof j.error === "string") j.error = { message: j.error };
-    if (j && (r.ok || j.error)) return j;
-    return {
-      error: {
-        message:
-          r.status === 401 || r.status === 403
-            ? "Der API-Key wurde abgelehnt – prüfe ihn in den Einstellungen."
-            : "Deine KI antwortet nicht (HTTP " + r.status + ").",
-      },
-    };
+function kiName(id) {
+  if (id === "hub") return "Lernhub-KI";
+  const p = KI_PROVIDERS.find((x) => x.id === id);
+  return p ? p.name.replace(/\s*\(.*\)$/, "") : id;
+}
+/* Alle nutzbaren KIs in Reihenfolge: gewählte zuerst, dann gemerkte eigene Keys, dann die Lernhub-KI */
+function kiChain() {
+  const out = [];
+  if (kiOwn()) out.push({ id: kiProv().id, key: S.chat.apiKey, model: S.chat.model, endpoint: S.chat.endpoint });
+  const keys = S.chat.keys || {};
+  Object.keys(keys).forEach((id) => {
+    const k = keys[id] || {},
+      p = KI_PROVIDERS.find((x) => x.id === id);
+    if (!p || id === "hub" || out.some((c) => c.id === id)) return;
+    if (!k.key && id !== "ollama") return;
+    const endpoint = p.url || k.endpoint;
+    if (endpoint) out.push({ id, key: k.key || "", model: k.model || p.model || "", endpoint });
+  });
+  if (cloudCfg()) {
+    if (kiOwn()) out.push({ id: "hub" });
+    else out.unshift({ id: "hub" });
   }
+  return out;
+}
+/* Fällt eine KI aus, springt die nächste ein – opts.only testet nur die gewählte */
+async function aiPost(body, opts) {
+  const chain = kiChain();
+  const list = opts && opts.only ? chain.slice(0, 1) : chain;
+  if (!list.length) return { error: { message: "Keine KI eingerichtet – trag in den Einstellungen einen Key ein." } };
+  let first = null;
+  for (let i = 0; i < list.length; i++) {
+    let j;
+    try {
+      j = await aiPostWith(list[i], body);
+    } catch (e) {
+      j = { error: { message: kiName(list[i].id) + " ist nicht erreichbar." } };
+    }
+    if (j && j.choices) {
+      if (i) kiSwitched(list[0].id, list[i].id);
+      return j;
+    }
+    if (!first) first = j;
+  }
+  return first || { error: { message: "Keine KI hat geantwortet." } };
+}
+const KI_SWITCHED = {};
+function kiSwitched(from, to) {
+  if (KI_SWITCHED[from + to]) return;
+  KI_SWITCHED[from + to] = 1;
+  toast(`⚠️ ${kiName(from)} antwortet gerade nicht – ${kiName(to)} ist eingesprungen.`, 4000);
+}
+async function aiPostWith(c, body) {
+  if (c.id === "hub") return hubPost(body);
+  // NVIDIA erlaubt keine Browser-Anfragen (CORS): über die Bridge am PC oder die Function "ki"
+  if (c.id === "nvidia") {
+    if (S.agent && S.agent.connected && typeof BRIDGE === "string") {
+      const j = await nvidiaBridge(c, body).catch(() => null);
+      if (j) return j;
+    }
+    if (!cloudCfg())
+      return { error: { message: "NVIDIA geht nur über den Lernhub-Server oder die Bridge (opencode-verbinden.cmd) – beides ist gerade nicht da." } };
+    try {
+      return await hubPost(Object.assign({}, body, { relay: "nvidia", model: c.model }), { "X-Ki-Key": c.key });
+    } catch (e) {
+      return { error: { message: "NVIDIA ist gerade nicht erreichbar. Entweder ist der Lernhub-Server noch nicht aktualisiert (npx supabase functions deploy ki) – oder starte opencode-verbinden.cmd, dann läuft NVIDIA über deinen PC." } };
+    }
+  }
+  if (!kiEndpointOk(c.endpoint))
+    return { error: { message: "Der Endpunkt muss mit https:// beginnen (http nur für localhost)." } };
+  const headers = { "Content-Type": "application/json" };
+  if (c.key) headers.Authorization = "Bearer " + c.key;
+  const r = await fetch(c.endpoint, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(Object.assign({ model: c.model || "gpt-4o-mini" }, body)),
+  });
+  let j = await r.json().catch(() => null);
+  if (Array.isArray(j)) j = j[0];
+  if (j && typeof j.error === "string") j.error = { message: j.error };
+  if (j && (r.ok || j.error)) return j;
+  return {
+    error: {
+      message:
+        r.status === 401 || r.status === 403
+          ? `Der API-Key für ${kiName(c.id)} wurde abgelehnt – prüfe ihn in den Einstellungen.`
+          : `${kiName(c.id)} antwortet nicht (HTTP ${r.status}).`,
+    },
+  };
+}
+/* null = Bridge nicht nutzbar (dann versucht es aiPost über den Lernhub-Server) */
+async function nvidiaBridge(c, body) {
+  if (!window.LERNHUB_TOKEN) await loadToken();
+  const post = () =>
+    fetch(BRIDGE + "/nvidia", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Lernhub-Token": window.LERNHUB_TOKEN || "", "X-Ki-Key": c.key },
+      body: JSON.stringify(Object.assign({ model: c.model }, body)),
+    });
+  let r = await post();
+  if (r.status === 403 && (await loadToken())) r = await post();
+  if (r.status === 403 || r.status === 404) return null;
+  const j = await r.json().catch(() => null);
+  if (r.ok && j) return j;
+  const st = (j && j.status) || r.status;
+  const msg =
+    j && j.error && j.error.message
+      ? j.error.message
+      : st === 401 || st === 403
+        ? "Der NVIDIA-Key wurde abgelehnt – prüfe ihn in den Einstellungen."
+        : st === 404
+          ? `Das Modell „${c.model}“ gibt es bei NVIDIA nicht (mehr) – wähle ein anderes.`
+          : st === 429
+            ? "Dein NVIDIA-Limit ist erreicht – kurz warten."
+            : "NVIDIA-Fehler (HTTP " + st + ")";
+  return { error: { message: msg } };
+}
+async function hubPost(body, extra) {
   const cfg = cloudCfg();
   if (!cfg) throw new Error("Lernhub-KI ist nicht eingerichtet");
   let token = cfg.key;
   if (CLOUD) token = await cloudToken().catch(() => cfg.key);
   const r = await fetch(cfg.url + "/functions/v1/ki", {
     method: "POST",
-    headers: {
-      apikey: cfg.key,
-      Authorization: "Bearer " + token,
-      "Content-Type": "application/json",
-    },
+    headers: Object.assign(
+      {
+        apikey: cfg.key,
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json",
+      },
+      extra,
+    ),
     body: JSON.stringify(body),
   });
   const j = await r.json().catch(() => null);

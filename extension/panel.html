@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lernhub</title>
+    <link rel="stylesheet" href="panel.css">
+</head>
+
+<body>
+    <header>
+        <img src="icon.png" alt="" width="22" height="22">
+        <select id="src" aria-label="Lernhub-Quelle">
+            <option value="https://massestiefel749.github.io/LHS/">Lernhub</option>
+            <option value="http://127.0.0.1:5500/">Lokal :5500</option>
+            <option value="http://127.0.0.1:5501/">Lokal :5501</option>
+        </select>
+        <button id="perm" hidden title="Damit die KI den Tab neben Lernhub lesen und darauf zeigen kann">🔓 Tabs lesen
+            erlauben</button>
+        <label title="Die KI darf im Tab klicken und tippen (nie in Passwortfelder)"><input type="checkbox" id="klick">
+            KI darf klicken &amp; tippen</label>
+    </header>
+    <iframe id="lh" title="Lernhub" allow="microphone; clipboard-write; fullscreen; autoplay"></iframe>
+    <script src="panel.js"></script>
+</body>
+
+</html>

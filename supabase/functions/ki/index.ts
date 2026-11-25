@@ -1,12 +1,14 @@
 // Lernhub-KI: beantwortet Chat-Fragen über Groq – der Schlüssel bleibt auf dem Server.
 // Mit Konto: Limit ki_take(); ohne Konto (Gäste): Limit ki_take_guest() über einen täglich wechselnden IP-Hash.
 // Optional "tools" (OpenAI-Format, z. B. aufgaben_anlegen): der Browser führt die Tool-Aufrufe selbst aus.
+// relay "nvidia": NVIDIA erlaubt keine Browser-Anfragen (CORS) – die Function reicht sie mit dem Key des Nutzers
+// (Header X-Ki-Key) weiter, ohne Tageslimit und ohne den Key zu speichern oder zu loggen.
 // Secrets: GROQ_API_KEY (Pflicht), KI_MODEL (optional, Standard openai/gpt-oss-120b).
 // Deploy: supabase functions deploy ki   (oder Dashboard → Edge Functions → Via Editor, Name „ki“)
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-ki-key",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const MODEL = Deno.env.get("KI_MODEL") || "openai/gpt-oss-120b";
@@ -27,6 +29,43 @@ function cleanTools(x: unknown): Tool[] | null {
     out.push({ type: "function", function: { name: f.name, description: String(f.description ?? "").slice(0, 1500), parameters: f.parameters ?? {} } });
   }
   return out;
+}
+
+function answer(j: any, tools: Tool[]): Response {
+  const msg = j?.choices?.[0]?.message ?? {};
+  const content = typeof msg.content === "string" ? msg.content : "";
+  const names = tools.map((t) => t.function.name);
+  const calls = (Array.isArray(msg.tool_calls) ? msg.tool_calls : [])
+    .filter((c: any) => names.includes(c?.function?.name) && typeof c.function.arguments === "string" && c.function.arguments.length <= 40_000)
+    .slice(0, 1)
+    .map((c: any) => ({ id: String(c.id ?? "call"), type: "function", function: { name: c.function.name, arguments: c.function.arguments } }));
+  if (!content.trim() && !calls.length) return fail("Keine Antwort von der KI.", 502);
+  return json({ choices: [{ message: { role: "assistant", content, ...(calls.length ? { tool_calls: calls } : {}) } }] });
+}
+
+async function nvidia(req: Request, model: unknown, messages: unknown[], tools: Tool[], max: number): Promise<Response> {
+  const key = req.headers.get("x-ki-key") ?? "";
+  if (!/^nvapi-[A-Za-z0-9_-]{20,200}$/.test(key)) return fail("Das ist kein NVIDIA-Key (beginnt mit nvapi-).", 400);
+  if (typeof model !== "string" || !/^[a-z0-9][a-z0-9._\/-]{1,99}$/i.test(model)) return fail("Ungültiges Modell", 400);
+  let r: Response;
+  try {
+    r = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      method: "POST",
+      signal: AbortSignal.timeout(tools.length ? 90_000 : 45_000),
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, messages, max_tokens: max, ...(tools.length ? { tools, tool_choice: "auto" } : {}) }),
+    });
+  } catch {
+    return fail("NVIDIA ist gerade nicht erreichbar.", 502);
+  }
+  const j = await r.json().catch(() => null);
+  if (r.ok) return answer(j, tools);
+  console.error("nvidia", r.status);
+  if (r.status === 401 || r.status === 403) return fail("Der NVIDIA-Key wurde abgelehnt – prüfe ihn in den Einstellungen.", 401);
+  if (r.status === 404) return fail(`Das Modell „${model}“ gibt es bei NVIDIA nicht (mehr) – wähle ein anderes.`, 404);
+  if (r.status === 429) return fail("Dein NVIDIA-Limit ist erreicht – kurz warten.", 429);
+  const why = typeof j?.detail === "string" ? `: ${j.detail.slice(0, 120)}` : typeof j?.error?.message === "string" ? `: ${j.error.message.slice(0, 120)}` : "";
+  return fail(`NVIDIA-Fehler (HTTP ${r.status})${why}`, 502);
 }
 
 // Gäste: HMAC(IP|Tag) mit einem Server-Schlüssel – die IP selbst verlässt die Function nie
@@ -50,10 +89,8 @@ async function guestTake(req: Request): Promise<string> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   if (req.method !== "POST") return fail("Method not allowed", 405);
-  const key = Deno.env.get("GROQ_API_KEY");
-  if (!key) return fail("Die Lernhub-KI ist noch nicht eingerichtet.", 503);
 
-  let body: { messages?: unknown; max_tokens?: unknown; tools?: unknown };
+  let body: { messages?: unknown; max_tokens?: unknown; tools?: unknown; relay?: unknown; model?: unknown };
   try { body = await req.json(); } catch { return fail("Ungültige Anfrage", 400); }
   const msgs = Array.isArray(body.messages) ? body.messages : [];
   if (!msgs.length || msgs.length > 24) return fail("Ungültige Anfrage", 400);
@@ -69,6 +106,9 @@ Deno.serve(async (req) => {
   if (!tools) return fail("Ungültige Tools", 400);
   // Tool-Aufrufe (z. B. 14 Aufgaben als JSON) brauchen mehr Platz als Chat-Antworten
   const max = Math.min(Math.max(Number(body.max_tokens) || 400, 16), tools.length ? 4000 : 800);
+  if (body.relay === "nvidia") return nvidia(req, body.model, clean, tools, max);
+  const key = Deno.env.get("GROQ_API_KEY");
+  if (!key) return fail("Die Lernhub-KI ist noch nicht eingerichtet.", 503);
 
   // Prüft den Login (auth.uid()) und zählt die Anfrage fürs Tageslimit
   const take = await fetch(`${SUPA}/rest/v1/rpc/ki_take`, {
@@ -119,13 +159,5 @@ Deno.serve(async (req) => {
       ? fail("Die Lernhub-KI ist gerade ausgelastet – bitte gleich nochmal versuchen.", 429)
       : fail(`KI-Fehler (HTTP ${r.status})${why}`, 502);
   }
-  const msg = j?.choices?.[0]?.message ?? {};
-  const content = typeof msg.content === "string" ? msg.content : "";
-  const names = tools.map((t) => t.function.name);
-  const calls = (Array.isArray(msg.tool_calls) ? msg.tool_calls : [])
-    .filter((c: any) => names.includes(c?.function?.name) && typeof c.function.arguments === "string" && c.function.arguments.length <= 40_000)
-    .slice(0, 1)
-    .map((c: any) => ({ id: String(c.id ?? "call"), type: "function", function: { name: c.function.name, arguments: c.function.arguments } }));
-  if (!content.trim() && !calls.length) return fail("Keine Antwort von der KI.", 502);
-  return json({ choices: [{ message: { role: "assistant", content, ...(calls.length ? { tool_calls: calls } : {}) } }] });
+  return answer(j, tools);
 });

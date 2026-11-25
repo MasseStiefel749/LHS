@@ -401,6 +401,7 @@ function renderExplain() {
       <div class="quickbtns">
         ${locked ? `<button class="btn ghost sm" disabled>🔒 Lektion noch gesperrt</button>` : `<button class="btn g sm" data-s="${esc(sid)}" data-t="${esc(tp.id)}" onclick="startLesson(this.dataset.s,this.dataset.t)">▶️ Jetzt üben</button>`}
         <button class="btn ghost sm" data-s="${esc(sid)}" data-t="${esc(tp.id)}" onclick="suggestVideo(this.dataset.s,this.dataset.t)">🎥 Videos dazu</button>
+        <button class="btn ghost sm" data-s="${esc(sid)}" data-t="${esc(tp.id)}" onclick="wsLearn(this.dataset.s,this.dataset.t)" title="Code/Text + KI nebeneinander">🧑‍💻 Im Arbeitsplatz üben</button>
         <button class="btn ghost sm" onclick="exToNote()">📝 Als Notiz speichern</button>
       </div>
     </div>

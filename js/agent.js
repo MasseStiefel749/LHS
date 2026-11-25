@@ -56,6 +56,25 @@ const KI_PROVIDERS = [
     ph: "sk-…",
   },
   {
+    id: "nvidia",
+    name: "NVIDIA (build.nvidia.com)",
+    note: "kostenloser Key mit NVIDIA-Konto · läuft über den Lernhub-Server oder die Bridge auf deinem PC, weil NVIDIA keine direkten Browser-Anfragen erlaubt",
+    url: "https://integrate.api.nvidia.com/v1/chat/completions",
+    model: "mistralai/mistral-large-4-1t-a52b",
+    key: "https://build.nvidia.com/settings/api-keys",
+    ph: "nvapi-…",
+    relay: true,
+    models: [
+      "mistralai/mistral-large-4-1t-a52b",
+      "moonshotai/kimi-k3.1-pro",
+      "nvidia/nemotron-3-ultra-550b-a55b",
+      "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "z-ai/glm-5.3-flash",
+      "minimaxai/minimax-m3.1-flash",
+      "google/gemma-3-12b-it",
+    ],
+  },
+  {
     id: "ollama",
     name: "Ollama (auf deinem PC, ohne Key)",
     note: "läuft offline auf deinem Rechner",
@@ -78,15 +97,27 @@ function kiProv() {
       : KI_PROVIDERS[0])
   );
 }
+/* Key/Modell des aktuellen Anbieters merken – so bleiben alle eingerichteten KIs als Ersatz verfügbar */
+function kiStash() {
+  const cur = kiProv().id;
+  if (cur === "hub") return;
+  if (!S.chat.keys) S.chat.keys = {};
+  if (S.chat.apiKey || cur === "ollama")
+    S.chat.keys[cur] = { key: S.chat.apiKey, model: S.chat.model, endpoint: S.chat.endpoint };
+  else delete S.chat.keys[cur];
+}
 function kiSetProvider(id) {
   const p = KI_PROVIDERS.find((x) => x.id === id);
   if (!p) return;
+  kiStash();
+  const k = (S.chat.keys || {})[id];
   S.chat.provider = id;
-  if (p.url) {
-    S.chat.endpoint = p.url;
-    S.chat.model = p.model;
+  S.chat.apiKey = (k && k.key) || "";
+  if (id !== "hub") {
+    S.chat.endpoint = p.url || (k && k.endpoint) || "";
+    S.chat.model = (k && k.model) || p.model || "";
   }
-  KI_MODELS = [];
+  KI_MODELS = p.models ? [...p.models] : [];
   save();
   render();
 }
@@ -105,6 +136,7 @@ function kiStatPaint() {
 }
 function kiSetKey(v) {
   S.chat.apiKey = String(v || "").trim().slice(0, 300);
+  kiStash();
   save();
   kiStatPaint();
 }
@@ -115,10 +147,12 @@ function kiSetField(k, v) {
     return render();
   }
   S.chat[k] = v;
+  kiStash();
   save();
   kiStatPaint();
 }
 function kiOff() {
+  if (S.chat.keys) delete S.chat.keys[kiProv().id];
   S.chat.apiKey = "";
   S.chat.provider = "hub";
   save();
@@ -148,36 +182,38 @@ function kiKeyFormHTML() {
   if (p.id === "custom")
     html += `<label class="fl">Endpunkt (URL)</label><input class="fi" value="${esc(S.chat.endpoint)}" placeholder="https://…/v1/chat/completions" onchange="kiSetField('endpoint',this.value)">`;
   html += `<label class="fl">Modell</label><input class="fi" list="kiModels" value="${esc(S.chat.model)}" onchange="kiSetField('model',this.value)">
-    <datalist id="kiModels">${KI_MODELS.map((m) => `<option value="${esc(m)}">`).join("")}</datalist>
+    <datalist id="kiModels">${(KI_MODELS.length ? KI_MODELS : p.models || []).map((m) => `<option value="${esc(m)}">`).join("")}</datalist>
     <div class="center" style="margin-top:10px"><button class="btn sm" onclick="kiTest()">Verbindung testen</button>
     <button class="btn ghost sm" onclick="kiOff()">Key löschen &amp; Lernhub-KI nutzen</button></div>`;
   return html;
 }
 function kiCardHTML() {
+  const chain = kiChain();
+  const backup = chain.length > 1
+    ? `<p class="small mut">🛡️ Fällt eine KI aus, springt automatisch die nächste ein: ${chain.map((c) => esc(kiName(c.id))).join(" → ")}</p>`
+    : `<p class="small mut">🛡️ Tipp: Richte zwei Anbieter ein (oben wechseln, Key eintragen) – fällt einer aus, springt der andere automatisch ein.</p>`;
   return `<div class="card" style="margin-top:14px">
     <b>🔑 Welche KI arbeitet?</b>
     <p id="kiStat" style="margin:6px 0 2px">${kiStatusText()}</p>
     ${kiKeyFormHTML()}
-    <p class="small mut">Jeder kann seinen eigenen Key nutzen. Er bleibt nur in diesem Browser, kommt nie in die Cloud oder ins Backup und geht direkt an den gewählten Anbieter.</p></div>`;
+    ${backup}
+    <p class="small mut">Jeder kann seinen eigenen Key nutzen. Er bleibt nur in diesem Browser, kommt nie in die Cloud oder ins Backup und geht direkt an den gewählten Anbieter (NVIDIA: über den Lernhub-Server bzw. die Bridge auf deinem PC weitergereicht, nirgends gespeichert).</p></div>`;
 }
 async function kiTest() {
   if (!aiReady()) return toast("Erst einen Key eintragen");
   toast("⏳ Teste die Verbindung …", 15000);
-  let j;
-  try {
-    j = await aiPost({ messages: [{ role: "user", content: "Sag nur: ok" }], max_tokens: 40 });
-  } catch (e) {
+  const j = await aiPost({ messages: [{ role: "user", content: "Sag nur: ok" }], max_tokens: 40 }, { only: true });
+  if (!j || !j.choices)
     return toast(
-      "Nicht erreichbar: " + e.message + (kiProv().nokey ? " – läuft Ollama?" : ""),
-      5000,
+      "Fehler: " + String((j && j.error && j.error.message) || "Antwort unbekannt").slice(0, 200) + (kiProv().nokey ? " – läuft Ollama?" : ""),
+      6000,
     );
-  }
-  if (!j.choices) return toast("Fehler: " + String((j.error && j.error.message) || "Antwort unbekannt").slice(0, 200), 6000);
   toast(hubAI() ? "Lernhub-KI funktioniert ✓" : "Deine KI funktioniert ✓");
   if (kiOwn()) kiLoadModels();
 }
 /* Modellnamen ändern sich oft – deshalb die Liste direkt beim Anbieter holen */
 async function kiLoadModels() {
+  if (kiProv().relay) return;
   const u = S.chat.endpoint.replace(/\/chat\/completions\/?$/, "/models");
   if (u === S.chat.endpoint || !kiEndpointOk(u)) return;
   try {

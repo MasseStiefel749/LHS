@@ -45,6 +45,7 @@ function syncReset() {
 function stateForSync(st) {
   const c = JSON.parse(JSON.stringify(st));
   c.chat.apiKey = "";
+  c.chat.keys = {};
   c.chat.fishKey = "";
   c.chat.provider = "";
   c.untis.url = "";
@@ -73,6 +74,7 @@ function stateHash(c) {
 function stateApply(data, at) {
   const clean = sanitizeState(data);
   clean.chat.apiKey = S.chat.apiKey;
+  clean.chat.keys = S.chat.keys || {};
   clean.chat.fishKey = S.chat.fishKey || "";
   clean.chat.provider = S.chat.provider || "";
   clean.chat.endpoint = S.chat.endpoint;

@@ -17,6 +17,23 @@ wenn der ausgeht.
 
 ### 1. Herunterladen & starten (ohne Installation)
 
+**Am einfachsten:** 🌐 [online öffnen](https://massestiefel749.github.io/LHS/) – läuft auf jedem Gerät im Browser.
+Oder als App herunterladen (läuft dann **auch ohne Internet**, mit Internet geht alles wie online):
+
+| Gerät          | Download                                                                                                                                                                                           |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🪟 Windows     | [Installer](https://github.com/MasseStiefel749/LHS/releases/latest/download/Lernhub-Windows-Setup.exe) · [ohne Installation](https://github.com/MasseStiefel749/LHS/releases/latest/download/Lernhub-Windows-Portable.exe) |
+| 🍎 Mac         | [Lernhub-Mac.dmg](https://github.com/MasseStiefel749/LHS/releases/latest/download/Lernhub-Mac.dmg) (Intel + Apple Silicon)                                                                          |
+| 🐧 Linux       | [AppImage](https://github.com/MasseStiefel749/LHS/releases/latest/download/Lernhub-Linux.AppImage) · [.deb](https://github.com/MasseStiefel749/LHS/releases/latest/download/Lernhub-Linux.deb)       |
+| 🤖 Android     | [Lernhub-Android.apk](https://github.com/MasseStiefel749/LHS/releases/latest/download/Lernhub-Android.apk) (Installation aus unbekannten Quellen erlauben)                                           |
+| 📱 iPhone/iPad | Online-Seite in Safari öffnen → Teilen □↑ → „Zum Home-Bildschirm“ (läuft danach auch offline)                                                                                                      |
+
+> Die Apps sind nicht kostenpflichtig signiert. **Windows:** „Weitere Informationen“ →
+> „Trotzdem ausführen“. **Mac:** Rechtsklick auf Lernhub → „Öffnen“ (oder Systemeinstellungen →
+> Datenschutz & Sicherheit → „Trotzdem öffnen“).
+
+**Oder als Ordner (für den OpenCode-Agent):**
+
 1. **[⬇️ Lernhub als ZIP herunterladen](https://github.com/MasseStiefel749/LHS/archive/refs/heads/main.zip)**
    (oder oben auf GitHub: grüner Knopf **Code → Download ZIP**).
 2. ZIP **entpacken** (Rechtsklick → „Alle extrahieren“) – nicht direkt aus der ZIP heraus öffnen.
@@ -58,7 +75,18 @@ wenn der ausgeht.
 | 🍅 **Fokus-Timer**    | Pomodoro: konzentriert lernen, dann Pause                                                |
 | 🗣️ **Sprachen**       | Aussprache üben, Telefon-Dialoge mit Figuren                                             |
 | 🧸 **Charaktere**     | Eigene Lernbegleiter (Bild, Stimme, Persönlichkeit)                                      |
+| 🧑‍💻 **Arbeitsplatz** | Fenster frei schieben: Code (VS-Code-Editor, 20+ Sprachen), Text (.docx), Tabelle (.xlsx), Folien (.pptx), Musik, Web-IDEs – die KI bedient alles mit eigenem Mauszeiger |
 | ⚙️ **Einstellungen**  | Design hell/dunkel, Akku an/aus, Stimmen, Backup                                         |
+
+**Arbeitsplatz-Details:** ▶ Ausführen läuft für HTML/CSS/JS und Python direkt im Browser, Java, C, C++, C#, Go, Rust, PHP, Ruby,
+TypeScript, SQL, Bash, Lua, Swift, Scala, Haskell, Perl, R und Julia über den freien Online-Compiler [Wandbox](https://wandbox.org)
+(der Code wird dafür dorthin geschickt), Kotlin im eingebetteten OneCompiler. Eingaben für `input()`/`Scanner` unter ⌨️.
+Weitere IDEs (JDoodle, JupyterLite, Wokwi, Python Tutor, StackBlitz) laufen als Fenster; vscode.dev, Eclipse Theia, Codespaces,
+Replit und Colab erlauben kein Einbetten und öffnen im neuen Tab. Musik: ganze Songs von Audius, CC-/gemeinfreie Musik vom
+Internet Archive (downloadbar) und eine 30-s-Vorschau jedes Chart-Songs (Apple) mit Link zu Spotify – Chart-Songs komplett
+herunterzuladen wäre illegal. Am Handy: Tabs oder geteilter Bildschirm mit verschiebbarer Trennlinie.
+Die Erweiterung **Lernhub Begleiter** (Chrome, Edge, Brave, Opera, Firefox) holt Lernhub in die Seitenleiste – die KI kann dann Tabs öffnen,
+lesen und (wenn erlaubt) klicken und tippen. Installation: im Arbeitsplatz unter 🤖 KI → 🧩.
 
 Auf dem Handy liegen die Bereiche unten in der Leiste, der Rest unter **☰ Mehr**.
 Unten links in der Seitenleiste steht dein Konto-Name (ohne Anmeldung „Gast“) –
@@ -109,6 +137,11 @@ Alles hier ist **freiwillig** – die App funktioniert auch komplett ohne.
 
 Ohne Agent beantworten die Figuren in der 🎭 Lernrunde trotzdem – dann offline aus
 den Lerndaten. Ohne Chatterbox nutzt die App die normalen Browser-Stimmen.
+
+**Stimme pro Figur:** 🧸 Charaktere → 🎙️ bei einer Crew-Figur (oder im Editor eines
+eigenen Charakters): eigenes Sprachmodell (System, Edge, Chatterbox, Fish Speech),
+eigene Edge-Stimme (auch Vorlage für Chatterbox/Fish) und optional eine eigene
+Fish-Audio-Stimme. Gespeichert in `S.profile.voices[id]`; leer = Einstellung von ⚙️.
 
 ### 7. Probleme?
 
@@ -200,10 +233,12 @@ eigenen Browser-Speicher – Fortschritt aus der `file://`-Version per
   bei **≥2 Fehlversuchen** oder „🙋 Ich geb's auf".
 - **Mit eigenem API-Key (optional):** unter 🤖 Agent oder ⚙️ Einstellungen einen
   Anbieter wählen – Google Gemini, Groq, OpenRouter, OpenAI, Mistral, DeepSeek,
-  Ollama (lokal, ohne Key) oder ein eigener OpenAI-kompatibler Endpunkt. Endpunkt
+  NVIDIA, Ollama (lokal, ohne Key) oder ein eigener OpenAI-kompatibler Endpunkt. Endpunkt
   und Modell werden automatisch gesetzt, „Verbindung testen“ lädt die Modellliste.
   Der Key bleibt nur in diesem Browser (nie Cloud, nie Backup) und geht nur per
-  https (bzw. http an localhost) direkt an den Anbieter.
+  https (bzw. http an localhost) direkt an den Anbieter. Ausnahme NVIDIA: Die API
+  erlaubt keine Browser-Anfragen (CORS), deshalb reicht die Edge Function `ki` die
+  Anfrage mit dem Key (Header `X-Ki-Key`) weiter – ohne Tageslimit, ohne Speichern.
 - **Lernhub-KI (ohne eigenen Key, für alle):** Chat, ✨ Tipps, „Frag mich was“
   und Lernrunden laufen im Browser über die Edge Function `ki` (Groq). Der
   Groq-Schlüssel liegt nur als Supabase-Secret auf dem Server, nie im Browser.
@@ -290,9 +325,12 @@ App → „Neue Inhalte laden" → neue Themen/Übungen erscheinen
 - **Installationserkennung:** `opencodeopencode-ai`, Windows-Support).
 - **Sicherheit:** Die Bridge erzeugt bei jedem Start ein geheimes Token
   (`content/bridge-token.js`, nicht in Git) – ohne Token wird kein Auftrag angenommen,
-  fremde Webseiten können also keine Jobs einreihen. Die App spricht die Bridge nur an,
-  wenn sie lokal (`file://`/localhost) läuft, nie von einer veröffentlichten Seite aus und
-  installiert es bei Bedarf über npm (`@opencode/cli`, Windows-Support).
+  fremde Webseiten können also keine Jobs einreihen. Die Bridge beantwortet Browser-Anfragen
+  nur von erlaubten Herkünften (`https://massestiefel749.github.io`, `app://lernhub` (Desktop-App), `http://127.0.0.1:55xx`,
+  `http://localhost:55xx`, lokale Datei). Läuft Lernhub online, holt es Token (`/token`) und
+  neue Inhalte (`/erweiterungen.js`) direkt von der Bridge – alles bleibt auf `127.0.0.1`,
+  nichts geht ins Internet. Chrome fragt beim ersten Mal nach „Zugriff auf Geräte im lokalen
+  Netzwerk“ → **Zulassen**. (Safari blockiert `http://127.0.0.1` von https-Seiten.)
 - **Verbindungs-Prompt** steht im 🤖-Panel zum Kopieren (für den manuellen
   Weg: `opencode` im Projektordner starten, Prompt einfügen).
 - **🔓 Vollzugriff (optional, Standard aus):** Beim Start fragt `opencode-verbinden.cmd`
@@ -523,6 +561,43 @@ Der Server schickt ab der Startzeit eine Erinnerung (stündlich, ab 18 Uhr alle 
 ab 20 Uhr alle 15 Min.), solange das Tagesziel laut letzter Synchronisierung offen ist.
 iPhone: nur bei installierter App (iOS 16.4+). Push-Adressen werden nur für die
 bekannten Push-Dienste (Google, Mozilla, Apple, Microsoft) akzeptiert.
+
+### 💻 Apps für Windows, Mac, Linux & Android
+
+Alle Versionen sind **dieselbe Web-App** – es ist egal, welche man nutzt:
+
+- **Online (Browser):** nichts installieren; nach dem ersten Öffnen dank `sw.js` auch offline.
+- **Desktop (`apps/desktop`, Electron):** die Dateien liegen im Programm, Start ohne Internet.
+  Feste Herkunft `app://lernhub` → der Lernstand bleibt gespeichert. Die OpenCode-Bridge
+  erlaubt diese Herkunft, Agent und Erweiterungen funktionieren also auch hier.
+- **Android (`apps/mobile`, Capacitor):** Dateien in der APK; Downloads (Backup, Notizen …)
+  gehen über „Teilen“ (`js/native.js`).
+- **iPhone:** Apple erlaubt Apps nur über den App Store (Developer-Konto + Mac nötig) –
+  daher die installierbare Web-App.
+
+Mit Internet gehen überall Konto, Sync, Bestenliste, Chat und Cloud-KIs. **KI ohne Internet:**
+[Ollama](https://ollama.com) installieren, unter 🤖 KI „Ollama“ wählen. Die KIs hängen nicht
+voneinander ab: Fällt eine aus, nimmt Lernhub automatisch die nächste eingerichtete
+(eigene Keys je Anbieter → Lernhub-KI).
+
+**Bauen:** Beim Veröffentlichen eines GitHub-Releases baut `.github/workflows/apps.yml`
+alle Apps und hängt sie an das Release (manuell: Actions → „Apps bauen“, optional mit Tag).
+Lokal: `cd apps/desktop && npm install && npm start` (Test) bzw. `npm run dist`;
+Android: `cd apps/mobile && npm install && npm run android`, dann `android/` in Android Studio.
+
+**Android-Signatur (einmalig, empfohlen):** Ohne eigenen Schlüssel baut die CI eine
+Test-APK – für Updates muss die alte App dann erst gelöscht werden. Mit Schlüssel:
+
+```
+keytool -genkeypair -v -keystore lernhub.jks -alias lernhub -keyalg RSA -keysize 2048 -validity 10000
+gh secret set ANDROID_KEYSTORE_BASE64 --body "$([Convert]::ToBase64String([IO.File]::ReadAllBytes('lernhub.jks')))"
+gh secret set ANDROID_KEYSTORE_PASSWORD
+gh secret set ANDROID_KEY_ALIAS --body lernhub
+gh secret set ANDROID_KEY_PASSWORD
+```
+
+`lernhub.jks` gut aufheben und **nie** committen – ohne ihn lassen sich keine Updates mehr
+über die installierte App spielen.
 
 ### 🐧 Pingulin & die Crew
 

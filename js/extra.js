@@ -603,11 +603,18 @@ window.addEventListener("appinstalled", () => {
   PWA_EVT = null;
   toast("📲 Lernhub ist installiert ✓");
 });
+// "android" / "desktop" in den heruntergeladenen Apps, sonst "" (Browser)
+function lhApp() {
+  const cap = window.Capacitor;
+  if (cap && cap.isNativePlatform && cap.isNativePlatform()) return "android";
+  return location.protocol === "app:" ? "desktop" : "";
+}
 function pwaInstalled() {
-  return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  return !!lhApp() || matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 }
 function pwaCanSW() {
   return (
+    !lhApp() &&
     "serviceWorker" in navigator &&
     (location.protocol === "https:" ||
       location.hostname === "localhost" ||
@@ -615,7 +622,7 @@ function pwaCanSW() {
   );
 }
 function pwaRegister() {
-  if (location.protocol === "file:") return;
+  if (location.protocol === "file:" || lhApp()) return;
   const l = document.createElement("link");
   l.rel = "manifest";
   l.href = "manifest.webmanifest";
@@ -636,7 +643,28 @@ async function pwaInstall() {
     <p><b>Android (Chrome):</b> Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.</p>
     <p><b>iPhone/iPad (Safari):</b> Teilen-Symbol □↑ → „Zum Home-Bildschirm“. Push-Erinnerungen gehen auf dem iPhone nur so (ab iOS 16.4).</p>
     <p><b>PC (Chrome/Edge):</b> In der Adressleiste rechts auf das Installieren-Symbol ⊕ klicken.</p>
+    ${appDownloadsHTML()}
     <button class="btn" onclick="closeModal()">Alles klar</button>`);
+}
+const APP_DL = "https://github.com/MasseStiefel749/LHS/releases/latest/download/";
+function appDownloads() {
+  toastModal(appDownloadsHTML() + '<button class="btn" onclick="closeModal()">Alles klar</button>');
+}
+function appDownloadsHTML() {
+  const a = (file, label) =>
+    `<a class="btn ghost sm" href="${APP_DL + file}" target="_blank" rel="noopener">${label}</a>`;
+  return `<h3>⬇️ Lernhub herunterladen (geht auch ohne Internet)</h3>
+    <p class="small mut">Die heruntergeladene App ist dieselbe wie die Web-Version: Lernen, Spiele, Notizen und Arbeitsplatz laufen offline. Mit Internet gehen zusätzlich Konto, Bestenliste, Chat und die Cloud-KIs. Offline-KI: <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> installieren und unter 🤖 KI „Ollama“ wählen.</p>
+    <div class="quickbtns">
+      ${a("Lernhub-Windows-Setup.exe", "🪟 Windows (Installer)")}
+      ${a("Lernhub-Windows-Portable.exe", "🪟 Windows (ohne Installation)")}
+      ${a("Lernhub-Mac.dmg", "🍎 Mac")}
+      ${a("Lernhub-Linux.AppImage", "🐧 Linux (AppImage)")}
+      ${a("Lernhub-Linux.deb", "🐧 Linux (.deb)")}
+      ${a("Lernhub-Android.apk", "🤖 Android (APK)")}
+    </div>
+    <p class="small mut">📱 <b>iPhone/iPad:</b> Apple erlaubt Apps nur über den App Store – nutze dort „Zum Home-Bildschirm“ (siehe oben). Das läuft nach dem ersten Öffnen auch offline.</p>
+    <p class="small mut">⚠️ Die Apps sind (noch) nicht kostenpflichtig signiert: <b>Windows</b> → „Weitere Informationen“ → „Trotzdem ausführen“. <b>Mac</b> → Rechtsklick auf Lernhub → „Öffnen“. <b>Android</b> → Installation aus unbekannten Quellen erlauben.</p>`;
 }
 function b64uBytes(s) {
   const p = "=".repeat((4 - (s.length % 4)) % 4);
@@ -644,6 +672,8 @@ function b64uBytes(s) {
   return Uint8Array.from(b, (c) => c.charCodeAt(0));
 }
 function pushProblem() {
+  if (lhApp())
+    return "In der App erinnert dich Pingulin, solange sie läuft. Push bei komplett geschlossener App geht über die Web-Version im Browser.";
   if (!pwaCanSW() || !("PushManager" in window))
     return "Push geht nur auf der veröffentlichten https-Seite in einem aktuellen Browser (iPhone: erst als App installieren).";
   if (!cloudCfg() || !(window.LERNHUB_CLOUD || {}).vapidPublic)
@@ -728,6 +758,7 @@ function pwaCardHTML() {
     <p class="small mut">Als App installiert startet Lernhub wie jede andere App vom Startbildschirm. Mit Push erinnert dich Pingulin 🐧 auch dann, wenn Lernhub komplett geschlossen ist – ab deiner Startzeit, immer öfter, bis das Tagesziel geschafft ist (nicht an Ruhetagen).</p>
     <div class="quickbtns">
       ${inst ? '<span class="pill g">✓ Als App installiert</span>' : `<button class="btn sm" onclick="pwaInstall()">📲 Als App installieren</button>`}
+      <button class="btn ghost sm" onclick="appDownloads()">⬇️ Apps herunterladen</button>
       ${
         S.push.on
           ? `<span class="pill g">✓ Push an</span><button class="btn ghost sm" onclick="pushDisable()">Push ausschalten</button>`
