@@ -130,15 +130,24 @@ function wsCodeEditor() {
       WS_CODE.ed = m.editor.create(host, {
         value: d.files[d.cur],
         language: WS_LANG[wsFileExt(d.cur)] || "plaintext",
-        theme: document.body.classList.contains("dark") ? "vs-dark" : "vs",
+        theme: "vs-dark",
         automaticLayout: true,
-        minimap: { enabled: false },
+        minimap: { enabled: true, scale: 1, renderCharacters: false },
         fontSize: 14,
+        fontFamily: "Consolas, 'Courier New', monospace",
+        renderLineHighlight: "all",
+        bracketPairColorization: { enabled: true },
+        smoothScrolling: true,
+        cursorBlinking: "smooth",
         tabSize: 2,
         wordWrap: "on",
         scrollBeyondLastLine: false,
       });
       WS_CODE.ed.onDidChangeModelContent(() => wsCodeChanged(WS_CODE.ed.getValue()));
+      WS_CODE.ed.onDidChangeCursorPosition((e) => {
+        const p = $("wcPos");
+        if (p) p.textContent = `Zeile ${e.position.lineNumber}, Spalte ${e.position.column}`;
+      });
       WS_CODE.ed.addCommand(m.KeyMod.CtrlCmd | m.KeyCode.Enter, () => wsCodeRun());
     })
     .catch(() => {
@@ -184,13 +193,55 @@ function wsCodeValue(v) {
     window.monaco.editor.setModelLanguage(WS_CODE.ed.getModel(), WS_LANG[wsFileExt(d.cur)] || "plaintext");
   } else if (WS_CODE.ta) WS_CODE.ta.value = v;
 }
+// Dateisymbole wie im VS-Code-Standardthema (Seti)
+const WS_FICON = {
+  js: ["JS", "#cbcb41"], mjs: ["JS", "#cbcb41"], ts: ["TS", "#519aba"], py: ["PY", "#519aba"], html: ["<>", "#e37933"], htm: ["<>", "#e37933"],
+  css: ["#", "#519aba"], json: ["{}", "#cbcb41"], md: ["M↓", "#519aba"], java: ["J", "#cc3e44"], c: ["C", "#519aba"], cpp: ["C+", "#a074c4"],
+  h: ["H", "#a074c4"], cs: ["C#", "#8dc149"], go: ["GO", "#519aba"], rs: ["RS", "#e37933"], php: ["php", "#a074c4"], kt: ["K", "#e37933"],
+  rb: ["RB", "#cc3e44"], sql: ["DB", "#f55385"], sh: ["$", "#4d5a5e"], lua: ["LUA", "#519aba"], swift: ["SW", "#e37933"], txt: ["≡", "#8a8a8a"],
+};
+function wsCodeIcon(n) {
+  const f = WS_FICON[wsFileExt(n)] || ["≡", "#8a8a8a"];
+  return `<i class="vsc-fi" style="color:${f[1]}">${esc(f[0])}</i>`;
+}
 function wsCodeFiles() {
   const el = $("wcFiles");
   if (!el) return;
   const d = wsCodeData();
-  el.innerHTML = Object.keys(d.files)
-    .map((n) => `<button class="${n === d.cur ? "on" : ""}" data-f="${esc(n)}" onclick="wsCodeOpen(this.dataset.f)">${esc(n)}</button>`)
+  const names = Object.keys(d.files);
+  el.innerHTML = names
+    .map((n) => `<button class="${n === d.cur ? "on" : ""}" data-f="${esc(n)}" onclick="wsCodeOpen(this.dataset.f)" title="${esc(n)}">${wsCodeIcon(n)}${esc(n)}</button>`)
     .join("");
+  const tr = $("wcTree");
+  if (tr)
+    tr.innerHTML = names
+      .slice()
+      .sort((a, b) => a.localeCompare(b))
+      .map((n) => `<button class="${n === d.cur ? "on" : ""}" data-f="${esc(n)}" onclick="wsCodeOpen(this.dataset.f)" title="${esc(n)}">${wsCodeIcon(n)}<span>${esc(n)}</span></button>`)
+      .join("");
+  const cr = $("wcCrumb");
+  if (cr) cr.innerHTML = `projekt <span>›</span> ${wsCodeIcon(d.cur)}${esc(d.cur)}`;
+  const lg = $("wcLang");
+  if (lg) lg.textContent = { javascript: "JavaScript", typescript: "TypeScript", python: "Python", html: "HTML", css: "CSS", json: "JSON", java: "Java", markdown: "Markdown", csharp: "C#", cpp: "C++", c: "C", go: "Go", rust: "Rust", php: "PHP", sql: "SQL", plaintext: "Nur-Text" }[WS_LANG[wsFileExt(d.cur)] || "plaintext"] || WS_LANG[wsFileExt(d.cur)];
+  const on = el.querySelector("button.on");
+  if (on) on.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+function wsCodeToggle(k) {
+  const root = document.querySelector(".vsc");
+  if (!root) return;
+  const d = wsCodeData();
+  const off = !root.classList.toggle(k === "side" ? "noside" : "nopanel");
+  d[k] = off;
+  wsSave();
+  if (WS_CODE.ed) setTimeout(() => WS_CODE.ed && WS_CODE.ed.layout(), 30);
+}
+function wsCodeQuick() {
+  const d = wsCodeData();
+  toastModal(`<div class="wsp-menu"><input class="fi" id="wcQ" placeholder="Dateinamen eingeben, um zu suchen" autocomplete="off"
+    oninput="const q=this.value.toLowerCase();document.querySelectorAll('#wcQL button').forEach(b=>b.hidden=!b.dataset.f.toLowerCase().includes(q))"
+    onkeydown="if(event.key==='Enter'){const b=[...document.querySelectorAll('#wcQL button')].find(x=>!x.hidden);if(b)b.click()}">
+    <div id="wcQL">${Object.keys(d.files).map((n) => `<button data-f="${esc(n)}" onclick="closeModal();wsCodeOpen(this.dataset.f)" style="width:100%">${wsCodeIcon(n)} ${esc(n)}</button>`).join("")}</div></div>`);
+  setTimeout(() => $("wcQ") && $("wcQ").focus(), 50);
 }
 function wsCodeOpen(n) {
   const d = wsCodeData();
@@ -590,16 +641,47 @@ WS_APPS.code = {
   h: 80,
   title: () => "Code · " + wsCodeData().cur,
   mount(w, body) {
-    body.innerHTML = `<div class="wcode">
-      <div class="wcbar"><div class="wcfiles" id="wcFiles"></div>
-        <button class="wstool" onclick="wsCodeNew()" title="Neue Datei" aria-label="Neue Datei">＋</button>
-        <button class="btn g sm" id="wcRun" onclick="wsCodeRun()" title="Ausführen (Strg+Enter)">▶ Ausführen</button>
-        <button class="wstool" onclick="wsCodeMenu()" title="Dateien & andere IDEs" aria-label="Mehr">⋯</button></div>
-      <div class="wcmain"><div class="wced" id="wcEd"></div>
-        <div class="wcout"><div class="wcohead"><b id="wcOutT">Ausgabe</b><span class="wsgap"></span><button class="wstool" onclick="wsCodeStdinToggle()" title="Eingaben für input() / Scanner" aria-label="Eingabe">⌨️</button><button class="wstool" onclick="wsCodeClear()" title="Konsole leeren" aria-label="Konsole leeren">🧹</button></div>
-        <div class="wcin" id="wcInBox" ${wsCodeData().stdin ? "" : "hidden"}><textarea id="wcIn" rows="2" spellcheck="false" placeholder="Eingaben für input() / Scanner – eine pro Zeile" oninput="wsCodeStdin(this.value)" aria-label="Eingabe">${esc(wsCodeData().stdin)}</textarea></div>
-        <div class="wcobody" id="wcOut"><pre class="wcpre tall" id="wcCon"><span class="mut">▶ Ausführen startet die offene Datei. HTML/CSS/JS zeigt die Vorschau, Python läuft direkt im Browser, Java, C, C# &amp; Co. kompiliert Wandbox.</span></pre></div></div></div>
+    const ic = (p) => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+    body.innerHTML = `<div class="wcode vsc${wsCodeData().side === false ? " noside" : ""}${wsCodeData().panel === false ? " nopanel" : ""}">
+      <div class="vsc-title">
+        <span class="vsc-logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="#23a9f2" d="M17.6 2.2 9.3 9.8 4.4 6 2.5 7l4.8 5-4.8 5 1.9 1 4.9-3.8 8.3 7.6 3.9-1.9V4.1zM17.4 16.6 12 12l5.4-4.6z"/></svg></span>
+        <nav class="vsc-menu"><button onclick="wsCodeMenu()">Datei</button><button onclick="WS_CODE.ed?WS_CODE.ed.trigger('m','undo'):document.execCommand('undo')">Bearbeiten</button><button onclick="WS_CODE.ed&&(WS_CODE.ed.focus(),WS_CODE.ed.trigger('m','editor.action.selectAll'))">Auswahl</button><button onclick="wsCodeToggle('side')">Anzeigen</button><button onclick="wsCodeRun()">Ausführen</button><button onclick="wsCodeToggle('panel')">Terminal</button><button onclick="wsCodeMenu()">Hilfe</button></nav>
+        <button class="vsc-cc" onclick="wsCodeQuick()" title="Datei suchen (Strg+P)">${ic('<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>')}<span>projekt</span></button>
+        <span class="wsgap"></span>
+        <button class="vsc-run" id="wcRun" onclick="wsCodeRun()" title="Ausführen (Strg+Enter)" aria-label="Ausführen"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9-5.5z"/></svg></button>
+        <button class="vsc-tb" onclick="wsCodeToggle('side')" title="Seitenleiste ein/aus (Strg+B)" aria-label="Seitenleiste">${ic('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>')}</button>
+        <button class="vsc-tb" onclick="wsCodeToggle('panel')" title="Terminal ein/aus (Strg+J)" aria-label="Terminal">${ic('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 14h18"/>')}</button></div>
+      <div class="vsc-body">
+        <nav class="vsc-act" aria-label="Aktivitätsleiste">
+          <button class="on" onclick="wsCodeToggle('side')" title="Explorer (Strg+Umschalt+E)" aria-label="Explorer">${ic('<path d="M14 3H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7z"/><path d="M14 3v4h4"/><path d="M9 21h9a2 2 0 0 0 2-2V9"/>')}</button>
+          <button onclick="WS_CODE.ed?(WS_CODE.ed.focus(),WS_CODE.ed.trigger('m','actions.find')):wsCodeQuick()" title="Suchen (Strg+F)" aria-label="Suchen">${ic('<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>')}</button>
+          <button onclick="toast('⎇ Quellcodeverwaltung: Lade dein Projekt mit Datei → „Alle als ZIP“ herunter oder öffne es in vscode.dev')" title="Quellcodeverwaltung" aria-label="Quellcodeverwaltung">${ic('<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 8v8M18 10c0 4-6 3-11 7"/>')}</button>
+          <button onclick="wsCodeRun()" title="Ausführen und Debuggen" aria-label="Ausführen">${ic('<path d="M8 5v14l11-7z"/>')}</button>
+          <button onclick="wsCodeMenu()" title="Erweiterungen & andere IDEs" aria-label="Erweiterungen">${ic('<rect x="4" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/><path d="m14 7.5 3.5-3.5 3.5 3.5-3.5 3.5z"/>')}</button>
+          <span class="wsgap"></span>
+          <button onclick="wsCodeMode()" title="Einfacher Editor / VS-Code-Editor" aria-label="Einstellungen">${ic('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>')}</button></nav>
+        <aside class="vsc-side"><div class="vsc-sh"><span>EXPLORER</span><span class="wsgap"></span>
+            <button onclick="wsCodeNew()" title="Neue Datei" aria-label="Neue Datei">${ic('<path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9z"/><path d="M12 11v6M9 14h6"/>')}</button>
+            <button onclick="wsCodeMenu()" title="Mehr" aria-label="Mehr">⋯</button></div>
+          <div class="vsc-sec">⌵ PROJEKT</div><div class="vsc-tree" id="wcTree"></div></aside>
+        <div class="vsc-edarea">
+          <div class="vsc-tabs wcfiles" id="wcFiles"></div>
+          <div class="vsc-crumbs" id="wcCrumb"></div>
+          <div class="wcmain"><div class="wced" id="wcEd"></div>
+            <div class="wcout"><div class="wcohead"><span class="vsc-ptab">PROBLEME</span><b class="vsc-ptab on" id="wcOutT">Ausgabe</b><span class="vsc-ptab">TERMINAL</span><span class="wsgap"></span><button class="vsc-tb" onclick="wsCodeStdinToggle()" title="Eingaben für input() / Scanner" aria-label="Eingabe">⌨</button><button class="vsc-tb" onclick="wsCodeClear()" title="Konsole leeren" aria-label="Konsole leeren">${ic('<circle cx="12" cy="12" r="8"/><path d="m6.5 17.5 11-11"/>')}</button><button class="vsc-tb" onclick="wsCodeToggle('panel')" title="Bereich schließen" aria-label="Bereich schließen">✕</button></div>
+            <div class="wcin" id="wcInBox" ${wsCodeData().stdin ? "" : "hidden"}><textarea id="wcIn" rows="2" spellcheck="false" placeholder="Eingaben für input() / Scanner – eine pro Zeile" oninput="wsCodeStdin(this.value)" aria-label="Eingabe">${esc(wsCodeData().stdin)}</textarea></div>
+            <div class="wcobody" id="wcOut"><pre class="wcpre tall" id="wcCon"><span class="mut">▶ Ausführen (oben rechts oder Strg+Enter) startet die offene Datei. HTML/CSS/JS zeigt die Vorschau, Python läuft direkt im Browser, Java, C, C# &amp; Co. kompiliert Wandbox.</span></pre></div></div></div></div></div>
+      <footer class="vsc-status"><span title="Branch">⎇ main</span><span title="Probleme">⊗ 0 ⚠ 0</span><span class="wsgap"></span><span id="wcPos">Zeile 1, Spalte 1</span><span>Leerzeichen: 2</span><span>UTF-8</span><span>LF</span><span id="wcLang"></span><span title="Benachrichtigungen">🔔</span></footer>
     </div>`;
+    body.querySelector(".vsc").addEventListener("keydown", (e) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      const k = e.key.toLowerCase();
+      if (k === "b" || k === "j" || (k === "p" && !e.shiftKey)) {
+        e.preventDefault();
+        e.stopPropagation();
+        k === "p" ? wsCodeQuick() : wsCodeToggle(k === "b" ? "side" : "panel");
+      }
+    }, true);
     wsCodeFiles();
     wsCodeEditor();
   },

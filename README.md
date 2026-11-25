@@ -82,9 +82,12 @@ Oder als App herunterladen (läuft dann **auch ohne Internet**, mit Internet geh
 TypeScript, SQL, Bash, Lua, Swift, Scala, Haskell, Perl, R und Julia über den freien Online-Compiler [Wandbox](https://wandbox.org)
 (der Code wird dafür dorthin geschickt), Kotlin im eingebetteten OneCompiler. Eingaben für `input()`/`Scanner` unter ⌨️.
 Weitere IDEs (JDoodle, JupyterLite, Wokwi, Python Tutor, StackBlitz) laufen als Fenster; vscode.dev, Eclipse Theia, Codespaces,
-Replit und Colab erlauben kein Einbetten und öffnen im neuen Tab. Musik: ganze Songs von Audius, CC-/gemeinfreie Musik vom
-Internet Archive (downloadbar) und eine 30-s-Vorschau jedes Chart-Songs (Apple) mit Link zu Spotify – Chart-Songs komplett
-herunterzuladen wäre illegal. Am Handy: Tabs oder geteilter Bildschirm mit verschiebbarer Trennlinie.
+Replit und Colab erlauben kein Einbetten und öffnen im neuen Tab. Musik (wie Spotify): Songs, Künstler, Alben und Playlists
+suchen, öffentliche Spotify-Playlists und -Profile per Link öffnen, eigene Playlists, Lieblingssongs, Warteschlange und Teilen –
+abgespielt werden die ganzen Songs über den offiziellen YouTube-Player (Daten von Spotify, Credits an Spotify/YouTube und die
+Künstler), dazu freie Musik von Audius und dem Internet Archive (downloadbar). Video: YouTube, Archiv-Filme, Vimeo und eigene
+Dateien mit Untertiteln. Am PC als Desktop mit Taskleiste, Start-Menü und Lernhub-Fenstern (jeder Bereich gleichzeitig).
+Am Handy: Tabs oder geteilter Bildschirm mit verschiebbarer Trennlinie.
 Die Erweiterung **Lernhub Begleiter** (Chrome, Edge, Brave, Opera, Firefox) holt Lernhub in die Seitenleiste – die KI kann dann Tabs öffnen,
 lesen und (wenn erlaubt) klicken und tippen. Installation: im Arbeitsplatz unter 🤖 KI → 🧩.
 

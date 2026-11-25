@@ -2136,7 +2136,7 @@
     <div class="sidefoot">
       <div id="sideUser"></div>
       <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-      <span id="verLine">v1.15 · offline</span>
+      <span id="verLine">v1.16 · offline</span>
     </div>
   </aside>
   <div id="shell">
@@ -2193,6 +2193,8 @@
   <script src="js/ws-ki.js"></script>
   <script src="js/ws-office.js"></script>
   <script src="js/ws-media.js"></script>
+  <script src="js/ws-musik.js"></script>
+  <script src="js/ws-video.js"></script>
   <script src="js/social.js"></script>
   <script src="js/konto.js"></script>
   <script src="js/methoden.js"></script>
@@ -3388,6 +3390,8 @@
     applyExt();
     /* ===================== 4) ZUSTAND & NAVIGATION ===================== */
     let V = { view: "home", subj: null, topic: null };
+    /* Als Fenster im Arbeitsplatz (iframe mit ?fenster=1&v=…): ohne Seitenleiste, ohne Tour und Werbung */
+    const LH_EMBED = window.top !== window && /[?&]fenster=1(&|$)/.test(location.search);
     const NAV = [
       ["home", "🏠", "Dashboard"],
       ["ws", "🧑‍💻", "Arbeitsplatz"],
@@ -3441,9 +3445,12 @@
       return b;
     }
     function go(view, a, b) {
+      // Lernhub-Fenster im Arbeitsplatz: der Arbeitsplatz selbst öffnet sich im Hauptfenster, nicht noch mal darin
+      if (LH_EMBED && view === "ws") { try { parent.go("ws"); } catch (e) { } return; }
       if (V.view === "runde" && view !== "runde") rundeStop();
       V.view = view; if (view === "path" && a) { V.subj = a; }
       window.scrollTo(0, 0); render();
+      if (LH_EMBED) { try { parent.postMessage({ lhFenster: view }, location.origin); } catch (e) { } return; }
       if (view === "home" && !S.seenTour) setTimeout(tourMaybe, 600);
       if (view === "home" && window.adsMaybeAsk) setTimeout(adsMaybeAsk, 900);
     }
@@ -5237,7 +5244,7 @@ Regeln: Antworte auf Deutsch, locker und kurz (höchstens 4 Sätze), ohne Markdo
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.15 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.16 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
     </div>`;
     }
     function redoOnboard() {
@@ -5317,6 +5324,7 @@ Regeln: Antworte auf Deutsch, locker und kurz (höchstens 4 Sätze), ohne Markdo
       <p><b>Chat (nur mit Konto, freiwillig):</b> Nachrichten an Freunde oder deine Klasse werden mit Absender, Empfänger und Zeitpunkt bei Supabase gespeichert, sind nur für die Beteiligten lesbar und werden nach 90 Tagen automatisch gelöscht. Eigene Nachrichten kannst du jederzeit löschen.</p>
       <p><b>Einladungslinks:</b> Ein Einladungslink enthält deinen Spitznamen (und ggf. den Klassencode). Öffnet jemand den Link und erstellt ein Konto, wird automatisch eine Freundschaftsanfrage an dich geschickt.</p>
       <p><b>Wissens-Videos:</b> Die Videos sind YouTube-Videos im erweiterten Datenschutzmodus (youtube-nocookie.com). Sobald du den Video-Feed öffnest, lädt dein Browser das gerade sichtbare Video von YouTube (Google Ireland Ltd.); dabei werden u. a. deine IP-Adresse und technische Gerätedaten an YouTube übertragen. Vorschaubilder werden von YouTube-Servern (i.ytimg.com) geladen. Welche Videos du magst oder speicherst, bleibt lokal in deinem Browser.</p>
+      <p><b>Arbeitsplatz – Musik &amp; Video:</b> Suchst du Musik oder öffnest eine Spotify-Playlist, lädt dein Browser die öffentliche Spotify-Seite über den Dienst r.jina.ai (Jina AI GmbH) und sucht das passende Video über eine Piped-Instanz (api.piped.private.coffee); abgespielt wird über den YouTube-Player (youtube-nocookie.com, Google Ireland Ltd.). Freie Musik kommt von Audius und dem Internet Archive. Dabei werden jeweils dein Suchbegriff bzw. der Link sowie deine IP-Adresse an diese Dienste übertragen. Ein Spotify-Login gibt es nicht. Bibliothek, Playlists und Verlauf bleiben nur in deinem Browser. Eigene Videodateien verlassen dein Gerät nicht.</p>
       <p><b>Schulsuche &amp; Schulfächer:</b> Suchst du deine Schule, schickt dein Browser den Suchbegriff (bzw. bei „In meiner Nähe“ deinen auf ca. 1 km gerundeten Standort) an jedeschule.codefor.de (Open Knowledge Foundation Deutschland e. V.); dabei wird deine IP-Adresse übertragen. Gespeichert wird nur die gewählte Schule, Schulart und Stufe in deinem Browser. Fachpakete (Aufgaben) werden ohne Personenbezug aus der Lernhub-Cloud (Supabase) geladen. Forderst du mit Konto ein neues Fach an oder meldest eine fehlerhafte Aufgabe, werden Fachname, Schulname, Bundesland/Schulart/Stufe, ggf. deine Notiz und deine Konto-ID gespeichert (für Tageslimits gegen Missbrauch); die Aufgaben selbst erstellt ein KI-Modell über OpenCode, dabei werden keine personenbezogenen Daten an die KI gesendet.</p>
       <p><b>Lernhub-KI:</b> Hast du keinen eigenen API-Key eingetragen, gehen deine Chat-Nachrichten, die aktuelle Aufgabe und Auszüge aus dem Lernstoff über unseren Server (Supabase) an Groq, Inc. (USA), das daraus die Antwort erzeugt. Deine E-Mail, deine Konto-ID und deine IP-Adresse werden dabei nicht an Groq gesendet. Gespeichert wird bei uns nur die Anzahl deiner KI-Anfragen pro Tag (für das Tageslimit): mit Konto zu deiner Konto-ID (nach 7 Tagen gelöscht), als Gast zu einem täglich wechselnden, nicht umkehrbaren Kennwert aus deiner IP-Adresse (die IP selbst wird nicht gespeichert, nach 2 Tagen gelöscht). Von der KI angelegte Aufgaben liegen als eigenes Fach in deinem Browser und – mit Konto und Cloud-Sync – in deinem privaten Cloud-Speicher. Schreib keine persönlichen Daten in den Chat.</p>
     <p><b>Eigener API-Key, Lern-Agent &amp; Präsentations-Check:</b> Mit eigenem Key gehen die Anfragen direkt aus deinem Browser an den Anbieter, den du gewählt hast (z. B. Google, Groq, OpenAI, Mistral) – nach dessen Datenschutzbedingungen, nicht über unseren Server. Ausnahme NVIDIA: Weil NVIDIA keine Anfragen direkt aus dem Browser erlaubt, reicht unser Server (Supabase Edge Function) die Anfrage samt Key nur weiter, ohne sie oder den Key zu speichern. Der Key bleibt nur in deinem Browser und kommt nie in die Cloud oder ins Backup. Der Lern-Agent schickt dabei eine Übersicht deines Lernstands (Schule, Klasse, Fächer, Themen mit Fehlern). Beim Präsentations-Check wird die Datei nur im Browser gelesen; an die KI geht nur der Folientext.</p>
@@ -5378,16 +5386,28 @@ Regeln: Antworte auf Deutsch, locker und kurz (höchstens 4 Sätze), ohne Markdo
       if (window.cloudInit) cloudInit();
       if (window.kontoInit) kontoInit();
       if (window.extraInit) extraInit();
-      if (window.adsInit) adsInit();
+      if (window.adsInit && !LH_EMBED) adsInit();
+      if (LH_EMBED) {
+        document.body.classList.add("lhembed");
+        const v = (/[?&]v=([a-z]{2,12})/.exec(location.search) || [])[1];
+        if (v && v !== "ws" && navItem(v)) V.view = v;
+      }
+      /* Mehrere Lernhub-Fenster (Arbeitsplatz) oder Tabs: Fortschritt aus dem anderen Fenster übernehmen */
+      window.addEventListener("storage", e => {
+        if (e.key !== LS_KEY || !e.newValue) return;
+        try { S = load(); } catch (x) { return; }
+        renderTop(); renderNav();
+        if (["home", "path", "board", "erfolge", "chars", "review"].includes(V.view)) render();
+      });
       renderNav(); renderTop(); updateChatHead();
-      if (!S.seenOnboard) {
+      if (!S.seenOnboard && !LH_EMBED) {
         ob.name = S.profile.name || ""; ob.daily = S.profile.daily || 20; ob.goal = S.profile.goal || "schule";
         ob.langs = (S.profile.langs || ["Englisch"]).slice(); V.view = "onboard";
       }
       /* Anmelde-Bildschirm einmal beim Start zeigen (nur wenn Konten eingerichtet sind) */
-      if (window.cloudCfg && cloudCfg() && !CLOUD && !S.authAsked && V.view !== "konto") { KONTO.welcome = true; V.view = "konto"; }
+      if (window.cloudCfg && cloudCfg() && !CLOUD && !S.authAsked && V.view !== "konto" && !LH_EMBED) { KONTO.welcome = true; V.view = "konto"; }
       render();
-      if (!S.seenTour) setTimeout(tourMaybe, 1200);
+      if (!S.seenTour && !LH_EMBED) setTimeout(tourMaybe, 1200);
       if (window.schoolSync) { schoolSync(true); setTimeout(() => { if (S.seenOnboard && $("modal").classList.contains("hidden")) sfYearCheck(); }, 2500); }
       /* Sprachausgabe: Stimmen laden (Chrome lädt sie asynchron) */
       if ("speechSynthesis" in window) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices(); }

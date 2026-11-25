@@ -100,6 +100,7 @@ body.wsfull #fab {
 
 .wsdesk {
     position: relative;
+    isolation: isolate;
     flex: 1;
     border: 1px dashed var(--line);
     border-radius: 14px;
@@ -509,6 +510,349 @@ body.wsfull #fab {
     }
 }
 
+/* VS-Code-Optik (Dark Modern) */
+.vsc {
+    background: #1f1f1f;
+    color: #ccc;
+    font: 13px/1.4 -apple-system, "Segoe UI", system-ui, Ubuntu, sans-serif
+}
+
+.vsc button {
+    font: inherit;
+    color: inherit;
+    cursor: pointer
+}
+
+.vsc-title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 35px;
+    padding: 0 6px;
+    background: #181818;
+    border-bottom: 1px solid #2b2b2b;
+    flex: 0 0 auto;
+    min-width: 0
+}
+
+.vsc-logo {
+    display: inline-flex;
+    padding: 0 4px
+}
+
+.vsc-menu {
+    display: flex;
+    overflow: hidden;
+    min-width: 0
+}
+
+.vsc-menu button,
+.vsc-tb,
+.vsc-sh button {
+    border: 0;
+    background: none;
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap
+}
+
+.vsc-menu button:hover,
+.vsc-tb:hover,
+.vsc-sh button:hover {
+    background: rgba(255, 255, 255, .1)
+}
+
+.vsc-tb {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px
+}
+
+.vsc-tb svg {
+    width: 16px;
+    height: 16px
+}
+
+.vsc-cc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 1 340px;
+    min-width: 90px;
+    height: 24px;
+    margin-left: 12px;
+    border: 1px solid #3c3c3c;
+    border-radius: 6px;
+    background: #2a2a2a;
+    color: #9d9d9d
+}
+
+.vsc-cc:hover {
+    background: #313131
+}
+
+.vsc-cc svg {
+    width: 14px;
+    height: 14px
+}
+
+.vsc-run {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 24px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: #89d185 !important
+}
+
+.vsc-run:hover {
+    background: rgba(255, 255, 255, .1)
+}
+
+.vsc-run:disabled {
+    opacity: .4
+}
+
+.vsc-body {
+    flex: 1;
+    min-height: 0;
+    display: flex
+}
+
+.vsc-act {
+    display: flex;
+    flex-direction: column;
+    width: 48px;
+    flex: 0 0 auto;
+    background: #181818;
+    border-right: 1px solid #2b2b2b
+}
+
+.vsc-act button {
+    height: 48px;
+    border: 0;
+    border-left: 2px solid transparent;
+    background: none;
+    color: #868686 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.vsc-act button:hover {
+    color: #ccc !important
+}
+
+.vsc-act button.on {
+    color: #d7d7d7 !important;
+    border-left-color: #0078d4
+}
+
+.vsc-side {
+    width: 200px;
+    flex: 0 0 auto;
+    background: #181818;
+    border-right: 1px solid #2b2b2b;
+    display: flex;
+    flex-direction: column;
+    min-height: 0
+}
+
+.vsc.noside .vsc-side,
+.vsc.nopanel .wcout {
+    display: none
+}
+
+.vsc.noside .vsc-act button.on {
+    border-left-color: transparent
+}
+
+.vsc-sh {
+    display: flex;
+    align-items: center;
+    height: 35px;
+    padding: 0 8px 0 20px;
+    font-size: 11px;
+    letter-spacing: .03em
+}
+
+.vsc-sh svg {
+    width: 16px;
+    height: 16px
+}
+
+.vsc-sec {
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700
+}
+
+.vsc-tree {
+    overflow: auto;
+    flex: 1
+}
+
+.vsc-tree button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    height: 22px;
+    padding: 0 8px 0 20px;
+    border: 1px solid transparent;
+    background: none;
+    text-align: left
+}
+
+.vsc-tree button span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.vsc-tree button:hover {
+    background: #2a2d2e
+}
+
+.vsc-tree button.on {
+    background: #37373d;
+    border-color: #0078d4
+}
+
+.vsc-fi {
+    display: inline-block;
+    min-width: 16px;
+    font: 700 9.5px/1 Consolas, monospace;
+    font-style: normal;
+    text-align: center;
+    flex: 0 0 auto
+}
+
+.vsc-edarea {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: #1f1f1f
+}
+
+.vsc .vsc-tabs {
+    flex: 0 0 auto;
+    gap: 0;
+    background: #181818;
+    height: 35px
+}
+
+.vsc .vsc-tabs button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 35px;
+    padding: 0 14px 0 10px;
+    border: 0;
+    border-right: 1px solid #2b2b2b;
+    border-top: 1px solid transparent;
+    border-radius: 0;
+    background: #181818;
+    color: #9d9d9d;
+    font-weight: 400
+}
+
+.vsc .vsc-tabs button.on {
+    background: #1f1f1f;
+    color: #fff;
+    border-top-color: #0078d4
+}
+
+.vsc-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 14px;
+    color: #a9a9a9;
+    font-size: 12px;
+    flex: 0 0 auto
+}
+
+.vsc .wced {
+    background: #1f1f1f
+}
+
+.vsc .wcta {
+    background: #1f1f1f;
+    color: #ccc
+}
+
+.vsc .wcout {
+    border-color: #2b2b2b;
+    background: #181818
+}
+
+.vsc .wcohead {
+    gap: 2px;
+    padding: 0 8px;
+    height: 35px;
+    background: #181818;
+    font-size: 11px
+}
+
+.vsc-ptab {
+    padding: 8px 8px 6px;
+    color: #9d9d9d;
+    font-weight: 400;
+    border-bottom: 1px solid transparent;
+    text-transform: uppercase
+}
+
+.vsc-ptab.on {
+    color: #e7e7e7;
+    border-bottom-color: #0078d4
+}
+
+.vsc .wcin textarea {
+    background: #1f1f1f;
+    color: #ccc;
+    border-color: #2b2b2b
+}
+
+.vsc .wcpre {
+    background: #181818;
+    color: #ccc
+}
+
+.vsc-status {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 22px;
+    padding: 0 10px;
+    background: #0078d4;
+    color: #fff;
+    font-size: 12px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    overflow: hidden
+}
+
+@container (max-width: 640px) {
+
+    .vsc-side,
+    .vsc-menu,
+    .vsc-crumbs,
+    .vsc-status span:nth-child(n+5):not(#wcLang) {
+        display: none
+    }
+
+    .vsc-act {
+        width: 40px
+    }
+}
+
 /* 🌐 Web */
 .wweb,
 .wmus {
@@ -594,138 +938,1983 @@ body.wsfull #fab {
     border-color: var(--pri)
 }
 
-/* 🎵 Musik */
-.wmlist {
-    flex: 1;
-    min-height: 0;
-    overflow: auto
-}
-
-.wmrow {
+/* 🎵 Musik – nah am Spotify-Desktop-Client (immer dunkel) */
+.wsp {
+    --sg: #1ed760;
+    --sg2: #3be477;
+    --s1: #121212;
+    --s2: #1f1f1f;
+    --s3: #2a2a2a;
+    --sm: #b3b3b3;
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 10px;
-    cursor: pointer;
-    border-bottom: 1px solid var(--line)
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    padding: 8px 8px 0;
+    background: #000;
+    color: #fff;
+    font-family: "Circular Std", "Spotify Mix", "Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif;
+    font-size: 14px;
+    outline: none
 }
 
-.wmrow:hover,
-.wmrow.on {
-    background: var(--pri-l)
-}
-
-.wmsec {
-    margin: 10px 10px 4px;
-    font-weight: 700
-}
-
-.wmtag {
-    font-style: normal;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 0 5px;
-    border-radius: 6px;
-    background: var(--pri-l);
-    color: var(--pri)
-}
-
-#wmFav.on {
-    background: var(--pri-l)
-}
-
-.wmrow a.wstool {
+.wsp a {
+    color: inherit;
     text-decoration: none
 }
 
-.wmrow img,
-.wmbar img {
+.wsp a:hover {
+    text-decoration: underline;
+    color: #fff
+}
+
+.wsp button {
+    font-family: inherit
+}
+
+.wsp svg {
+    flex: 0 0 auto
+}
+
+.wsp ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px
+}
+
+.wsp ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .3);
+    border: 3px solid transparent;
+    background-clip: padding-box
+}
+
+.wsp ::-webkit-scrollbar-track {
+    background: transparent
+}
+
+.wsp-topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 0 4px
+}
+
+.wsp-ib {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--sm);
+    cursor: pointer;
+    flex: 0 0 auto;
+    transition: color .1s, transform .1s
+}
+
+.wsp-ib:hover {
+    color: #fff;
+    transform: scale(1.04)
+}
+
+.wsp-ib:disabled {
+    opacity: .35;
+    cursor: default;
+    transform: none
+}
+
+.wsp-ib.on {
+    color: var(--sg)
+}
+
+.wsp-ib.on::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--sg)
+}
+
+.wsp-ib.big {
+    width: 44px;
+    height: 44px;
+    font-size: 22px
+}
+
+.wsp-topbar>.wsp-ib {
+    background: rgba(0, 0, 0, .7)
+}
+
+.wsp-home {
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--s2);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex: 0 0 auto;
+    margin-left: auto
+}
+
+.wsp-home:hover {
+    background: var(--s3);
+    transform: scale(1.04)
+}
+
+.wsp-search {
+    flex: 0 1 480px;
+    min-width: 0;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border-radius: 500px;
+    background: var(--s2);
+    color: var(--sm);
+    margin: 0 auto 0 0;
+    box-shadow: inset 0 0 0 1px transparent;
+    transition: background .15s, box-shadow .15s
+}
+
+.wsp-search:hover {
+    background: var(--s3);
+    box-shadow: inset 0 0 0 1px #535353
+}
+
+.wsp-search:focus-within {
+    box-shadow: inset 0 0 0 2px #fff;
+    color: #fff
+}
+
+.wsp-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: 16px;
+    outline: none
+}
+
+.wsp-search input::placeholder {
+    color: #757575
+}
+
+.wsp-libbtn {
+    display: none
+}
+
+.wsp-main {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) auto;
+    gap: 8px
+}
+
+.wsp-lib,
+.wsp-view,
+.wsp-np {
+    background: var(--s1);
     border-radius: 8px;
+    min-height: 0;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .3) transparent
+}
+
+.wsp-lib {
+    padding: 8px;
+    display: flex;
+    flex-direction: column
+}
+
+.wsp-view {
+    position: relative
+}
+
+.wsp-np {
+    width: 320px
+}
+
+.wsp-np[hidden] {
+    display: none
+}
+
+/* Bibliothek links */
+.wsp-libh {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px 8px
+}
+
+.wsp-libt {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 0;
+    background: none;
+    color: var(--sm);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 0
+}
+
+.wsp-libt:hover {
+    color: #fff
+}
+
+.wsp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 8px 10px
+}
+
+.wsp-chip {
+    border: 0;
+    border-radius: 32px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, .07);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap
+}
+
+.wsp-chip:hover {
+    background: rgba(255, 255, 255, .12)
+}
+
+.wsp-chip.on {
+    background: #fff;
+    color: #000
+}
+
+.wsp-libl {
+    display: flex;
+    flex-direction: column
+}
+
+.wsp-li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    font-size: 16px
+}
+
+.wsp-li:hover {
+    background: #1a1a1a
+}
+
+.wsp-li.on {
+    background: var(--s3)
+}
+
+.wsp-li>img,
+.wsp-li>.wsp-noimg,
+.wsp-li>.wsp-liked {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
     object-fit: cover;
     flex: 0 0 auto
 }
 
-.wmrow>div {
+.wsp-li>.round {
+    border-radius: 50%
+}
+
+.wsp-li>span:not(.wsp-noimg):not(.wsp-liked) {
     flex: 1;
     min-width: 0
 }
 
-.wmrow b,
-.wmrow small,
-.wmnow b,
-.wmnow small {
+.wsp-li b,
+.wsp-li small {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400
+}
+
+.wsp-li small {
+    color: var(--sm);
+    font-size: 14px;
+    margin-top: 2px
+}
+
+.wsp-li.pl b {
+    color: var(--sg)
+}
+
+.wsp-li>svg {
+    color: var(--sg)
+}
+
+.wsp-liked {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #450af5, #8e8ee5 60%, #c4efd9);
+    color: #fff;
+    border-radius: 4px;
+    flex: 0 0 auto
+}
+
+.wsp-liked.big {
+    width: 192px;
+    height: 192px;
+    box-shadow: 0 4px 60px rgba(0, 0, 0, .5)
+}
+
+.wsp-noimg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #282828;
+    color: #7f7f7f;
+    font-size: 22px;
+    flex: 0 0 auto
+}
+
+/* Hauptbereich */
+.wsp-pad {
+    padding: 16px 24px 24px
+}
+
+.wsp-h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 8px 0 16px
+}
+
+.wsp-h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 16px 0 12px
+}
+
+.wsp-msg {
+    color: var(--sm);
+    padding: 12px 0
+}
+
+.wsp-credit {
+    color: #a7a7a7;
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 32px 0 8px;
+    max-width: 720px
+}
+
+.wsp-credit a {
+    color: #fff
+}
+
+.wsp-load {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 24px
+}
+
+.wsp-load i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #1ed760;
+    animation: wspBounce .9s infinite ease-in-out
+}
+
+.wsp-load i:nth-child(2) {
+    animation-delay: .15s
+}
+
+.wsp-load i:nth-child(3) {
+    animation-delay: .3s
+}
+
+@keyframes wspBounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(.5);
+        opacity: .5
+    }
+
+    40% {
+        transform: scale(1);
+        opacity: 1
+    }
+}
+
+.wsp-hero {
+    padding: 16px 24px 8px;
+    background: linear-gradient(#2e2a6e, var(--s1) 260px)
+}
+
+.wsp-hero h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 8px 0 20px
+}
+
+.wsp-quick {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px
+}
+
+.wsp-qi {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 56px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, .07);
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background .2s
+}
+
+.wsp-qi:hover {
+    background: rgba(255, 255, 255, .2)
+}
+
+.wsp-qi>img,
+.wsp-qi>.wsp-noimg,
+.wsp-qi>.wsp-liked {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .5)
+}
+
+.wsp-qi b {
+    flex: 1;
+    min-width: 0;
+    padding: 0 8px 0 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.wsp-qp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--sg);
+    color: #000;
+    opacity: 0;
+    box-shadow: 0 8px 8px rgba(0, 0, 0, .3);
+    transition: opacity .2s
+}
+
+.wsp-qi:hover .wsp-qp {
+    opacity: 1
+}
+
+.wsp-sec {
+    margin: 24px 0 8px
+}
+
+.wsp-sech {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px
+}
+
+.wsp-sech h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px
+}
+
+.wsp-sech a {
+    color: var(--sm);
+    font-size: 14px;
+    font-weight: 700
+}
+
+.wsp-row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(150px, 190px);
+    overflow-x: auto;
+    margin: 0 -12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, .3) transparent
+}
+
+.wsp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    margin: 0 -12px
+}
+
+.wsp-card {
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    min-width: 0;
+    transition: background .2s;
+    outline: none
+}
+
+.wsp-card:hover,
+.wsp-card:focus-visible {
+    background: rgba(255, 255, 255, .07)
+}
+
+.wsp-cimg {
+    position: relative;
+    aspect-ratio: 1;
+    margin-bottom: 8px
+}
+
+.wsp-cimg>img,
+.wsp-cimg>.wsp-noimg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
+    font-size: 48px
+}
+
+.wsp-cimg.round>img,
+.wsp-cimg.round>.wsp-noimg {
+    border-radius: 50%
+}
+
+.wsp-cplay {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sg);
+    color: #000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(8px);
+    box-shadow: 0 8px 8px rgba(0, 0, 0, .3);
+    transition: opacity .25s, transform .25s, background .1s
+}
+
+.wsp-card:hover .wsp-cplay,
+.wsp-card:focus-within .wsp-cplay,
+.wsp-top1:hover .wsp-cplay {
+    opacity: 1;
+    transform: none
+}
+
+.wsp-cplay:hover {
+    background: var(--sg2);
+    transform: scale(1.04) !important
+}
+
+.wsp-card b,
+.wsp-card small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.wsp-card b {
+    font-size: 16px;
+    font-weight: 400;
+    white-space: nowrap;
+    margin-bottom: 4px
+}
+
+.wsp-card small {
+    color: var(--sm);
+    font-size: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical
+}
+
+.wsp-tag {
+    display: inline-block;
+    font-style: normal;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 500px;
+    background: rgba(0, 0, 0, .55);
+    color: #fff
+}
+
+.wsp-tops {
+    display: grid;
+    grid-template-columns: minmax(240px, 2fr) minmax(0, 3fr);
+    gap: 24px
+}
+
+.wsp-top1 {
+    position: relative;
+    padding: 20px;
+    border-radius: 8px;
+    background: #181818;
+    cursor: pointer;
+    transition: background .2s;
+    min-height: 200px
+}
+
+.wsp-top1:hover {
+    background: var(--s3)
+}
+
+.wsp-top1>img,
+.wsp-top1>.wsp-noimg {
+    width: 92px;
+    height: 92px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .5)
+}
+
+.wsp-top1>.round {
+    border-radius: 50%
+}
+
+.wsp-top1 h3 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 18px 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.wsp-top1 small {
+    color: var(--sm)
+}
+
+.wsp-top1 .wsp-cplay {
+    right: 20px;
+    bottom: 20px
+}
+
+.wsp-genres {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 16px
+}
+
+.wsp-genre {
+    position: relative;
+    height: 110px;
+    padding: 16px;
+    border: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    font-size: 20px
+}
+
+.wsp-genre b {
+    position: relative;
+    z-index: 1;
+    font-weight: 700
+}
+
+.wsp-genre span {
+    position: absolute;
+    right: -8px;
+    bottom: -18px;
+    font-size: 84px;
+    transform: rotate(25deg);
+    opacity: .45
+}
+
+/* Tracklist */
+.wsp-tl {
+    margin: 0 -8px
+}
+
+.wsp-tr {
+    display: grid;
+    grid-template-columns: 24px minmax(120px, 4fr) minmax(100px, 2fr) 32px 56px 32px;
+    gap: 16px;
+    align-items: center;
+    height: 56px;
+    padding: 0 16px;
+    border-radius: 4px;
+    color: var(--sm);
+    cursor: default;
+    user-select: none
+}
+
+.wsp-tr:not(.wsp-th):hover {
+    background: rgba(255, 255, 255, .1)
+}
+
+.wsp-th {
+    height: 36px;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 0;
+    margin-bottom: 12px;
+    font-size: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--s1)
+}
+
+.wsp-th>span:last-child,
+.wsp-th>span:nth-last-child(2) {
+    text-align: right;
+    display: flex;
+    justify-content: flex-end
+}
+
+.wsp-tl.noalb .wsp-tr {
+    grid-template-columns: 24px minmax(120px, 1fr) 32px 56px 32px
+}
+
+.wsp-tl.noalb .wsp-alb {
+    display: none
+}
+
+.wsp-n {
+    position: relative;
+    text-align: right;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center
+}
+
+.wsp-n i {
+    font-style: normal
+}
+
+.wsp-n em,
+.wsp-n .wsp-eq {
+    display: none
+}
+
+.wsp-n em {
+    color: #fff
+}
+
+.wsp-tr:hover .wsp-n i,
+.wsp-tr.pl .wsp-n i {
+    display: none
+}
+
+.wsp-tr:hover .wsp-n em {
+    display: inline-flex
+}
+
+.wsp-tr.pl:not(:hover) .wsp-n .wsp-eq {
+    display: inline-flex
+}
+
+.wsp-tr.on .wsp-n i,
+.wsp-tr.on .wsp-tt b {
+    color: var(--sg)
+}
+
+.wsp-eq {
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px
+}
+
+.wsp-eq u {
+    width: 3px;
+    height: 100%;
+    background: var(--sg);
+    animation: wspEq .9s infinite ease-in-out alternate;
+    transform-origin: bottom
+}
+
+.wsp-eq u:nth-child(2) {
+    animation-delay: -.4s
+}
+
+.wsp-eq u:nth-child(3) {
+    animation-delay: -.7s
+}
+
+@keyframes wspEq {
+    from {
+        transform: scaleY(.2)
+    }
+
+    to {
+        transform: scaleY(1)
+    }
+}
+
+.wsp-tt {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0
+}
+
+.wsp-tt>span:not(.wsp-noimg) {
+    min-width: 0
+}
+
+.wsp-timg {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex: 0 0 auto
+}
+
+.wsp-tt b,
+.wsp-tt small,
+.wsp-alb {
     display: block;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis
 }
 
-.wmrow small,
-.wmnow small {
-    color: var(--mut);
-    font-size: 12px
+.wsp-tt b {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 400
 }
 
-.wmart {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    background: var(--pri-l);
+.wsp-tt small {
+    font-size: 14px;
+    margin-top: 2px
+}
+
+.wsp-e,
+.wsp-src {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 auto
+    font-style: normal;
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: 1px
 }
 
-.wmbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-top: 1px solid var(--line);
-    background: var(--bg);
-    flex-wrap: wrap
+.wsp-e {
+    min-width: 16px;
+    height: 16px;
+    background: rgba(255, 255, 255, .6);
+    color: var(--s1)
 }
 
-.wmnow {
-    flex: 1;
-    min-width: 140px
-}
-
-.wmnow input[type=range] {
-    width: 100%;
-    margin: 4px 0 0
-}
-
-.wmctl {
-    display: flex;
-    align-items: center;
-    gap: 4px
-}
-
-.wmctl button {
-    border: 0;
-    background: transparent;
-    color: var(--ink);
-    font-size: 18px;
-    cursor: pointer;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%
-}
-
-.wmctl button.big {
-    background: var(--pri);
+.wsp-src {
+    height: 16px;
+    padding: 0 4px;
+    border: 1px solid rgba(255, 255, 255, .5);
     color: #fff
 }
 
-.wmctl input[type=range] {
-    width: 70px
+.wsp-like,
+.wsp-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--sm);
+    cursor: pointer;
+    flex: 0 0 auto
 }
 
-.wmnote {
-    margin: 4px 10px 6px;
-    font-size: 11.5px
+.wsp-like:hover,
+.wsp-more:hover {
+    color: #fff;
+    transform: scale(1.04)
+}
+
+.wsp-like.on {
+    color: var(--sg)
+}
+
+.wsp-tr .wsp-like:not(.on),
+.wsp-tr .wsp-more,
+.wsp-qr .wsp-more {
+    visibility: hidden
+}
+
+.wsp-tr:hover .wsp-like,
+.wsp-tr:hover .wsp-more,
+.wsp-qr:hover .wsp-more {
+    visibility: visible
+}
+
+.wsp-d {
+    text-align: right;
+    font-variant-numeric: tabular-nums
+}
+
+/* Playlist-/Album-/Künstlerseite */
+.wsp-colh {
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    padding: 56px 24px 24px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, .5)), var(--c);
+    min-height: 240px
+}
+
+.wsp-colh>img,
+.wsp-colh>.wsp-noimg {
+    width: 192px;
+    height: 192px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 4px 60px rgba(0, 0, 0, .5);
+    flex: 0 0 auto;
+    font-size: 72px
+}
+
+.wsp-colh>.round {
+    border-radius: 50%
+}
+
+.wsp-colh>div {
+    min-width: 0
+}
+
+.wsp-colh small {
+    font-size: 14px
+}
+
+.wsp-colh h1 {
+    font-size: clamp(28px, 7cqi, 80px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -.04em;
+    margin: 6px 0 12px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow-wrap: anywhere
+}
+
+.wsp-colh p {
+    margin: 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, .75)
+}
+
+.wsp-acts {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    background: linear-gradient(rgba(0, 0, 0, .6), var(--s1)), var(--c)
+}
+
+.wsp-col .wsp-pad {
+    padding-top: 0
+}
+
+.wsp-play {
+    width: 56px;
+    height: 56px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--sg);
+    color: #000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform .1s, background .1s
+}
+
+.wsp-play:hover {
+    transform: scale(1.04);
+    background: var(--sg2)
+}
+
+.wsp-qr {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer
+}
+
+.wsp-qr:hover {
+    background: rgba(255, 255, 255, .1)
+}
+
+.wsp-qr>span:not(.wsp-noimg) {
+    flex: 1;
+    min-width: 0
+}
+
+.wsp-qr b,
+.wsp-qr small {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400
+}
+
+.wsp-qr b {
+    color: #fff;
+    font-size: 16px
+}
+
+.wsp-qr small {
+    color: var(--sm)
+}
+
+.wsp-qr.on b {
+    color: var(--sg)
+}
+
+.wsp-libfull .wsp-libh {
+    padding-left: 0
+}
+
+/* Rechts: „Wird gerade gespielt“ */
+.wsp-np-in {
+    padding: 16px
+}
+
+#wmView.np .wsp-np-in {
+    max-width: 560px;
+    margin: 0 auto
+}
+
+.wsp-nph {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 16px
+}
+
+.wsp-nph b {
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.wsp-vid {
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--sm);
+    font-size: 12px;
+    overflow: hidden
+}
+
+.wsp-npart img,
+.wsp-npart .wsp-noimg {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
+    font-size: 72px
+}
+
+.wsp-npt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 16px 0 8px
+}
+
+.wsp-npt>div {
+    flex: 1;
+    min-width: 0
+}
+
+.wsp-npt h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.wsp-npt small {
+    color: var(--sm);
+    font-size: 16px
+}
+
+.wsp-npt .wsp-like {
+    visibility: visible
+}
+
+.wsp-box {
+    background: #242424;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    color: var(--sm);
+    font-size: 14px
+}
+
+.wsp-box>b,
+.wsp-box .wsp-sech b {
+    display: block;
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 8px
+}
+
+.wsp-box p {
+    margin: 6px 0
+}
+
+.wsp-box a {
+    color: #fff
+}
+
+.wsp-box .wsp-qr {
+    margin: 0 -8px
+}
+
+.wsp-fine {
+    font-size: 12px;
+    opacity: .8
+}
+
+.wsp-npe {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+    color: var(--sm);
+    padding: 40px 20px;
+    min-height: 100%
+}
+
+/* Player-Leiste unten */
+.wsp-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 30%) minmax(0, 40%) minmax(0, 30%);
+    align-items: center;
+    height: 72px;
+    padding: 0 8px;
+    flex: 0 0 auto
+}
+
+.wsp-bl {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0
+}
+
+.wsp-bimg {
+    width: 56px;
+    height: 56px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex: 0 0 auto
+}
+
+.wsp-bt {
+    min-width: 0;
+    cursor: pointer
+}
+
+.wsp-bt b,
+.wsp-bt small {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400
+}
+
+.wsp-bt b {
+    font-size: 14px
+}
+
+.wsp-bt small {
+    font-size: 12px;
+    color: var(--sm)
+}
+
+.wsp-bt:hover b {
+    text-decoration: underline
+}
+
+.wsp-bc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    max-width: 722px;
+    justify-self: center
+}
+
+.wsp-ctl {
+    display: flex;
+    align-items: center;
+    gap: 16px
+}
+
+.wsp-pp {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: #000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform .1s
+}
+
+.wsp-pp:hover {
+    transform: scale(1.06)
+}
+
+.wsp-spin {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #000;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: wspSpin .8s linear infinite
+}
+
+@keyframes wspSpin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+.wsp-prog {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%
+}
+
+.wsp-prog small {
+    min-width: 40px;
+    font-size: 12px;
+    color: #a7a7a7;
+    font-variant-numeric: tabular-nums
+}
+
+.wsp-prog small:first-child {
+    text-align: right
+}
+
+.wsp-br {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0
+}
+
+.wsp-rng {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    min-width: 0;
+    height: 12px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    --p: 0%;
+    --f: #fff
+}
+
+.wsp-rng:hover {
+    --f: var(--sg)
+}
+
+.wsp-rng::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--f) var(--p), #4d4d4d var(--p))
+}
+
+.wsp-rng::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    margin-top: -4px;
+    border-radius: 50%;
+    background: #fff;
+    border: 0;
+    opacity: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .5)
+}
+
+.wsp-rng:hover::-webkit-slider-thumb,
+.wsp-rng:focus-visible::-webkit-slider-thumb {
+    opacity: 1
+}
+
+.wsp-rng::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: #4d4d4d
+}
+
+.wsp-rng::-moz-range-progress {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--f)
+}
+
+.wsp-rng::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0
+}
+
+.wsp-rng:hover::-moz-range-thumb {
+    opacity: 1
+}
+
+.wsp-vol {
+    flex: 0 1 93px
+}
+
+/* Menü (Modal, hell oder dunkel je nach Lernhub-Design) */
+.wsp-menu {
+    display: flex;
+    flex-direction: column;
+    min-width: min(320px, 80vw)
+}
+
+.wsp-menu>button,
+.wsp-menu>a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer
+}
+
+.wsp-menu>button:hover,
+.wsp-menu>a:hover {
+    background: var(--pri-l)
+}
+
+.wsp-menu small {
+    margin-left: auto;
+    color: var(--mut)
+}
+
+.wsp-mh {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 8px 12px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--line)
+}
+
+.wsp-mh>img,
+.wsp-mh>.wsp-noimg {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    object-fit: cover
+}
+
+.wsp-mh>div {
+    min-width: 0
+}
+
+.wsp-mh b,
+.wsp-mh small {
+    display: block;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.wsp-menu .wsp-mx {
+    justify-content: center;
+    margin-top: 8px;
+    border: 1px solid var(--line)
+}
+
+/* Kleinere Fenster: Bibliothek als Symbolleiste, ganz schmal wie die Spotify-App am Handy */
+@container (max-width: 1000px) {
+    .wsp-main {
+        grid-template-columns: 72px minmax(0, 1fr) auto
+    }
+
+    .wsp-lib .wsp-libt b,
+    .wsp-lib .wsp-chips,
+    .wsp-lib .wsp-li>span:not(.wsp-noimg):not(.wsp-liked),
+    .wsp-lib .wsp-li>svg,
+    .wsp-lib .wsp-libh>.wsp-ib {
+        display: none
+    }
+
+    .wsp-lib .wsp-libh {
+        justify-content: center;
+        padding: 4px 0 8px
+    }
+
+    .wsp-lib .wsp-li {
+        justify-content: center;
+        padding: 6px 0
+    }
+
+    .wsp-np {
+        width: 280px
+    }
+
+    .wsp-tr {
+        grid-template-columns: 24px minmax(120px, 1fr) 32px 50px 32px
+    }
+
+    .wsp-tr .wsp-alb {
+        display: none
+    }
+
+    .wsp-tops {
+        grid-template-columns: 1fr
+    }
+}
+
+@container (max-width: 760px) {
+    .wsp-np {
+        display: none
+    }
+
+    .wsp-colh {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-top: 24px;
+        min-height: 0
+    }
+
+    .wsp-colh>img,
+    .wsp-colh>.wsp-noimg,
+    .wsp-liked.big {
+        width: 150px;
+        height: 150px;
+        align-self: center
+    }
+}
+
+@container (max-width: 560px) {
+    .wsp {
+        padding: 4px 4px 0;
+        gap: 4px
+    }
+
+    .wsp-main {
+        grid-template-columns: minmax(0, 1fr)
+    }
+
+    .wsp-lib,
+    #wmFwd {
+        display: none
+    }
+
+    .wsp-libbtn {
+        display: inline-flex
+    }
+
+    .wsp-home {
+        width: 40px;
+        height: 40px;
+        margin-left: 0
+    }
+
+    .wsp-search {
+        height: 40px;
+        flex: 1
+    }
+
+    .wsp-pad {
+        padding: 12px 12px 20px
+    }
+
+    .wsp-hero {
+        padding: 12px
+    }
+
+    .wsp-tr {
+        grid-template-columns: minmax(0, 1fr) 32px;
+        gap: 8px;
+        padding: 0 8px
+    }
+
+    .wsp-tr>.wsp-n,
+    .wsp-tr>.wsp-alb,
+    .wsp-tr>.wsp-d,
+    .wsp-tr>.wsp-like,
+    .wsp-th {
+        display: none !important
+    }
+
+    .wsp-tr .wsp-more {
+        visibility: visible
+    }
+
+    .wsp-tl.noalb .wsp-tr {
+        grid-template-columns: minmax(0, 1fr) 32px
+    }
+
+    .wsp-quick {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .wsp-qp {
+        display: none
+    }
+
+    .wsp-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        height: auto;
+        padding: 6px 4px;
+        gap: 4px 8px
+    }
+
+    .wsp-bc {
+        display: contents
+    }
+
+    .wsp-ctl {
+        grid-column: 2;
+        grid-row: 1;
+        gap: 4px
+    }
+
+    .wsp-ctl>.wsp-ib:first-child,
+    .wsp-ctl>.wsp-ib:last-child,
+    .wsp-br {
+        display: none
+    }
+
+    .wsp-prog {
+        grid-column: 1 / -1;
+        grid-row: 2
+    }
+
+    .wsp-prog small {
+        display: none
+    }
+
+    .wsp-bimg {
+        width: 40px;
+        height: 40px
+    }
+}
+
+/* Das YouTube-Video der Musik: im Fenster über dem Platzhalter, sonst schwebend unten rechts */
+.wmytbox {
+    position: fixed;
+    z-index: 58;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden
+}
+
+.wmytbox[hidden] {
+    display: none
+}
+
+.wmytbox.float {
+    right: 16px;
+    bottom: 16px;
+    width: min(340px, calc(100vw - 32px));
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
+    border: 1px solid #282828
+}
+
+@media (max-width: 900px) {
+    .wmytbox.float {
+        bottom: calc(76px + env(safe-area-inset-bottom))
+    }
+
+    body.wsfull .wmytbox.float {
+        bottom: 12px
+    }
+}
+
+.wmythead {
+    display: none
+}
+
+.wmytbox.float .wmythead {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 4px 4px 10px;
+    background: #181818;
+    color: #fff;
+    font-family: "Circular Std", "Helvetica Neue", Helvetica, Arial, sans-serif
+}
+
+.wmythead b {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.wmythead button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: #b3b3b3;
+    cursor: pointer
+}
+
+.wmythead button:hover {
+    color: #fff;
+    background: #2a2a2a
+}
+
+.wmytin {
+    position: relative;
+    flex: 1;
+    min-height: 0
+}
+
+.wmytbox.float .wmytin {
+    flex: 0 0 auto;
+    aspect-ratio: 16/9
+}
+
+.wmytin iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0
+}
+
+/* 🎬 Video */
+.wv {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--bg)
+}
+
+.wv-src {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0
+}
+
+.wv-main {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px
+}
+
+.wv-left {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto
+}
+
+.wv-stage {
+    position: relative;
+    aspect-ratio: 16/9;
+    max-height: 72vh;
+    width: 100%;
+    background: #000;
+    color: #fff
+}
+
+.wv-stage>iframe,
+.wv-stage>video,
+.wv-stage>#wvYt {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #000
+}
+
+.wv-msg,
+.wv-load {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    padding: 16px
+}
+
+.wv-msg.float {
+    inset: auto 8px 56px 8px;
+    background: rgba(0, 0, 0, .75);
+    border-radius: 8px;
+    padding: 8px
+}
+
+.wv-info {
+    padding: 10px 14px
+}
+
+.wv-info h3 {
+    margin: 0 0 4px;
+    font-size: 17px
+}
+
+.wv-info a {
+    color: var(--pri)
+}
+
+.wv-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px
+}
+
+.wv-tools select.fi {
+    width: auto;
+    margin: 0 0 0 4px;
+    padding: 4px 6px
+}
+
+.wv-list {
+    min-height: 0;
+    overflow: auto;
+    border-left: 1px solid var(--line);
+    padding: 6px 8px
+}
+
+.wv-sec {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 4px 6px;
+    font-weight: 700
+}
+
+.wv-tips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 4px
+}
+
+.wv .wsp-chip {
+    background: var(--pri-l);
+    color: var(--ink);
+    border: 1px solid var(--line)
+}
+
+.wv .wsp-chip:hover {
+    border-color: var(--pri)
+}
+
+.wv-item {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    padding: 6px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer
+}
+
+.wv-item:hover,
+.wv-item.on {
+    background: var(--pri-l)
+}
+
+.wv-item>span:last-child {
+    min-width: 0
+}
+
+.wv-item b {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 13.5px;
+    line-height: 1.3
+}
+
+.wv-item small {
+    display: block;
+    color: var(--mut);
+    font-size: 12px;
+    margin-top: 3px
+}
+
+.wv-th {
+    position: relative;
+    width: 150px;
+    aspect-ratio: 16/9;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.wv-th img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+.wv-th i {
+    font-style: normal;
+    font-size: 28px
+}
+
+.wv-th em {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(0, 0, 0, .8);
+    color: #fff;
+    padding: 1px 4px;
+    border-radius: 4px
+}
+
+@container (max-width: 720px) {
+    .wv-main {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        overflow: auto
+    }
+
+    .wv-left {
+        overflow: visible
+    }
+
+    .wv-list {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        overflow: visible
+    }
+
+    .wv-th {
+        width: 120px
+    }
+}
+
+/* 🧠 Lernhub als Fenster */
+.wlframe {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    background: var(--bg)
 }
 
 /* 📄 Text */
@@ -1248,11 +3437,359 @@ body.dark .wwframe {
     }
 
     .wsbtns button:not(:last-child),
-    .wsrs {
+    .wsrs,
+    .wsnomob {
         display: none
     }
 }
 
 .wssbar {
     display: none
+}
+
+/* 🖥️ Desktop-Modus (PC): Hintergrundbild, Symbole, Taskleiste, Start-Menü, Minimieren */
+.wswin.min,
+.wsicons,
+.wstask,
+.wsdtonly {
+    display: none
+}
+
+.ws.dt {
+    position: relative
+}
+
+.ws.dt .wsbar,
+.ws.dt .wsempty {
+    display: none
+}
+
+.ws.dt .wsbtns .wsdtonly {
+    display: inline-block
+}
+
+.ws.dt .wsdesk {
+    border: 0;
+    border-radius: 10px 10px 0 0;
+    background:
+        radial-gradient(ellipse 60% 70% at 30% 105%, rgba(40, 120, 255, .85), transparent 70%),
+        radial-gradient(ellipse 55% 60% at 80% -5%, rgba(140, 92, 255, .8), transparent 70%),
+        radial-gradient(ellipse 40% 40% at 60% 60%, rgba(0, 209, 178, .35), transparent 70%),
+        linear-gradient(135deg, #0b1636, #151040 60%, #0a1a33)
+}
+
+body.wsfull .ws.dt {
+    padding: 0
+}
+
+body.wsfull .ws.dt .wsdesk,
+body.wsfull .ws.dt .wstask {
+    border-radius: 0
+}
+
+.ws.dt .wsicons {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    bottom: 10px;
+    z-index: 0;
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(auto-fill, 90px);
+    grid-auto-columns: 84px;
+    gap: 4px
+}
+
+.wsicon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 2px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: none;
+    color: #fff;
+    font: inherit;
+    cursor: default
+}
+
+.wsicon span {
+    font-size: 34px;
+    line-height: 1.1;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4))
+}
+
+.wsicon small {
+    font-size: 12px;
+    line-height: 1.25;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .9)
+}
+
+.wsicon:hover {
+    background: rgba(255, 255, 255, .12);
+    border-color: rgba(255, 255, 255, .18)
+}
+
+.wsicon:focus-visible {
+    outline: none;
+    background: rgba(255, 255, 255, .22);
+    border-color: rgba(255, 255, 255, .4)
+}
+
+.ws.dt .wstask {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 48px;
+    padding: 0 0 0 8px;
+    flex: 0 0 auto;
+    background: rgba(26, 26, 38, .92);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 0 0 10px 10px;
+    color: #fff;
+    overflow-x: auto;
+    scrollbar-width: none
+}
+
+.wstb {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    flex: 0 0 auto
+}
+
+.wstb>span {
+    font-size: 20px;
+    line-height: 1
+}
+
+.wstb:hover {
+    background: rgba(255, 255, 255, .1)
+}
+
+.wstb.on {
+    background: rgba(255, 255, 255, .13)
+}
+
+.wstb.run::after {
+    content: "";
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    width: 6px;
+    height: 3px;
+    margin-left: -3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, .55);
+    transition: width .2s, margin .2s
+}
+
+.wstb.on::after {
+    width: 16px;
+    margin-left: -8px;
+    background: #4cc2ff
+}
+
+.wstb i {
+    position: absolute;
+    top: 2px;
+    right: 1px;
+    font-style: normal;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 14px;
+    padding: 0 4px;
+    border-radius: 7px;
+    background: #4cc2ff;
+    color: #000
+}
+
+.wstsearch {
+    background: rgba(255, 255, 255, .08);
+    border-radius: 20px;
+    padding: 0 14px;
+    margin: 0 6px 0 2px;
+    height: 34px;
+    font-size: 13px
+}
+
+.wstsearch span {
+    font-size: 13px !important;
+    color: #ccc
+}
+
+.wstray {
+    padding: 0 10px;
+    background: rgba(30, 215, 96, .14)
+}
+
+.wstray>span {
+    font-size: 14px
+}
+
+.wstray small {
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px
+}
+
+.wsclock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 0 8px;
+    font-size: 12px;
+    line-height: 1.3;
+    cursor: default;
+    flex: 0 0 auto
+}
+
+.wsclock b {
+    font-weight: 400
+}
+
+.wsdeskb {
+    align-self: stretch;
+    width: 8px;
+    border: 0;
+    border-left: 1px solid rgba(255, 255, 255, .25);
+    background: transparent;
+    cursor: pointer;
+    flex: 0 0 auto
+}
+
+.wsdeskb:hover {
+    background: rgba(255, 255, 255, .15)
+}
+
+.wsstart {
+    position: absolute;
+    left: 50%;
+    bottom: 56px;
+    z-index: 5;
+    transform: translateX(-50%);
+    width: min(660px, calc(100% - 24px));
+    max-height: calc(100% - 80px);
+    overflow: auto;
+    padding: 22px 24px 0;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 10px;
+    background: rgba(32, 32, 46, .94);
+    backdrop-filter: blur(30px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+    color: #fff;
+    animation: wsUp .18s ease-out
+}
+
+@keyframes wsUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 16px)
+    }
+}
+
+.wsstart .fi {
+    margin: 0;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .15);
+    color: #fff
+}
+
+.wsstart .fi::placeholder {
+    color: #aaa
+}
+
+.wssec {
+    margin: 16px 4px 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ddd
+}
+
+.wsstartg {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 4px
+}
+
+.wsstartg button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 4px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: #fff;
+    font: inherit;
+    cursor: pointer
+}
+
+.wsstartg button:hover {
+    background: rgba(255, 255, 255, .1)
+}
+
+.wsstartg span {
+    font-size: 28px;
+    line-height: 1.1
+}
+
+.wsstartg small {
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.25
+}
+
+.wsstartf {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px -24px 0;
+    padding: 12px 24px;
+    background: rgba(20, 20, 30, .96);
+    border-top: 1px solid rgba(255, 255, 255, .08);
+    font-size: 13px
+}
+
+.wsstartf .wstool {
+    background: transparent;
+    color: #fff;
+    border-color: rgba(255, 255, 255, .2)
+}
+
+/* 🧠 Lernhub-Seite im Fenster (index.html?fenster=1): nur der Inhalt */
+body.lhembed #side,
+body.lhembed #top,
+body.lhembed #mnav,
+body.lhembed #fab,
+body.lhembed #chat {
+    display: none !important
+}
+
+body.lhembed #shell {
+    margin-left: 0
+}
+
+body.lhembed #app {
+    padding: 14px 14px 40px
 }

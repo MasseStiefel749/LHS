@@ -1,4 +1,5 @@
-/* 🧑‍💻 Arbeitsplatz: frei verschieb- und vergrößerbare Fenster (Code, Text, Tabelle, Folien, KI, Musik, Web).
+/* 🧑‍💻 Arbeitsplatz: frei verschieb- und vergrößerbare Fenster (Code, Text, Tabelle, Folien, KI, Musik, Video, Web, Lernhub).
+   Am PC als Desktop mit Taskleiste und Start-Menü (oder klassisch mit Dock).
    Läuft komplett im Browser – auch auf GitHub Pages und am Handy (dort als Tabs oder geteilter Bildschirm).
    Gespeichert wird nur auf diesem Gerät (localStorage), nicht im Konto. Die Apps stehen in js/ws-*.js. */
 const WS_KEY = "lh-ws-v1";
@@ -31,10 +32,12 @@ function wsLoad() {
           h: wsNum(w.h, 15, 100, 70),
           z: wsNum(w.z, 1, 1e6, 1),
           max: !!w.max,
+          min: !!w.min,
           url: typeof w.url === "string" ? w.url.slice(0, 600) : "",
         }));
     d.z = Math.max(1, ...d.wins.map((w) => w.z));
     d.split = !!o.split;
+    d.classic = !!o.classic;
     d.ratio = wsNum(o.ratio, 20, 80, 50);
     if (o.data && typeof o.data === "object" && !Array.isArray(o.data)) d.data = o.data;
   } catch (e) {}
@@ -53,7 +56,7 @@ function wsSaveNow() {
   WS_SAVE_T = 0;
   Object.values(WS_APPS).forEach((a) => a.flush && a.flush());
   try {
-    localStorage.setItem(WS_KEY, JSON.stringify({ wins: WS.wins, split: WS.split, ratio: WS.ratio, data: WS.data }));
+    localStorage.setItem(WS_KEY, JSON.stringify({ wins: WS.wins, split: WS.split, ratio: WS.ratio, classic: WS.classic, data: WS.data }));
   } catch (e) {
     toast("⚠️ Arbeitsplatz konnte nicht gespeichert werden (Speicher voll?)");
   }
@@ -78,8 +81,9 @@ function renderWs() {
         `<button class="wsdock" onclick="wsOpen('${id}')" title="${esc(a.name)} öffnen"><span>${a.icon}</span><small>${esc(a.short || a.name)}</small></button>`,
     )
     .join("");
-  $("app").innerHTML = `<div class="ws" id="ws">
+  $("app").innerHTML = `<div class="ws${wsDt() ? " dt" : ""}" id="ws">
     <div class="wsbar">${dock}<span class="wsgap"></span>
+      <button class="wstool wsnomob" onclick="wsClassic(false)" title="Desktop-Ansicht mit Taskleiste" aria-label="Desktop-Ansicht">🖥️</button>
       <button class="wstool" onclick="wsTile()" title="Alle Fenster nebeneinander anordnen" aria-label="Anordnen">⊞</button>
       <button class="wstool wsonlymob" id="wsSplitBtn" onclick="wsSplit()" title="Zwei Fenster übereinander" aria-label="Teilen">${WS.split ? "▭" : "⬓"}</button>
       <button class="wstool" id="wsFullBtn" onclick="wsFull()" title="Vollbild an/aus" aria-label="Vollbild">${WS.fs ? "🗗" : "⛶"}</button>
@@ -93,10 +97,13 @@ function renderWs() {
         Am Handy wechselst du über die Tabs oder teilst den Bildschirm mit ⬓ (Trennlinie verschiebbar).</p>
         <button class="btn sm" onclick="wsStarter()">🚀 Programmieren mit KI starten</button></div>
       <div class="wscur" id="wsCur" hidden><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M3 2l7 19 2.6-7.6L20 11z" fill="#7c5cff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg><span>KI</span></div>
+      <div class="wsicons" id="wsIcons"></div>
     </div>
+    <div class="wstask" id="wsTask"></div>
   </div>`;
   WS.wins.forEach(wsMount);
-  if (!WS.wins.some((w) => w.id === WS.act)) WS.act = (WS.wins.slice().sort((a, b) => b.z - a.z)[0] || {}).id || "";
+  if (!WS.wins.some((w) => w.id === WS.act)) WS.act = (WS.wins.filter((w) => !w.min).sort((a, b) => b.z - a.z)[0] || {}).id || "";
+  wsIconsPaint();
   wsPaint();
   wsMiniPaint();
 }
@@ -118,7 +125,7 @@ function wsMount(w) {
   el.setAttribute("aria-label", a.name);
   el.innerHTML = `<header class="wshead" onpointerdown="wsGrab(event,'${w.id}')" ondblclick="wsMax('${w.id}')">
       <span class="wsico">${a.icon}</span><b class="wstitle">${esc(wsTitle(w))}</b>
-      <span class="wsbtns"><button onclick="wsSnap('${w.id}','l')" title="Links andocken" aria-label="Links andocken">◧</button><button onclick="wsSnap('${w.id}','r')" title="Rechts andocken" aria-label="Rechts andocken">◨</button><button onclick="wsMax('${w.id}')" title="Maximieren" aria-label="Maximieren">▢</button><button onclick="wsClose('${w.id}')" title="Schließen" aria-label="Schließen">✕</button></span>
+      <span class="wsbtns"><button onclick="wsMin('${w.id}')" title="Minimieren" aria-label="Minimieren" class="wsdtonly">—</button><button onclick="wsSnap('${w.id}','l')" title="Links andocken" aria-label="Links andocken">◧</button><button onclick="wsSnap('${w.id}','r')" title="Rechts andocken" aria-label="Rechts andocken">◨</button><button onclick="wsMax('${w.id}')" title="Maximieren" aria-label="Maximieren">▢</button><button onclick="wsClose('${w.id}')" title="Schließen" aria-label="Schließen">✕</button></span>
     </header><div class="wsbody"></div><i class="wsrs" onpointerdown="wsGrab(event,'${w.id}',1)"></i>`;
   el.addEventListener("pointerdown", () => wsFocus(w.id), true);
   desk.appendChild(el);
@@ -158,6 +165,7 @@ function wsPlace(w) {
   el.style.height = (m ? 100 : w.h) + "%";
   el.style.zIndex = w.z;
   el.classList.toggle("max", m);
+  el.classList.toggle("min", !!w.min);
 }
 function wsPaint() {
   const tabs = $("wsTabs");
@@ -178,6 +186,7 @@ function wsPaint() {
     .join("");
   const e = $("wsEmpty");
   if (e) e.hidden = WS.wins.length > 0;
+  wsTaskPaint();
 }
 
 /* ---------- Fenster-Verwaltung ---------- */
@@ -205,7 +214,7 @@ function wsOpen(app, opts) {
     };
     WS.wins.push(w);
     wsMount(w);
-  }
+  } else if (opts && opts.url && a.go) a.go(w, opts.url);
   wsFocus(w.id);
   wsSave();
   return w;
@@ -213,14 +222,16 @@ function wsOpen(app, opts) {
 function wsFocus(id) {
   const w = wsWin(id);
   if (!w) return;
+  if (w.min) {
+    w.min = false;
+    wsSave();
+  }
   if (WS.act !== id) {
     WS.act2 = WS.act;
     WS.act = id;
   }
-  if (w.z < WS.z) {
-    w.z = ++WS.z;
-    wsPlace(w);
-  }
+  if (w.z < WS.z) w.z = ++WS.z;
+  wsPlace(w);
   wsPaint();
   const a = WS_APPS[w.app];
   if (a.shown) a.shown(w);
@@ -233,7 +244,33 @@ function wsClose(id) {
   const el = document.getElementById(id);
   if (el) el.remove();
   WS.wins.splice(i, 1);
-  if (WS.act === id) WS.act = WS.act2 && wsWin(WS.act2) ? WS.act2 : (WS.wins[WS.wins.length - 1] || {}).id || "";
+  if (WS.act === id) WS.act = WS.act2 && wsWin(WS.act2) && !wsWin(WS.act2).min ? WS.act2 : wsTopId();
+  wsPaint();
+  wsSave();
+}
+const wsTopId = () => (WS.wins.filter((w) => !w.min).sort((a, b) => b.z - a.z)[0] || {}).id || "";
+function wsMin(id) {
+  const w = wsWin(id);
+  if (!w) return;
+  w.min = true;
+  wsPlace(w);
+  if (WS.act === id) WS.act = wsTopId();
+  wsPaint();
+  wsSave();
+}
+// „Desktop anzeigen“: alles minimieren – nochmal klicken holt dieselben Fenster zurück
+function wsShowDesk() {
+  const open = WS.wins.filter((w) => !w.min);
+  const set = (list, min) =>
+    list.forEach((w) => {
+      w.min = min;
+      wsPlace(w);
+    });
+  if (open.length) {
+    WS.peek = open.map((w) => w.id);
+    set(open, true);
+  } else set((WS.peek || []).map(wsWin).filter(Boolean), false);
+  WS.act = wsTopId();
   wsPaint();
   wsSave();
 }
@@ -303,6 +340,7 @@ function wsFull() {
   document.body.classList.toggle("wsfull", WS.fs);
   const b = $("wsFullBtn");
   if (b) b.textContent = WS.fs ? "🗗" : "⛶";
+  wsTaskPaint();
 }
 /* Verschieben (Titelleiste) und Größe ändern (Ecke) – Maus, Stift und Finger */
 function wsGrab(e, id, resize) {
@@ -408,11 +446,159 @@ async function wsTypeInto(set, text) {
   }
 }
 
+/* ---------- Desktop-Modus am PC: Hintergrund, Symbole, Taskleiste mit Start-Menü, Minimieren ---------- */
+function wsDt() {
+  return !WS.classic && !WS_MOBILE.matches;
+}
+WS_MOBILE.addEventListener("change", () => {
+  const ws = $("ws");
+  if (ws) ws.classList.toggle("dt", wsDt());
+  wsPaint();
+});
+function wsClassic(on) {
+  WS.classic = !!on;
+  const ws = $("ws");
+  if (ws) ws.classList.toggle("dt", wsDt());
+  wsStartClose();
+  wsPaint();
+  wsSave();
+  toast(on ? "Klassische Ansicht – 🖥️ oben rechts schaltet den Desktop wieder ein" : "Desktop-Ansicht an");
+}
+const wsAppList = () => Object.entries(WS_APPS).sort((a, b) => a[1].order - b[1].order);
+function wsIconsPaint() {
+  const el = $("wsIcons");
+  if (!el) return;
+  el.innerHTML = wsAppList()
+    .map(
+      ([id, a]) =>
+        `<button class="wsicon" ondblclick="wsOpen('${id}')" onkeydown="if(event.key==='Enter')wsOpen('${id}')" title="${esc(a.name)} – Doppelklick zum Öffnen"><span>${a.icon}</span><small>${esc(a.short || a.name)}</small></button>`,
+    )
+    .join("");
+}
+function wsTaskApp(id) {
+  const wins = WS.wins.filter((w) => w.app === id);
+  if (!wins.length) return wsOpen(id);
+  const top = wins.slice().sort((a, b) => b.z - a.z)[0];
+  if (wins.length === 1 && top.id === WS.act && !top.min) return wsMin(top.id);
+  // Mehrere Fenster einer App: der Reihe nach durchschalten
+  const i = wins.findIndex((w) => w.id === WS.act);
+  wsFocus(i >= 0 ? wins[(i + 1) % wins.length].id : top.id);
+}
+function wsTaskPaint() {
+  const el = $("wsTask");
+  if (!el) return;
+  const act = wsWin(WS.act);
+  const pl = typeof wsMusPlaying === "function" && WS_NOW ? wsMusPlaying() : null;
+  el.innerHTML = `<button class="wstb wsstartb" id="wsStartB" onclick="wsStartMenu()" title="Start" aria-label="Start"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#4cc2ff" d="M3 3h8.5v8.5H3zm9.5 0H21v8.5h-8.5zM3 12.5h8.5V21H3zm9.5 0H21V21h-8.5z"/></svg></button>
+    <button class="wstb wstsearch" onclick="wsStartMenu('')" title="Suchen" aria-label="Suchen">🔎 <span>Suchen</span></button>
+    ${wsAppList()
+      .map(([id, a]) => {
+        const wins = WS.wins.filter((w) => w.app === id);
+        const on = act && act.app === id && !act.min;
+        const tip = wins.length ? wins.map((w) => wsTitle(w)).join(" · ") : a.name + " öffnen";
+        return `<button class="wstb${wins.length ? " run" : ""}${on ? " on" : ""}" onclick="wsTaskApp('${id}')" title="${esc(tip)}" aria-label="${esc(a.name)}"><span>${a.icon}</span>${wins.length > 1 ? `<i>${wins.length}</i>` : ""}</button>`;
+      })
+      .join("")}
+    <span class="wsgap"></span>
+    ${pl !== null ? `<button class="wstb wstray" onclick="wsOpen('musik')" title="${esc(WS_NOW.title + " – " + WS_NOW.artist)}"><span onclick="event.stopPropagation();wsMusToggle()">${pl ? "⏸" : "▶"}</span><small>${esc(WS_NOW.title.slice(0, 22))}</small></button>` : ""}
+    <button class="wstb" onclick="wsTile()" title="Alle Fenster anordnen" aria-label="Anordnen">⊞</button>
+    <button class="wstb" onclick="wsFull()" title="Vollbild an/aus" aria-label="Vollbild">${WS.fs ? "🗗" : "⛶"}</button>
+    <span class="wsclock" id="wsClock" title="${esc(new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }))}">${wsClockH()}</span>
+    <button class="wsdeskb" onclick="wsShowDesk()" title="Desktop anzeigen" aria-label="Desktop anzeigen"></button>`;
+}
+function wsClockH() {
+  const d = new Date();
+  return `<b>${d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</b><small>${d.toLocaleDateString("de-DE")}</small>`;
+}
+setInterval(() => {
+  const c = document.getElementById("wsClock");
+  if (c) c.innerHTML = wsClockH();
+}, 15000);
+function wsStartClose() {
+  const m = $("wsStart");
+  if (m) m.remove();
+  document.removeEventListener("pointerdown", wsStartOut, true);
+}
+function wsStartOut(e) {
+  if (!e.target.closest("#wsStart,#wsStartB,.wstsearch")) wsStartClose();
+}
+function wsStartMenu(q) {
+  if ($("wsStart") && q === undefined) return wsStartClose();
+  wsStartClose();
+  const ws = $("ws");
+  if (!ws) return;
+  const m = document.createElement("div");
+  m.className = "wsstart";
+  m.id = "wsStart";
+  m.setAttribute("role", "dialog");
+  m.setAttribute("aria-label", "Start");
+  const name = (window.S && S.profile && S.profile.name) || "Du";
+  m.innerHTML = `<input class="fi" id="wsStartQ" placeholder="Nach Apps und Lernhub-Bereichen suchen" autocomplete="off" oninput="wsStartList(this.value)" onkeydown="if(event.key==='Escape')wsStartClose();if(event.key==='Enter'){const b=document.querySelector('#wsStartL button');if(b)b.click()}">
+    <div id="wsStartL"></div>
+    <div class="wsstartf"><span>🙂 ${esc(name)}</span><span class="wsgap"></span>
+      <button class="wstool" onclick="wsClassic(true)" title="Ohne Desktop (Dock oben)">Klassische Ansicht</button>
+      <button class="wstool" onclick="wsStartClose();go('home')" title="Arbeitsplatz verlassen">⏻ Zum Dashboard</button></div>`;
+  ws.appendChild(m);
+  wsStartList(q || "");
+  setTimeout(() => {
+    const i = $("wsStartQ");
+    if (i) i.focus();
+    document.addEventListener("pointerdown", wsStartOut, true);
+  }, 0);
+}
+function wsStartList(q) {
+  const el = $("wsStartL");
+  if (!el) return;
+  const n = (s) => String(s).toLowerCase();
+  q = n(q).trim();
+  const apps = wsAppList().filter(([id, a]) => id !== "lernhub" && (!q || n(a.name).includes(q)));
+  const lh = (typeof NAV !== "undefined" ? NAV : []).filter((x) => x[0] !== "ws" && (!q || n(x[2]).includes(q)));
+  el.innerHTML = `${apps.length ? `<p class="wssec">Apps</p><div class="wsstartg">${apps.map(([id, a]) => `<button onclick="wsStartClose();wsOpen('${id}')"><span>${a.icon}</span><small>${esc(a.name)}</small></button>`).join("")}</div>` : ""}
+    ${lh.length ? `<p class="wssec">Lernhub – öffnet als eigenes Fenster</p><div class="wsstartg">${lh.map((x) => `<button onclick="wsStartClose();wsOpen('lernhub',{url:'${x[0]}'})"><span>${x[1]}</span><small>${esc(x[2])}</small></button>`).join("")}</div>` : ""}
+    ${!apps.length && !lh.length ? `<p class="small mut" style="padding:10px">Nichts gefunden.</p>` : ""}`;
+}
+
+/* ---------- 🧠 Lernhub als Fenster: jeder Bereich (Lernpfad, Notizen, Planer …) gleichzeitig neben den Apps ---------- */
+const wsLhView = (v) => (/^[a-z]{2,12}$/.test(v) && v !== "ws" && typeof navItem === "function" && navItem(v) ? v : "home");
+WS_APPS.lernhub = {
+  icon: "🧠",
+  name: "Lernhub",
+  order: 0,
+  multi: true,
+  w: 52,
+  h: 82,
+  title: (w) => {
+    const n = typeof navItem === "function" && navItem(wsLhView(w.url));
+    return n ? n[1] + " " + n[2] : "Lernhub";
+  },
+  mount(w, body) {
+    w.url = wsLhView(w.url);
+    body.innerHTML = `<iframe class="wlframe" src="index.html?fenster=1&v=${w.url}" title="Lernhub – ${esc(wsTitle(w))}"></iframe>`;
+  },
+  go(w, v) {
+    w.url = wsLhView(v);
+    const f = document.querySelector(`#${w.id} .wlframe`);
+    if (f) f.src = `index.html?fenster=1&v=${w.url}`;
+    wsRetitle(w);
+  },
+  ctx: () => "Lernhub-Fenster: " + (WS.wins.filter((w) => w.app === "lernhub").map((w) => w.url).join(", ") || "keins"),
+};
+// Das Fenster meldet, welchen Bereich es gerade zeigt (für Titel und Taskleiste)
+window.addEventListener("message", (e) => {
+  if (e.origin !== location.origin || !e.data || typeof e.data.lhFenster !== "string") return;
+  const f = [...document.querySelectorAll(".wlframe")].find((x) => x.contentWindow === e.source);
+  const w = f && wsWin(f.closest(".wswin").id);
+  if (!w) return;
+  w.url = wsLhView(e.data.lhFenster);
+  wsRetitle(w);
+  wsSave();
+});
+
 /* ---------- Mini-Player, wenn außerhalb des Arbeitsplatzes Musik läuft ---------- */
 function wsMiniPaint() {
   let m = document.getElementById("wsMini");
-  const a = window.WS_AUDIO;
-  const show = !WS_ON && a && a.src && !a.paused;
+  // YouTube-Wiedergabe hat ihr eigenes schwebendes Fenster – der Mini-Player ist nur für Audius/Archiv
+  const show = !WS_ON && typeof wsMusPlaying === "function" && WS_P.mode === "a" && wsMusPlaying();
   if (!show) {
     if (m) m.hidden = true;
     return;
@@ -424,7 +610,7 @@ function wsMiniPaint() {
     document.body.appendChild(m);
   }
   m.hidden = false;
-  m.innerHTML = `<button onclick="WS_AUDIO.pause();wsMiniPaint()" title="Pause" aria-label="Pause">⏸</button><span onclick="wsOpen('musik')">🎵 ${esc((window.WS_NOW && WS_NOW.title) || "Musik")}</span>`;
+  m.innerHTML = `<button onclick="wsMusToggle()" title="Pause" aria-label="Pause">⏸</button><span onclick="wsOpen('musik')">🎵 ${esc((WS_NOW && WS_NOW.title) || "Musik")}</span>`;
 }
 
 /* ---------- Browser-Erweiterung „Lernhub Begleiter“ ---------- */
@@ -568,17 +754,22 @@ function wsZip(files, type) {
   return new Blob([...parts, ...dir, new Uint8Array(e.buffer)], { type: type || "application/zip" });
 }
 
-/* ---------- Start: #ws öffnet den Arbeitsplatz (z. B. aus der Erweiterung), #ws?ki=… füllt die KI-Frage vor ---------- */
+/* ---------- Start: #ws öffnet den Arbeitsplatz (z. B. aus der Erweiterung), #ws?ki=… füllt die KI-Frage vor,
+   #ws?musik=sp.playlist.ID / #ws?video=yt.ID sind geteilte Links aus Musik und Video ---------- */
 function wsFromHash() {
-  const m = /^#ws(?:\?ki=([^&]*))?$/.exec(location.hash || "");
+  const m = /^#ws(?:\?(ki|musik|video)=([^&]*))?$/.exec(location.hash || "");
   if (!m) return;
   history.replaceState(null, "", location.pathname + location.search);
   let q = "";
   try {
-    q = decodeURIComponent(m[1] || "").slice(0, 3000);
+    q = decodeURIComponent(m[2] || "").slice(0, 3000);
   } catch (e) {}
   if (V.view === "onboard") return;
-  if (q) {
+  if (q && m[1] === "musik" && window.wsMusFromLink) wsMusFromLink(q);
+  else if (q && m[1] === "video" && window.wsVidFromLink) {
+    wsOpen("video");
+    wsVidFromLink(q);
+  } else if (q) {
     wsOpen("ki");
     if (window.wsKiPrefill) wsKiPrefill(q);
   } else go("ws");

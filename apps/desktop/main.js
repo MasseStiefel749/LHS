@@ -57,7 +57,15 @@ else {
     });
     // Mikrofon, Benachrichtigungen, Zugriff auf die Bridge am PC usw. nur für die eigene App
     const own = (url) => String(url || "").startsWith(ORIGIN + "/");
-    session.defaultSession.setPermissionRequestHandler((wc, perm, cb, details) => cb(own(details.requestingUrl || wc.getURL())));
+    session.defaultSession.setPermissionRequestHandler((wc, perm, cb, details) => cb(perm === "fullscreen" || own(details.requestingUrl || wc.getURL())));
+    // YouTube spielt eingebettete Videos nur mit einer echten https-Herkunft ab (app:// zählt nicht) – Musik & Video brauchen das
+    session.defaultSession.webRequest.onBeforeSendHeaders(
+      { urls: ["https://www.youtube-nocookie.com/*", "https://www.youtube.com/*"] },
+      (d, cb) => {
+        if (!/^https:/i.test(d.requestHeaders.Referer || "")) d.requestHeaders.Referer = "https://massestiefel749.github.io/";
+        cb({ requestHeaders: d.requestHeaders });
+      },
+    );
     session.defaultSession.setPermissionCheckHandler((wc, perm, origin) => own((origin || "") + "/"));
     createWindow();
     app.on("activate", () => {
