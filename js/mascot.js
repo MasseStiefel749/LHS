@@ -358,7 +358,7 @@ function castById(id) {
   return CAST.find((c) => c.id === id) || null;
 }
 const DUO_CREDIT =
-  "Inspiriert von Duolingo: Streaks, Akku (Herzen), Ligen, Lern-Duelle und sprechende Figuren kennt man von dort – danke für die Idee! Lernhub ist ein unabhängiges, nicht-kommerzielles Schulprojekt und nicht mit Duolingo verbunden. Duolingo® und Duo the Owl® sind Marken der Duolingo, Inc. Pingulin und die Lernhub-Crew sind eigene Figuren.";
+  "Inspiriert von Duolingo: Streaks, Akku (Herzen), Ligen, Lern-Duelle und sprechende Figuren kennt man von dort – danke für die Idee! Lernhub ist ein unabhängiges Schulprojekt und nicht mit Duolingo verbunden. Duolingo® und Duo the Owl® sind Marken der Duolingo, Inc. Pingulin und die Lernhub-Crew sind eigene Figuren.";
 
 /* ===================== Gesichter (SVG) ===================== */
 function humanMouth() {

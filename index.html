@@ -327,6 +327,11 @@ details.exsec summary{cursor:pointer;font-weight:800}
 .exitem:last-child{border-bottom:0}
 #remindBar{position:fixed;top:70px;right:16px;max-width:360px;z-index:85;background:var(--card);border:2px solid var(--amber);border-radius:16px;padding:14px;box-shadow:0 12px 36px rgba(0,0,0,.3);animation:pop .2s}
 #remindBar p{margin:0 0 10px;font-weight:700}
+#adRail{position:fixed;right:0;top:0;bottom:0;width:184px;background:var(--card);border-left:1px solid var(--line);z-index:39;display:flex;flex-direction:column;align-items:center;gap:8px;padding:76px 12px 12px;overflow:hidden;text-align:center}
+#adRail a{cursor:pointer}
+body.adrail #shell{margin-right:184px}
+body.adrail #fab{right:204px}
+body.adrail #chat,body.adrail #remindBar{right:200px}
 </style>
 </head>
 <body>
@@ -337,7 +342,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
   <div class="sidefoot">
     <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.12 · offline</span>
+    <span id="verLine">v1.13 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -376,6 +381,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
 <script src="js/extra.js"></script>
 <script src="js/plus.js"></script>
 <script src="js/cloud.js"></script>
+<script src="js/werbung.js"></script>
 <script src="js/dateien.js"></script>
 <script src="js/social.js"></script>
 <script src="js/konto.js"></script>
@@ -1565,6 +1571,7 @@ function go(view, a, b){
   V.view=view; if(view==="path" && a){ V.subj=a; }
   window.scrollTo(0,0); render();
   if(view==="home" && !S.seenTour) setTimeout(tourMaybe, 600);
+  if(view==="home" && window.adsMaybeAsk) setTimeout(adsMaybeAsk, 900);
 }
 function render(){
   applyTheme();
@@ -3281,6 +3288,7 @@ function renderSettings(){
       <button class="btn ghost sm" onclick="go('board')">🏆 Bestenliste</button> <button class="btn ghost sm" onclick="go('plan')">📅 Planer</button> <button class="btn ghost sm" onclick="openStreak()">🧊 Streak-Freeze &amp; Ruhetage</button>
     </div>
     ${pwaCardHTML()}
+    ${window.adsCardHTML?adsCardHTML():""}
     <div class="card" style="margin-top:14px">
       <b>💾 Daten</b>
       <div class="center" style="margin-top:8px">
@@ -3299,7 +3307,7 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.12 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.13 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){
@@ -3368,12 +3376,12 @@ function showLegal(which){
       E-Mail: <a href="mailto:simon.lasarzewski@gmail.com">simon.lasarzewski@gmail.com</a><br>
       Telefon: +49 179 4342396</p>
       <p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</b><br>Simon Adrian Lasarzewski, Anschrift wie oben</p>
-      <p class="small mut">Lernhub ist ein privates, nicht-kommerzielles Schulprojekt.</p>
+      <p class="small mut">Lernhub ist ein privates Schulprojekt. Die Kosten decken freiwillige Werbung (nur nach Zustimmung) und Spenden.</p>
       <button class="btn" onclick="closeModal()">Schließen</button>`);
   }else{
     toastModal(`<h2 style="margin-top:0">Datenschutzerklärung (Kurzfassung)</h2>
       <p><b>Verantwortlich:</b> Simon Adrian Lasarzewski, Wagnerstr. 5, 78628 Rottweil (Neufra) – siehe <a onclick="showLegal('impressum')">Impressum</a></p>
-      <p><b>Was gespeichert wird:</b> Dein Lernfortschritt (XP, Streak, Akku, Notizen, Stundenplan, Einstellungen) wird lokal in deinem Browser (localStorage) gespeichert. Keine Cookies, keine Statistik-Tools.</p>
+      <p><b>Was gespeichert wird:</b> Dein Lernfortschritt (XP, Streak, Akku, Notizen, Stundenplan, Einstellungen) wird lokal in deinem Browser (localStorage) gespeichert. Keine Statistik-Tools; Cookies nur, wenn du der Werbung zustimmst (siehe unten).</p>
       <p><b>Optionales Konto &amp; Bestenliste:</b> Nur wenn du dich freiwillig registrierst, werden E-Mail (Anmeldung), Spitzname und Lernzahlen (XP, Streak, Lektionen, Aufgaben) bei einem Cloud-Dienst (Supabase) gespeichert und für deine bestätigten Freunde sichtbar. Fehler- und Hinweiszahlen nur, wenn du das erlaubst. Du kannst dein Konto unter 👤 Konto jederzeit löschen – alle Daten werden dann entfernt. Nutzt du „Mit Google anmelden“, übermittelt Google (Google Ireland Ltd.) uns dabei deine E-Mail-Adresse und deinen Namen; Lernhub speichert davon nur die E-Mail für die Anmeldung.</p>
       <p><b>Privater Cloud-Speicher (nur mit Konto, abschaltbar):</b> Damit dein Lernstand auf allen Geräten da ist, wird er (Fortschritt, Notizen, Termine, Stundenplan, eigene Fächer und Charaktere, Einstellungen) in deinem Konto gespeichert. Nur du kannst ihn lesen – Freunde, Klasse und andere sehen davon nichts. API-Key, Untis-Link, Vault-Pfad und Push-Adresse werden nie hochgeladen.</p>
       <p><b>Ligen, Klassen &amp; Duelle (nur mit Konto, freiwillig):</b> Wenn du einer Liga beitrittst, sehen andere Liga-Teilnehmer deinen Spitznamen, deine Wochen-XP und Streak. In einer Klasse sehen die Mitglieder zusätzlich deine Lektionen; andere Klassen sehen nur Klassenname, Mitgliederzahl und Durchschnitts-XP. Bei Duellen werden Fach, Punktzahl und Zeit gespeichert (sichtbar nur für euch beide).</p>
@@ -3385,7 +3393,8 @@ function showLegal(which){
       <p><b>Schulsuche &amp; Schulfächer:</b> Suchst du deine Schule, schickt dein Browser den Suchbegriff (bzw. bei „In meiner Nähe“ deinen auf ca. 1 km gerundeten Standort) an jedeschule.codefor.de (Open Knowledge Foundation Deutschland e. V.); dabei wird deine IP-Adresse übertragen. Gespeichert wird nur die gewählte Schule, Schulart und Stufe in deinem Browser. Fachpakete (Aufgaben) werden ohne Personenbezug aus der Lernhub-Cloud (Supabase) geladen. Forderst du mit Konto ein neues Fach an oder meldest eine fehlerhafte Aufgabe, werden Fachname, Schulname, Bundesland/Schulart/Stufe, ggf. deine Notiz und deine Konto-ID gespeichert (für Tageslimits gegen Missbrauch); die Aufgaben selbst erstellt ein KI-Modell über OpenCode, dabei werden keine personenbezogenen Daten an die KI gesendet.</p>
       <p><b>Lernhub-KI:</b> Hast du keinen eigenen API-Key eingetragen, gehen deine Chat-Nachrichten, die aktuelle Aufgabe und Auszüge aus dem Lernstoff über unseren Server (Supabase) an Groq, Inc. (USA), das daraus die Antwort erzeugt. Deine E-Mail, deine Konto-ID und deine IP-Adresse werden dabei nicht an Groq gesendet. Gespeichert wird bei uns nur die Anzahl deiner KI-Anfragen pro Tag (für das Tageslimit): mit Konto zu deiner Konto-ID (nach 7 Tagen gelöscht), als Gast zu einem täglich wechselnden, nicht umkehrbaren Kennwert aus deiner IP-Adresse (die IP selbst wird nicht gespeichert, nach 2 Tagen gelöscht). Von der KI angelegte Aufgaben liegen als eigenes Fach in deinem Browser und – mit Konto und Cloud-Sync – in deinem privaten Cloud-Speicher. Schreib keine persönlichen Daten in den Chat.</p>
       <p><b>Buy me a coffee:</b> Der Knopf öffnet buymeacoffee.com in einem neuen Tab (externe Seite, eigener Datenschutz). Lernhub überträgt dabei nichts.</p>
-      <p><b>Was das Internet sieht:</b> Grundsätzlich nichts. Nur wenn du selbst (a) einen API-Key in den Einstellungen einträgst, werden Chat-Anfragen an den von dir gewählten Endpunkt gesendet, (b) Video-Tipps öffnest (YouTube, externe Seite) oder (c) den OpenCode-Agenten nutzt (recherchiert lokal + Web). Hängst du im KI-Chat eine Datei an, liest dein Browser den Text aus und schickt nur diesen Text mit der Anfrage; für PDFs und Fotos lädt er dafür einmalig pdf.js bzw. die Texterkennung (tesseract.js) von jsDelivr. Mikrofon wird nur bei Sprechübungen aktiviert und nur für die Spracherkennung deines Browsers verwendet.</p>
+      <p><b>Werbung (nur mit deiner Zustimmung):</b> Lernhub fragt einmal, ob du zur Unterstützung Werbung sehen möchtest. Nur bei „Ja“ lädt dein Browser Google AdSense (Google Ireland Ltd.) und zeigt am rechten Rand eine Anzeige. Dabei werden u. a. deine IP-Adresse und Gerätedaten an Google übertragen und Cookies gesetzt. <b>Personalisiert</b> (nur ab 16): Google wählt Anzeigen nach deinen Interessen. <b>Nicht personalisiert:</b> Anzeigen passend zur Seite, ohne Interessen-Profil; Google nutzt Daten trotzdem zum Zählen und gegen Betrug. Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO, § 25 TDDDG); du kannst sie unter ⚙️ Einstellungen → „Werbung“ jederzeit widerrufen. Die Wahl gilt nur für dieses Gerät. Mehr: <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">policies.google.com/technologies/ads</a></p>
+      <p><b>Was das Internet sieht:</b> Grundsätzlich nichts. Nur wenn du selbst (a) einen API-Key in den Einstellungen einträgst, werden Chat-Anfragen an den von dir gewählten Endpunkt gesendet, (b) Video-Tipps öffnest (YouTube, externe Seite), (c) der Werbung zustimmst (Google AdSense, siehe oben) oder (d) den OpenCode-Agenten nutzt (recherchiert lokal + Web). Hängst du im KI-Chat eine Datei an, liest dein Browser den Text aus und schickt nur diesen Text mit der Anfrage; für PDFs und Fotos lädt er dafür einmalig pdf.js bzw. die Texterkennung (tesseract.js) von jsDelivr. Mikrofon wird nur bei Sprechübungen aktiviert und nur für die Spracherkennung deines Browsers verwendet.</p>
       <p><b>Speicher löschen:</b> Einstellungen → „Alles zurücksetzen“, oder Browser-Daten löschen.</p>
       <p><b>Kontakt:</b> <a href="mailto:simon.lasarzewski@gmail.com">simon.lasarzewski@gmail.com</a></p>
       <button class="btn" onclick="closeModal()">Schließen</button>`);
@@ -3435,6 +3444,7 @@ function init(){
   if(window.cloudInit) cloudInit();
   if(window.kontoInit) kontoInit();
   if(window.extraInit) extraInit();
+  if(window.adsInit) adsInit();
   renderNav(); renderTop(); updateChatHead();
   if(!S.seenOnboard){ ob.name=S.profile.name||""; ob.daily=S.profile.daily||20; ob.goal=S.profile.goal||"schule";
     ob.langs=(S.profile.langs||["Englisch"]).slice(); V.view="onboard"; }

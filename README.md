@@ -509,9 +509,30 @@ Alle Figuren sind eigene SVG-Zeichnungen – eigene Charaktere können ein
 Crew-Gesicht und eine bestimmte Stimme bekommen.
 
 > **Credits:** Inspiriert von **Duolingo** (Lernpfad, Streaks, Herzen/Akku, Ligen,
-> sprechende Figuren). Lernhub ist ein unabhängiges, nicht-kommerzielles Schulprojekt
+> sprechende Figuren). Lernhub ist ein unabhängiges Schulprojekt
 > und nicht mit Duolingo verbunden. Duolingo® und Duo the Owl® sind Marken der
 > Duolingo, Inc. Pingulin und die Crew sind eigene Figuren.
+
+### 💛 Werbung zur Unterstützung (optional, Google AdSense)
+
+- Ist AdSense eingetragen, fragt Lernhub **einmal** (nach Onboarding, Tour und der
+  ersten Lektion), ob man Werbung zur Unterstützung sehen möchte – und ob sie
+  personalisiert sein darf (nur ab 16). Ohne „Ja“ wird kein Google-Skript geladen.
+- Die Anzeige (160×600) steht als rechte Leiste nur auf breiten Bildschirmen (ab 1280 px).
+  Änderbar unter ⚙️ Einstellungen → „Werbung“; die Wahl gilt pro Gerät (`js/werbung.js`).
+
+**Einrichten:**
+
+1. Bei [Google AdSense](https://adsense.google.com) anmelden (ab 18) und die Seite
+   hinzufügen. AdSense prüft die **Domain-Wurzel**: `ads.txt` muss unter
+   `https://DOMAIN/ads.txt` liegen – bei GitHub Pages also im Repo
+   `NAME.github.io` oder mit eigener Domain.
+2. **Anzeigen → Nach Anzeigenblock → Displayanzeige** (feste Größe 160×600) anlegen.
+3. Publisher-ID (`ca-pub-…`) und Anzeigenblock-ID in `content/cloud-config.js` bei
+   `LERNHUB_ADS` eintragen. **Automatische Anzeigen** in AdSense ausgeschaltet lassen.
+4. Für Besucher aus EU/UK verlangt Google eine zertifizierte Einwilligungslösung:
+   **Datenschutz und Mitteilungen → DSGVO-Mitteilung** in AdSense aktivieren (ohne sie
+   gibt es dort nur „eingeschränkte Anzeigen“ mit weniger Ertrag).
 
 ---
 
