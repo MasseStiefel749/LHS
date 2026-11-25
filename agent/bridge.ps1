@@ -7,6 +7,7 @@
 #   POST /tipp    -> startet opencode (ohne Tools) fuer einen Lern-Tipp, liefert { id }
 #   GET  /tipp?id -> { done, text }
 #   POST /tts     -> MP3 einer Microsoft-Neural-Stimme (edge-tts, braucht Internet), sonst Fehler-JSON
+#   POST /fishcloud -> reicht einen MessagePack-Body mit dem API-Key des Nutzers an api.fish.audio/v1/tts weiter
 # Chatterbox (lokale KI-Stimmen, optional): agent/tts_server.py auf 127.0.0.1:8798, startet automatisch,
 #   wenn agent/chatterbox-installieren.ps1 einmal gelaufen ist. /ping meldet cbx=true.
 # Sicherheit: POST braucht den Header X-Lernhub-Token. Der Token wird bei jedem Start neu
@@ -170,7 +171,7 @@ function Send-Json($s, $obj, [int]$code = 200) {
   "Content-Type: application/json; charset=utf-8`r`n" +
   "Content-Length: $($body.Length)`r`n" +
   "Access-Control-Allow-Origin: *`r`n" +
-  "Access-Control-Allow-Headers: Content-Type, X-Lernhub-Token`r`n" +
+  "Access-Control-Allow-Headers: Content-Type, X-Lernhub-Token, X-Fish-Key, X-Fish-Model`r`n" +
   "Access-Control-Allow-Methods: GET, POST, OPTIONS`r`n" +
   "Cache-Control: no-store`r`n" +
   "Connection: close`r`n`r`n"
@@ -181,7 +182,7 @@ function Send-Audio($s, [byte[]]$body) {
   "Content-Type: audio/mpeg`r`n" +
   "Content-Length: $($body.Length)`r`n" +
   "Access-Control-Allow-Origin: *`r`n" +
-  "Access-Control-Allow-Headers: Content-Type, X-Lernhub-Token`r`n" +
+  "Access-Control-Allow-Headers: Content-Type, X-Lernhub-Token, X-Fish-Key, X-Fish-Model`r`n" +
   "Access-Control-Allow-Methods: GET, POST, OPTIONS`r`n" +
   "Cache-Control: no-store`r`n" +
   "Connection: close`r`n`r`n"
@@ -270,7 +271,7 @@ while ($true) {
       if (-not $script:TtsOk -and ((Get-Date) - $script:TtsAt).TotalSeconds -gt 60) { $script:TtsOk = Test-EdgeTts; $script:TtsAt = Get-Date }
       Start-Chatterbox
       Send-Json $stream ([pscustomobject]@{
-          ok = $true; bridge = "1.4"; opencode = $script:OcVer; full = [bool]$Vollzugriff; tipp = $true; tts = $script:TtsOk
+          ok = $true; bridge = "1.5"; opencode = $script:OcVer; full = [bool]$Vollzugriff; tipp = $true; tts = $script:TtsOk; fishcloud = $true
           cbx = [bool](Test-Path -LiteralPath $CbxPy)
           status = Get-StatusObj; running = (Test-RunBusy)
         }); continue
@@ -334,6 +335,32 @@ while ($true) {
       $audio = Get-TtsAudio $text $voice $rate $pitch
       if (-not $audio) { Send-Json $stream ([pscustomobject]@{ ok = $false; error = "tts fehlgeschlagen" }) 500; continue }
       Send-Audio $stream $audio; continue
+    }
+    # Fish-Audio-Cloud: die API erlaubt keine Browser-Anfragen, deshalb reicht die Bridge den MessagePack-Body nur durch.
+    if ($method -eq "POST" -and $path -eq "/fishcloud") {
+      $len = 0
+      if ($headers.ContainsKey("content-length")) { [void][int]::TryParse($headers["content-length"], [ref]$len) }
+      if ($len -gt 3000000) { Send-Json $stream ([pscustomobject]@{ ok = $false; error = "zu gross" }) 413; continue }
+      $bodyBytes = if ($len -gt 0) { Read-Exact $stream $len } else { New-Object byte[] 0 }
+      if ($headers["x-lernhub-token"] -ne $Token) {
+        Send-Json $stream ([pscustomobject]@{ ok = $false; error = "token" }) 403; continue
+      }
+      $fishKey = "$($headers['x-fish-key'])"; $fishModel = "$($headers['x-fish-model'])"
+      if ($len -le 0 -or $fishKey -cnotmatch '^[A-Za-z0-9._-]{8,200}$' -or $fishModel -cnotmatch '^(s1|s2\.1-pro|s2\.1-pro-free)$') {
+        Send-Json $stream ([pscustomobject]@{ ok = $false; error = "ungueltig"; status = 400 }) 400; continue
+      }
+      try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        $res = Invoke-WebRequest -Uri "https://api.fish.audio/v1/tts" -Method Post -UseBasicParsing -TimeoutSec 90 `
+          -Headers @{ Authorization = "Bearer $fishKey"; model = $fishModel } -ContentType "application/msgpack" -Body $bodyBytes
+        Send-Audio $stream ($res.RawContentStream.ToArray())
+      }
+      catch {
+        $code = 0
+        try { $code = [int]$_.Exception.Response.StatusCode } catch {}
+        Send-Json $stream ([pscustomobject]@{ ok = $false; error = "fish"; status = $code }) 502
+      }
+      continue
     }
     if ($method -eq "POST" -and $path -eq "/auftrag") {
       # Body immer zuerst lesen: wuerde der Server antworten und schliessen, ohne den Body zu lesen, bekaeme der Browser einen TCP-Reset statt der 403.

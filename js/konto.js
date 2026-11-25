@@ -43,6 +43,7 @@ function syncReset() {
 function stateForSync(st) {
   const c = JSON.parse(JSON.stringify(st));
   c.chat.apiKey = "";
+  c.chat.fishKey = "";
   c.untis.url = "";
   c.agent = {
     vaultPath: "",
@@ -69,6 +70,7 @@ function stateHash(c) {
 function stateApply(data, at) {
   const clean = sanitizeState(data);
   clean.chat.apiKey = S.chat.apiKey;
+  clean.chat.fishKey = S.chat.fishKey || "";
   clean.untis.url = S.untis.url;
   clean.agent.vaultPath = S.agent.vaultPath;
   clean.push = S.push;

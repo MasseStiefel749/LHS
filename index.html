@@ -337,7 +337,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
   <div class="sidefoot">
     <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.10 · offline</span>
+    <span id="verLine">v1.11 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -3014,8 +3014,8 @@ async function pingAgent(silent){
     const r=await fetch(BRIDGE+"/ping",{signal:ctl.signal}); clearTimeout(h);
     const j=await r.json();
     if(j.ok && !window.LERNHUB_TOKEN) await loadToken();      /* nur lokal geladen, nie von einer veröffentlichten Seite */
-    S.agent.connected=!!j.ok; S.agent.oc=j.opencode||null; S.agent.full=!!j.full; S.agent.lastPing=Date.now(); AGENT_TIPP=!!j.tipp; TTS_ON=!!j.tts;
-    const cbxChanged=await cbxCheck(j.cbx);
+    S.agent.connected=!!j.ok; S.agent.oc=j.opencode||null; S.agent.full=!!j.full; S.agent.lastPing=Date.now(); AGENT_TIPP=!!j.tipp; TTS_ON=!!j.tts; FISH.bridge=!!j.fishcloud;
+    const cbxChanged=(await cbxCheck(j.cbx)) | (await fishCheck());
     if(cbxChanged && V.view==="settings" && !typingNow()) render();
     if(j.status) S.agent.status=j.status;
     save(); renderTop(); agentChanged(wasOn);
@@ -3023,7 +3023,7 @@ async function pingAgent(silent){
     redraw();
     return j;
   }catch(e){
-    S.agent.connected=false; S.agent.full=false; AGENT_TIPP=false; TTS_ON=false; CBX.ready=false; save(); renderTop(); agentChanged(wasOn);
+    S.agent.connected=false; S.agent.full=false; AGENT_TIPP=false; TTS_ON=false; CBX.ready=false; FISH.bridge=false; save(); renderTop(); agentChanged(wasOn);
     if(!silent) toast("Keine Verbindung – starte opencode-verbinden.cmd");
     redraw();
     return null;
@@ -3289,7 +3289,7 @@ function renderSettings(){
         <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
         <button class="btn r sm" onclick="resetAll()">Alles zurücksetzen</button>
       </div>
-      <p class="small mut">Alles liegt in diesem Browser (localStorage). Ins Internet geht nur, was du ausdrücklich nutzt: Konto/Bestenliste, Lernhub-KI, Untis-Link, KI-Key.</p>
+      <p class="small mut">Alles liegt in diesem Browser (localStorage). Ins Internet geht nur, was du ausdrücklich nutzt: Konto/Bestenliste, Lernhub-KI, Untis-Link, KI-Key, Fish-Audio-Key.</p>
     </div>
     <div class="card" style="margin-top:14px">
       <b>ℹ️ Über &amp; Recht</b>
@@ -3299,7 +3299,7 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.10 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.11 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){
@@ -3315,7 +3315,7 @@ function testAPI(){
 }
 function exportData(){
   /* API-Key wird NIE exportiert (Backups werden oft geteilt/synchronisiert) */
-  const copy=JSON.parse(JSON.stringify(S)); copy.chat.apiKey=""; copy.agent.connected=false; copy.untis.url="";
+  const copy=JSON.parse(JSON.stringify(S)); copy.chat.apiKey=""; copy.chat.fishKey=""; copy.agent.connected=false; copy.untis.url="";
   const blob=new Blob([JSON.stringify(copy,null,2)],{type:"application/json"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
   a.download="lernhub-backup-"+today()+".json"; a.click(); URL.revokeObjectURL(a.href);
@@ -3330,6 +3330,7 @@ function importData(input){
     if(!o || typeof o!=="object" || !o.v || !o.profile) throw 0;
     const clean=sanitizeState(o);
     clean.chat.apiKey=S.chat.apiKey;            /* lokalen Key behalten */
+    clean.chat.fishKey=S.chat.fishKey||"";
     clean.untis.url=S.untis.url;                /* Untis-Link (enthält Geheim-Token) bleibt lokal */
     localStorage.setItem(LS_KEY, JSON.stringify(clean)); location.reload();
   }catch(e){ toast("Datei ist kein Lernhub-Backup"); } };
