@@ -337,7 +337,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
   <div class="sidefoot">
     <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.11 · offline</span>
+    <span id="verLine">v1.12 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -3299,7 +3299,7 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.11 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.12 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){
@@ -3374,7 +3374,7 @@ function showLegal(which){
     toastModal(`<h2 style="margin-top:0">Datenschutzerklärung (Kurzfassung)</h2>
       <p><b>Verantwortlich:</b> Simon Adrian Lasarzewski, Wagnerstr. 5, 78628 Rottweil (Neufra) – siehe <a onclick="showLegal('impressum')">Impressum</a></p>
       <p><b>Was gespeichert wird:</b> Dein Lernfortschritt (XP, Streak, Akku, Notizen, Stundenplan, Einstellungen) wird lokal in deinem Browser (localStorage) gespeichert. Keine Cookies, keine Statistik-Tools.</p>
-      <p><b>Optionales Konto &amp; Bestenliste:</b> Nur wenn du dich freiwillig registrierst, werden E-Mail (Anmeldung), Spitzname und Lernzahlen (XP, Streak, Lektionen, Aufgaben) bei einem Cloud-Dienst (Supabase) gespeichert und für deine bestätigten Freunde sichtbar. Fehler- und Hinweiszahlen nur, wenn du das erlaubst. Du kannst dein Konto unter 👤 Konto jederzeit löschen – alle Daten werden dann entfernt.</p>
+      <p><b>Optionales Konto &amp; Bestenliste:</b> Nur wenn du dich freiwillig registrierst, werden E-Mail (Anmeldung), Spitzname und Lernzahlen (XP, Streak, Lektionen, Aufgaben) bei einem Cloud-Dienst (Supabase) gespeichert und für deine bestätigten Freunde sichtbar. Fehler- und Hinweiszahlen nur, wenn du das erlaubst. Du kannst dein Konto unter 👤 Konto jederzeit löschen – alle Daten werden dann entfernt. Nutzt du „Mit Google anmelden“, übermittelt Google (Google Ireland Ltd.) uns dabei deine E-Mail-Adresse und deinen Namen; Lernhub speichert davon nur die E-Mail für die Anmeldung.</p>
       <p><b>Privater Cloud-Speicher (nur mit Konto, abschaltbar):</b> Damit dein Lernstand auf allen Geräten da ist, wird er (Fortschritt, Notizen, Termine, Stundenplan, eigene Fächer und Charaktere, Einstellungen) in deinem Konto gespeichert. Nur du kannst ihn lesen – Freunde, Klasse und andere sehen davon nichts. API-Key, Untis-Link, Vault-Pfad und Push-Adresse werden nie hochgeladen.</p>
       <p><b>Ligen, Klassen &amp; Duelle (nur mit Konto, freiwillig):</b> Wenn du einer Liga beitrittst, sehen andere Liga-Teilnehmer deinen Spitznamen, deine Wochen-XP und Streak. In einer Klasse sehen die Mitglieder zusätzlich deine Lektionen; andere Klassen sehen nur Klassenname, Mitgliederzahl und Durchschnitts-XP. Bei Duellen werden Fach, Punktzahl und Zeit gespeichert (sichtbar nur für euch beide).</p>
       <p><b>Push-Erinnerungen (freiwillig):</b> Schaltest du sie ein, speichert der Server die Push-Adresse deines Browsers (vom Browser-Hersteller, z. B. Google/Apple/Mozilla), deine Erinnerungszeit und Ruhetage. Die Benachrichtigung wird über den Push-Dienst deines Browsers zugestellt. Ausschalten löscht die Adresse.</p>

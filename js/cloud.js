@@ -95,6 +95,9 @@ function cloudErr(j, status) {
     bad_subject_name: "Fachname: 2–40 Zeichen, nur Buchstaben, Zahlen und . , & ( ) / + -",
     bad_report: "Diese Aufgabe kann nicht gemeldet werden.",
     bad_key: "Bitte zuerst Schule und Klassenstufe wählen.",
+    "Manual linking is disabled":
+      "Verknüpfen ist noch nicht freigeschaltet (Supabase → Authentication → „Allow manual linking“).",
+    "provider is not enabled": "Google-Anmeldung ist noch nicht eingerichtet.",
     "Could not find the function":
       "Server noch nicht aktualisiert: supabase/schema.sql bitte erneut ausführen.",
   };
@@ -269,6 +272,7 @@ async function cloudSetNick() {
     await cloudPush();
     await boardLoad();
     toast("Spitzname gespeichert ✓");
+    if (V.view === "konto" && !S.seenOnboard) return go("onboard");
   } catch (e) {
     toast(e.message, 5000);
   }

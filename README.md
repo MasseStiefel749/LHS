@@ -428,6 +428,13 @@ simpleclub-Empfehlung ist eine **unbezahlte** Empfehlung (keine Kooperation).
    App eintragen (z. B. `https://NAME.github.io/lernhub/index.html` und zum Testen
    `http://127.0.0.1:5500/index.html`) – sonst führen Bestätigungs- und
    „Passwort vergessen“-Links nicht zurück in die App.
+6. _Optional – „Mit Google anmelden“:_ In der [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+   eine OAuth-Client-ID (Typ „Webanwendung“) anlegen, als autorisierte Weiterleitungs-URI
+   `https://<projekt>.supabase.co/auth/v1/callback` eintragen. Client-ID und -Secret unter
+   **Authentication → Sign In / Providers → Google** eintragen und aktivieren. Damit
+   bestehende Konten Google später verknüpfen können: **Authentication → Sign In /
+   Providers → „Allow manual linking“** einschalten. Der Google-Knopf erscheint
+   automatisch, sobald der Provider aktiv ist.
 
 Hinweise: Der Gratis-Plan pausiert ein Projekt nach ca. 1 Woche ohne Nutzung
 (im Dashboard wieder starten). Zahlen kommen vom Browser und könnten

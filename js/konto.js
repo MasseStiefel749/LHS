@@ -12,6 +12,8 @@ let KONTO = {
   at: 0,
   err: "",
   pulledAt: 0,
+  google: false,
+  ids: null,
 };
 let SYNC = { on: true, base: null, hash: "", email: "" };
 let STATE_T = null;
@@ -205,6 +207,7 @@ async function kontoBusy(fn) {
   if (V.view === "konto") renderKonto();
 }
 async function kontoAfterAuth(nick) {
+  KONTO.ids = null;
   if (SYNC.email !== CLOUD.email) {
     SYNC.base = null;
     SYNC.hash = "";
@@ -215,7 +218,10 @@ async function kontoAfterAuth(nick) {
   S.authAsked = true;
   save();
   await statePull(false);
-  if (V.view === "konto" && KONTO.welcome) {
+  if (!CLOUD.nick) {
+    KONTO.welcome = false;
+    go("konto");
+  } else if (V.view === "konto" && KONTO.welcome) {
     KONTO.welcome = false;
     go(S.seenOnboard ? "home" : "onboard");
   }
@@ -309,14 +315,95 @@ function kontoBackUrl() {
   return location.origin + location.pathname;
 }
 
+/* ---- Google (Supabase OAuth, Implicit Flow: Tokens kommen wie bei Mail-Links im #-Teil zurück) ---- */
+const OAUTH_KEY = "lernhub_oauth";
+const GOOGLE_G = `<svg width="18" height="18" viewBox="0 0 48 48" style="vertical-align:-3px;margin-right:6px" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>`;
+function kontoGoogleCheck() {
+  const cfg = cloudCfg();
+  fetch(cfg.url + "/auth/v1/settings", { headers: { apikey: cfg.key } })
+    .then((r) => r.json())
+    .then((j) => {
+      KONTO.google = !!(j && j.external && j.external.google);
+      if (KONTO.google) kontoRedraw();
+    })
+    .catch(() => {});
+}
+function kontoOauthMark(kind) {
+  try {
+    sessionStorage.setItem(OAUTH_KEY, kind);
+  } catch (e) {}
+}
+function kontoGoogle() {
+  kontoOauthMark("login");
+  location.href =
+    cloudCfg().url +
+    "/auth/v1/authorize?provider=google&redirect_to=" +
+    encodeURIComponent(kontoBackUrl());
+}
+function kontoGoogleLink() {
+  kontoBusy(async () => {
+    const j = await cloudReq(
+      "/auth/v1/user/identities/authorize?provider=google&skip_http_redirect=true&redirect_to=" +
+        encodeURIComponent(kontoBackUrl()),
+      null,
+      await cloudToken(),
+      "GET",
+    );
+    if (!j || !/^https:\/\//.test(j.url || "")) throw new Error("Verknüpfen gerade nicht möglich");
+    kontoOauthMark("link");
+    location.href = j.url;
+  });
+}
+async function kontoIdsLoad() {
+  KONTO.ids = false;
+  try {
+    const u = await cloudReq("/auth/v1/user", null, await cloudToken(), "GET");
+    KONTO.ids = ((u && u.identities) || []).map((i) => i.provider);
+  } catch (e) {
+    KONTO.ids = [];
+  }
+  kontoRedraw();
+}
+function kontoIdsHTML() {
+  if (!KONTO.google) return "";
+  if (KONTO.ids === null) {
+    KONTO.ids = false;
+    setTimeout(kontoIdsLoad, 0);
+  }
+  const linked = Array.isArray(KONTO.ids) && KONTO.ids.includes("google");
+  return `<div class="card" style="margin-top:14px"><b>🔗 Mit Google anmelden</b>
+    ${
+      !Array.isArray(KONTO.ids)
+        ? `<p class="small mut">⏳ …</p>`
+        : linked
+          ? `<p class="small mut">✅ Google ist verknüpft – du kannst dich mit E-Mail oder mit Google einloggen.</p>`
+          : `<p class="small mut">Verknüpfe dein Google-Konto, dann geht das Einloggen künftig mit einem Klick.</p>
+      <button class="btn ghost sm" ${KONTO.busy ? "disabled" : ""} onclick="kontoGoogleLink()">${GOOGLE_G}Mit Google verknüpfen</button>`
+    }</div>`;
+}
+
 /* Rücksprung aus Bestätigungs- oder Passwort-Mail: Tokens stehen im #-Teil der Adresse */
 async function kontoFromLink() {
   const h = location.hash || "";
   if (!/access_token=|error_description=/.test(h)) return false;
   const p = new URLSearchParams(h.slice(1));
-  history.replaceState(null, "", location.pathname + location.search);
+  const q = new URLSearchParams(location.search);
+  ["error", "error_code", "error_description"].forEach((k) => q.delete(k));
+  history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : ""));
+  let oauth = "";
+  try {
+    oauth = sessionStorage.getItem(OAUTH_KEY) || "";
+    sessionStorage.removeItem(OAUTH_KEY);
+  } catch (e) {}
   if (p.get("error_description")) {
-    toast("Link ungültig oder abgelaufen – bitte neu anfordern.", 7000);
+    toast(
+      p.get("error_code") === "identity_already_exists"
+        ? "Dieses Google-Konto gehört schon zu einem anderen Lernhub-Konto."
+        : oauth
+          ? "Google-Anmeldung abgebrochen oder fehlgeschlagen."
+          : "Link ungültig oder abgelaufen – bitte neu anfordern.",
+      7000,
+    );
     return false;
   }
   const j = {
@@ -340,7 +427,13 @@ async function kontoFromLink() {
     render();
     return true;
   }
-  toast("E-Mail bestätigt ✓ Du bist eingeloggt.");
+  toast(
+    oauth === "link"
+      ? "Google verknüpft ✓"
+      : oauth
+        ? "Mit Google eingeloggt ✓"
+        : "E-Mail bestätigt ✓ Du bist eingeloggt.",
+  );
   await kontoAfterAuth(CLOUD.nick);
   return true;
 }
@@ -388,7 +481,11 @@ function kontoFormHTML() {
     <button class="btn g" style="width:100%;margin-top:14px" ${b ? "disabled" : ""} onclick="kontoForgot()">${b ? "⏳ …" : "Link schicken"}</button>
     <p class="center small"><a onclick="kontoMode('login')">← Zurück zum Einloggen</a></p>`;
   const reg = m === "register";
-  return `${tabs}
+  const google = KONTO.google
+    ? `<button class="btn ghost" style="width:100%;margin-top:12px" ${b ? "disabled" : ""} onclick="kontoGoogle()">${GOOGLE_G}${reg ? "Mit Google registrieren" : "Mit Google anmelden"}</button>
+    <p class="center small mut" style="margin:10px 0 0">oder mit E-Mail</p>`
+    : "";
+  return `${tabs}${google}
     <label class="fl">E-Mail</label><input class="fi" id="kE" type="email" autocomplete="email">
     ${pwField("kP", reg ? "Passwort (mind. 8 Zeichen)" : "Passwort", reg ? "new-password" : "current-password", reg ? "" : "kontoLogin()")}
     ${reg ? `<label class="fl" style="display:block;margin-top:10px">Spitzname (sehen deine Freunde)</label><input class="fi" id="kN" maxlength="20" autocomplete="nickname" placeholder="z. B. MaxIT_23" value="" onkeydown="if(event.key==='Enter')kontoRegister()">` : ""}
@@ -460,6 +557,7 @@ function renderKonto() {
         <div class="exrow"><input class="fi" id="cN" maxlength="20" placeholder="z. B. MaxIT_23"><button class="btn g" onclick="cloudSetNick()">Speichern</button></div></div>`
       }
       ${kontoCloudHTML()}
+      ${kontoIdsHTML()}
       ${kontoLocalHTML()}
       <div class="card" style="margin-top:14px"><b>🔐 Sicherheit</b>
         <div class="quickbtns"><button class="btn ghost sm" onclick="KONTO.mode='newpw';renderKonto()">🔑 Passwort ändern</button>
@@ -485,6 +583,7 @@ function renderKonto() {
 function kontoInit() {
   syncLoad();
   if (!cloudCfg()) return;
+  kontoGoogleCheck();
   kontoFromLink().then((handled) => {
     if (handled) return;
     if (CLOUD && SYNC.on) setTimeout(() => statePull(false), 1500);
