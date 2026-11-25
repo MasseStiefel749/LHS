@@ -1,5 +1,5 @@
 /* Lernhub Service Worker: offline-fähig (Netzwerk zuerst, sonst Cache) + Push-Erinnerungen bei geschlossener App. */
-const CACHE = "lernhub-v13";
+const CACHE = "lernhub-v14";
 const SHELL = [
   "./",
   "index.html",

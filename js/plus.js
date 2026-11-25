@@ -1401,7 +1401,7 @@ async function rundePlay(lines, run) {
     RUNDE.log.push(l);
     RUNDE.log = RUNDE.log.slice(-60);
     rundePaint();
-    const cbx = ttsEngine() === "cbx";
+    const cbx = ttsEngine() === "cbx" || ttsEngine() === "fish";
     await sayWait(c, l.t, undefined, (cbx ? 90000 : 30000) + l.t.length * (cbx ? 400 : 150));
     if (run !== RUNDE.run) return;
     await new Promise((r) => setTimeout(r, 350));

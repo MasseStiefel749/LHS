@@ -337,7 +337,7 @@ details.exsec summary{cursor:pointer;font-weight:800}
   <div class="sidefoot">
     <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.9 · offline</span>
+    <span id="verLine">v1.10 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -3007,6 +3007,7 @@ async function pingAgent(silent){
   const was=S.agent.connected, wasFull=S.agent.full, wasOn=agentOn();
   /* Beim stillen Hintergrund-Ping nur neu zeichnen, wenn sich etwas geändert hat und niemand gerade tippt */
   const redraw=()=>{ if(V.view==="agent" && (!silent || was!==S.agent.connected || wasFull!==S.agent.full) && !typingNow()) renderAgent(); };
+  fishCheck().then(ch=>{ if(ch && V.view==="settings" && !typingNow()) render(); });
   if(!agentAllowed()){ S.agent.connected=false; redraw(); if(!silent) toast("Der Agent ist nur in der lokalen App verfügbar"); return null; }
   try{
     const ctl=new AbortController(); const h=setTimeout(()=>ctl.abort(),4000);
@@ -3298,7 +3299,7 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.9 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.10 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){

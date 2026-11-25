@@ -1237,6 +1237,7 @@ function sayAs(c, text, lang, onDone) {
   }
   if (onDone) TTS_WAITERS.push(onDone);
   const eng = ttsEngine();
+  if (eng === "fish") return void sayFish(c, text, lang || "de-DE");
   if (eng === "cbx" && cbxReady()) return void sayCbx(c, text, lang || "de-DE");
   if (eng !== "system" && ttsReady()) return void sayEdge(c, text, lang || "de-DE");
   saySystem(c, text, lang);
@@ -1245,7 +1246,7 @@ function sayAs(c, text, lang, onDone) {
 const CBX = { url: "http://127.0.0.1:8798", installed: false, ready: false, error: "", device: "" };
 function ttsEngine() {
   const e = S.profile && S.profile.tts;
-  return e === "system" || e === "cbx" ? e : "edge";
+  return e === "system" || e === "cbx" || e === "fish" ? e : "edge";
 }
 function cbxReady() {
   return (
@@ -1322,11 +1323,9 @@ function ttsChunks(text) {
           .filter(Boolean),
   );
 }
-/* Während ein Satz läuft, wird der nächste schon berechnet */
 async function sayCbx(c, text, lang) {
   const spec = cbxSpec(c, lang),
-    seq = TTS_SEQ,
-    parts = ttsChunks(text);
+    seq = TTS_SEQ;
   if (!window.LERNHUB_TOKEN && typeof loadToken === "function") await loadToken();
   const get = (chunk) => {
     const ctl = new AbortController(),
@@ -1353,22 +1352,139 @@ async function sayCbx(c, text, lang) {
       })
       .finally(() => clearTimeout(h));
   };
+  return ttsPlayChunks(
+    c,
+    text,
+    lang,
+    seq,
+    get,
+    `🧠 KI-Stimme von ${c.name || "der Figur"} wird erzeugt … (Chatterbox braucht ein paar Sekunden)`,
+    "🧠 Chatterbox antwortet gerade nicht – andere Stimme springt ein",
+  );
+}
+/* ===================== Fish Speech (eigener lokaler Server, Standard-Port 8080) ===================== */
+const FISH = { ready: false, refs: {} };
+const FISH_REF_TEXT =
+  "Hallo! Schön, dass du da bist. Heute lernen wir gemeinsam etwas Neues, Schritt für Schritt und ganz in Ruhe.";
+function fishUrl() {
+  try {
+    const u = new URL((S.profile && S.profile.fishUrl) || "");
+    if (u.protocol === "http:" || u.protocol === "https:") return u.origin;
+  } catch (e) {}
+  return "http://127.0.0.1:8080";
+}
+function fishSetUrl(v) {
+  try {
+    const u = new URL(String(v || "").trim());
+    if (u.protocol !== "http:" && u.protocol !== "https:") throw 0;
+    S.profile.fishUrl = u.origin;
+  } catch (e) {
+    toast("Bitte eine Adresse wie http://127.0.0.1:8080 eingeben");
+    return render();
+  }
+  save();
+  fishCheck(true).then(render);
+}
+/* Liefert true, wenn sich der Status geändert hat */
+async function fishCheck(force) {
+  if (!force && ttsEngine() !== "fish") return false;
+  const before = FISH.ready;
+  try {
+    const ctl = new AbortController();
+    const h = setTimeout(() => ctl.abort(), 3000);
+    const j = await (await fetch(fishUrl() + "/v1/health", { signal: ctl.signal })).json();
+    clearTimeout(h);
+    FISH.ready = j.status === "ok";
+  } catch (e) {
+    FISH.ready = false;
+  }
+  return before !== FISH.ready;
+}
+function ttsPick(k) {
+  S.profile.tts = k;
+  save();
+  render();
+  if (k === "fish") fishCheck().then((ch) => ch && render());
+}
+/* Referenzstimme = Edge-Stimme der Figur (über die Bridge), damit jede Figur immer gleich klingt */
+function fishRef(c) {
+  const spec = edgeVoice(c, "de");
+  if (!spec || !ttsReady()) return Promise.resolve(null);
+  const key = spec.voice + spec.rate + spec.pitch;
+  if (!FISH.refs[key])
+    FISH.refs[key] = (async () => {
+      if (!window.LERNHUB_TOKEN && typeof loadToken === "function") await loadToken();
+      const r = await fetch(BRIDGE + "/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Lernhub-Token": window.LERNHUB_TOKEN || "",
+        },
+        body: JSON.stringify(Object.assign({ text: FISH_REF_TEXT }, spec)),
+      });
+      if (!r.ok || !(r.headers.get("content-type") || "").startsWith("audio/"))
+        throw new Error("ref " + r.status);
+      const b = new Uint8Array(await r.arrayBuffer());
+      let s = "";
+      for (let i = 0; i < b.length; i += 0x8000)
+        s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+      return { audio: btoa(s), text: FISH_REF_TEXT };
+    })().catch(() => {
+      delete FISH.refs[key];
+      return null;
+    });
+  return FISH.refs[key];
+}
+async function sayFish(c, text, lang) {
+  const seq = TTS_SEQ;
+  loadOn("tts", `🐟 Fish-Speech-Stimme von ${c.name || "der Figur"} wird erzeugt …`, c.id, 300);
+  const ref = await fishRef(c);
+  if (seq !== TTS_SEQ) return;
+  const get = (chunk) => {
+    const ctl = new AbortController(),
+      h = setTimeout(() => ctl.abort(), 120000);
+    return fetch(fishUrl() + "/v1/tts", {
+      method: "POST",
+      signal: ctl.signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: chunk,
+        format: "wav",
+        references: ref ? [ref] : [],
+        use_memory_cache: "on",
+      }),
+    })
+      .then((r) => {
+        if (!r.ok || !(r.headers.get("content-type") || "").startsWith("audio/"))
+          throw new Error("fish " + r.status);
+        return r.blob();
+      })
+      .finally(() => clearTimeout(h));
+  };
+  return ttsPlayChunks(
+    c,
+    text,
+    lang,
+    seq,
+    get,
+    `🐟 Fish-Speech-Stimme von ${c.name || "der Figur"} wird erzeugt …`,
+    "🐟 Fish Speech antwortet gerade nicht – andere Stimme springt ein",
+  );
+}
+/* Spielt Satz für Satz ab; während ein Satz läuft, wird der nächste schon berechnet */
+async function ttsPlayChunks(c, text, lang, seq, get, waitMsg, failMsg) {
+  const parts = ttsChunks(text);
   let next = get(parts[0]);
   for (let i = 0; i < parts.length; i++) {
     let blob;
-    loadOn(
-      "tts",
-      `🧠 KI-Stimme von ${c.name || "der Figur"} wird erzeugt … (Chatterbox braucht ein paar Sekunden)`,
-      c.id,
-      300,
-    );
+    loadOn("tts", waitMsg, c.id, 300);
     try {
       blob = await next;
     } catch (e) {
       if (seq !== TTS_SEQ) return;
       loadOff("tts");
       const rest = parts.slice(i).join(" ");
-      if (i === 0) toast("🧠 Chatterbox antwortet gerade nicht – andere Stimme springt ein");
+      if (i === 0) toast(failMsg);
       return void (ttsReady() ? sayEdge(c, rest, lang) : saySystem(c, rest, lang));
     }
     if (seq !== TTS_SEQ) return;
@@ -1417,16 +1533,22 @@ function ttsCardHTML() {
           ? "⚠️ Fehler: " + esc(CBX.error)
           : "⏳ Modell lädt … (nach dem Bridge-Start bis zu einer Minute)";
   const opt = (k, label, desc, ok) =>
-    `<button class="choice ${eng === k ? "sel" : ""}" onclick="S.profile.tts='${k}';save();render()">${label} <span class="small mut">– ${desc}${ok ? "" : " (gerade nicht verfügbar)"}</span></button>`;
+    `<button class="choice ${eng === k ? "sel" : ""}" onclick="ttsPick('${k}')">${label} <span class="small mut">– ${desc}${ok ? "" : " (gerade nicht verfügbar)"}</span></button>`;
+  const fishNote = FISH.ready
+    ? `✅ Server erreichbar (${esc(fishUrl())}). ${ttsReady() ? "Jede Figur bekommt ihre Edge-Stimme als Vorlage und klingt so immer gleich." : "Ohne Bridge fehlt die Stimm-Vorlage – die Stimme kann dann von Satz zu Satz anders klingen."}`
+    : `Nicht erreichbar unter ${esc(fishUrl())}. Fish Speech läuft nicht im Lernhub, du startest den Server selbst (z. B. per Docker-Image <code>fishaudio/fish-speech:server-cuda</code> auf Port 8080, Anleitung: speech.fish.audio). Braucht viel Leistung (Modell S2-Pro: ca. 24 GB Grafikspeicher, auf CPU sehr langsam). Lizenz: Fish Audio Community/Research License – nur privat bzw. nicht kommerziell.`;
   return `<div class="card" style="margin-top:14px">
       <b>🔊 Stimmen der Figuren (Sprachmodell)</b>
-      <p class="small mut">Ist das gewählte Modell nicht erreichbar, springt automatisch das nächste ein (Chatterbox → Edge → System).</p>
+      <p class="small mut">Ist das gewählte Modell nicht erreichbar, springt automatisch das nächste ein (KI-Modell → Edge → System).</p>
       ${opt("system", "💻 System", "Browser-Stimme, offline, eher robotisch", true)}
       ${opt("edge", "☁️ Edge Neural", "natürliche Microsoft-Stimmen, braucht Internet + Bridge", TTS_ON && on)}
       ${opt("cbx", "🧠 Chatterbox (KI, lokal)", "sehr realistisch mit Gefühl, läuft auf deinem PC – nichts geht ins Internet", cbxReady())}
+      ${opt("fish", "🐟 Fish Speech (KI, lokal)", "sehr natürliche, ausdrucksstarke KI-Stimmen über deinen eigenen Fish-Speech-Server", FISH.ready)}
       <p class="small mut" style="margin-top:8px">Chatterbox: ${cbxNote}</p>
+      <p class="small mut">Fish Speech: ${fishNote}</p>
+      ${eng === "fish" ? `<label class="fl">Fish-Speech-Server</label><input class="fi" value="${esc(fishUrl())}" placeholder="http://127.0.0.1:8080" onchange="fishSetUrl(this.value)">` : ""}
       <div class="center"><button class="btn ghost sm" onclick="sayAs(activeChar(),'Hallo! Ich bin '+activeChar().name+'. So klinge ich mit diesem Sprachmodell.')">🔊 Aktive Figur testen</button>
-      <button class="btn ghost sm" onclick="pingAgent(true).then(()=>render())">🔄 Status prüfen</button></div>
+      <button class="btn ghost sm" onclick="pingAgent(true).then(()=>fishCheck()).then(()=>render())">🔄 Status prüfen</button></div>
       ${voiceCardHTML()}
     </div>`;
 }
