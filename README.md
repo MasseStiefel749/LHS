@@ -198,8 +198,12 @@ eigenen Browser-Speicher – Fortschritt aus der `file://`-Version per
 - **Offline (ohne Key):** regelbasiert aus den Lerndaten. Antwortschlüssel:
   Tipp 1 (allgemein) → Tipp 2 (enger, z. B. erste Buchstaben) → Lösung erst
   bei **≥2 Fehlversuchen** oder „🙋 Ich geb's auf".
-- **Mit API-Key (optional):** OpenAI-kompatibler Endpunkt (OpenAI, Groq, lokaler
-  Ollama-Server …) – gleiche Regeln als System-Prompt, Key bleibt lokal.
+- **Mit eigenem API-Key (optional):** unter 🤖 Agent oder ⚙️ Einstellungen einen
+  Anbieter wählen – Google Gemini, Groq, OpenRouter, OpenAI, Mistral, DeepSeek,
+  Ollama (lokal, ohne Key) oder ein eigener OpenAI-kompatibler Endpunkt. Endpunkt
+  und Modell werden automatisch gesetzt, „Verbindung testen“ lädt die Modellliste.
+  Der Key bleibt nur in diesem Browser (nie Cloud, nie Backup) und geht nur per
+  https (bzw. http an localhost) direkt an den Anbieter.
 - **Lernhub-KI (ohne eigenen Key, für alle):** Chat, ✨ Tipps, „Frag mich was“
   und Lernrunden laufen im Browser über die Edge Function `ki` (Groq). Der
   Groq-Schlüssel liegt nur als Supabase-Secret auf dem Server, nie im Browser.
@@ -244,7 +248,28 @@ eigenen Browser-Speicher – Fortschritt aus der `file://`-Version per
 - Schnellaktionen: „Erklär das Thema", „Wo stehe ich?", „Was ist fällig?",
   „Test mich".
 
-### 🤖 OpenCode-Agent (wenn der Stoff ausgeht)
+### 🤖 Lern-Agent im Browser (ohne OpenCode)
+
+- Läuft überall, auch am Handy – mit der Lernhub-KI oder dem eigenen Key.
+- Der Agent bekommt eine kompakte Übersicht des Lernstands (Schule, Klasse,
+  Fächer mit Fortschritt, Themen mit den meisten Fehlern, Termine), plant selbst
+  und ruft bis zu 3× das Tool `aufgaben_anlegen` auf (ein Thema pro Runde).
+  Die App prüft jedes Ergebnis (`cleanTopic`) und legt es als eigenes Fach an.
+- Schnellstarts: Schwächen üben, Prüfung vorbereiten, mehr zum aktuellen Stoff,
+  gemischte Wiederholung – oder ein eigener Auftrag, optional mit Datei.
+
+### 🎤 Präsentations-Check
+
+- PowerPoint (`.pptx`), OpenOffice (`.odp`) oder PDF in die Seite ziehen.
+- Die Folien werden im Browser gelesen (Text, Titel, Bilder, Sprechernotizen).
+- **Schnell-Check ohne KI:** Folien mit zu viel Text (> 60 Wörter), ohne Titel,
+  fast leer, keine Bilder, Folienzahl passend zur Redezeit.
+- **KI-Bewertung:** Note 1–6, fünf Kriterien (Inhalt, Aufbau, Gestaltung,
+  Sprache, Quellen) mit Punkten, Stärken, Verbesserungen, Tipps pro Folie und
+  mögliche Nachfragen. „🎤 Antworten üben“ startet eine Probe-Fragerunde im
+  Chat, „📝 Lernaufgaben daraus machen“ erstellt Übungen zum Inhalt.
+
+### 🤖 OpenCode-Agent (optional, am PC)
 
 ```
 App (index.html)
@@ -565,6 +590,8 @@ Crew-Gesicht und eine bestimmte Stimme bekommen.
 | `js/chat.js`                              | 💬 Chat mit Freunden/Klasse (Supabase-Funktionen `chat_*`)          |
 | `js/invite.js`                            | 📣 Einladungslink (`?ref=Spitzname&k=Klassencode`), WhatsApp/Teilen |
 | `js/schulen.js`                           | 🏫 Schulsuche, Schulmodus, Cloud-Fachpakete, Melden, Schuljahr      |
+| `js/agent.js`                             | 🔑 Eigene KI (Anbieter-Vorlagen) + 🤖 Lern-Agent im Browser       |
+| `js/praesentation.js`                     | 🎤 Präsentations-Check (Folien lesen, Schnell-Check, KI-Note)      |
 | `content/schulfaecher.js`                 | Deutsch/Mathe/Englisch je Stufen-Band (1-2 … 11-13)                 |
 | `agent/aufgaben-worker.mjs`               | Worker für GitHub Actions: Aufträge → OpenCode → Prüfung → Supabase |
 | `.github/workflows/aufgaben.yml`          | Zeitplan (alle 10 Min.) + manueller Test (`probe`)                  |

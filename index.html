@@ -342,7 +342,7 @@ body.adrail #chat,body.adrail #remindBar{right:200px}
   <div class="sidefoot">
     <div id="sideUser"></div>
     <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-    <span id="verLine">v1.13 · offline</span>
+    <span id="verLine">v1.14 · offline</span>
   </div>
 </aside>
 <div id="shell">
@@ -351,7 +351,7 @@ body.adrail #chat,body.adrail #remindBar{right:200px}
     <span class="chip xp" title="Erfahrungspunkte">⚡ <span id="xpN">0</span> <span class="sub">XP</span></span>
     <span class="chip hearts" title="Akku – jeder Fehler kostet eine Zelle, alle 20 Min. lädt eine nach" id="heartsChip"><span id="heartsN"></span></span>
     <span class="ring" title="Tagesziel" id="dayRing"><i id="dayPct">0%</i></span>
-    <span class="chip" style="cursor:pointer" onclick="openAgent()" title="OpenCode-Verbindung"><span class="agentdot" id="agentDot"></span> <span class="sub" id="agentTxt">Agent</span></span>
+    <span class="chip" style="cursor:pointer" onclick="openAgent()" title="KI-Agent"><span class="agentdot" id="agentDot"></span> <span class="sub" id="agentTxt">Agent</span></span>
   </header>
   <main id="app"></main>
 </div>
@@ -383,6 +383,8 @@ body.adrail #chat,body.adrail #remindBar{right:200px}
 <script src="js/cloud.js"></script>
 <script src="js/werbung.js"></script>
 <script src="js/dateien.js"></script>
+<script src="js/agent.js"></script>
+<script src="js/praesentation.js"></script>
 <script src="js/social.js"></script>
 <script src="js/konto.js"></script>
 <script src="js/methoden.js"></script>
@@ -510,6 +512,7 @@ function sanitizeState(raw){
   if(typeof st.chat.apiKey!=="string") st.chat.apiKey="";
   if(typeof st.chat.endpoint!=="string") st.chat.endpoint=D.chat.endpoint;
   if(typeof st.chat.model!=="string") st.chat.model=D.chat.model;
+  if(typeof st.chat.provider!=="string") st.chat.provider="";
   sanitizePlus(st);
   sanitizeExtra(st);
   if(window.sanitizeSchool) sanitizeSchool(st);
@@ -1522,6 +1525,7 @@ const NAV = [
   ["path","🎓","Lernpfad"],
   ["explain","🧠","Erklär-Modus"],
   ["runde","🎭","Lernrunde"],
+  ["praes","🎤","Präsentations-Check"],
   ["review","🔁","Wiederholen"],
   ["board","🏆","Bestenliste"],
   ["notes","📝","Notizen"],
@@ -1541,7 +1545,7 @@ const NAV = [
 ];
 /* Seitenleiste: Dashboard oben, alles andere in Ordnern */
 const NAV_GROUPS = [
-  ["lernen","📚","Lernen",["path","explain","runde","review","methoden","feed","sprachen"]],
+  ["lernen","📚","Lernen",["path","explain","runde","praes","review","methoden","feed","sprachen"]],
   ["orga","🗂️","Organisieren",["plan","notes","fokus","links"]],
   ["community","👥","Community",["board","chat","erfolge"]],
   ["pause","☕","Pause",["games"]],
@@ -1580,7 +1584,7 @@ function render(){
              review:renderReview, sprachen:renderSprachen, speak:renderSpeak, call:renderCall,
              chars:renderChars, settings:renderSettings, agent:renderAgent,
              explain:renderExplain, runde:renderRunde, board:renderBoard, notes:renderNotes, plan:renderPlan, links:renderLinks,
-             fokus:renderFocus, erfolge:renderBadges, duel:renderDuel, konto:renderKonto,
+             fokus:renderFocus, erfolge:renderBadges, duel:renderDuel, konto:renderKonto, praes:window.renderPraes,
              methoden:window.renderMethoden, feed:window.feedView, chat:window.renderChatView, games:window.gamesView}[V.view];
   if(V.view!=="feed" && window.feedStop) feedStop();
   if(V.view!=="games" && window.gamesStop) gamesStop();
@@ -1598,8 +1602,8 @@ function renderTop(){
   $("heartsChip").style.display = S.profile.hearts ? "" : "none";
   $("dayPct").textContent = dayGoalPct()+"%";
   $("dayRing").style.setProperty("--p", dayGoalPct()+"%");
-  $("agentDot").classList.toggle("on", !!S.agent.connected);
-  $("agentTxt").textContent = S.agent.connected ? "verbunden" : "Agent";
+  $("agentDot").classList.toggle("on", !!S.agent.connected || aiReady());
+  $("agentTxt").textContent = S.agent.connected ? "verbunden" : aiReady() ? "KI bereit" : "Agent";
   $("logoSub").textContent = S.profile.klasse ? (S.profile.klasse+" · "+S.profile.school.slice(0,18)) : "Schule & mehr";
   const sb=$("schoolBtn"); sb.textContent = "🏫 "+S.profile.school.split(" (")[0] + " · " + S.profile.klasse;
 }
@@ -2987,7 +2991,7 @@ function handleChat(raw){
   const generic=[
     `Ich bin offline unterwegs – aber dafür zuverlässig: Öffne eine Lektion und drück „💡 Tipp“, dann tippe ich genau zu deiner Frage. Oder frage „Erklär das Thema“.`,
     `Kleiner Trick: Lies dir erst die Antwortmöglichkeiten durch, bevor du die Frage zweimal liest – oft fällt die Hälfte sofort weg. 🧠`,
-    `Für neue Aufgaben bin ich auf den 🤖 Agenten angewiesen – der holt Stoff aus deinem Obsidian-Vault und der Schul-Website.`
+    `Neue Aufgaben macht dir der 🤖 Agent – mit der Lernhub-KI oder deinem eigenen API-Key (Einstellungen).`
   ];
   pushMsg("bot", generic[Math.floor(Math.random()*generic.length)]);
   renderQuick();
@@ -3047,25 +3051,28 @@ function agentChanged(wasOn){
 function renderAgent(){
   const pf=$("agFree"); if(pf && pf.value) AGENT_PREFILL=pf.value;   /* getippten Text beim Neuzeichnen retten */
   const pc=$("agPc"); if(pc) AGENT_PC=pc.value;
-  const akF=$("akFach"), akW=$("akWish"); if(akF) AG_KI.fach=akF.value; if(akW) AG_KI.wish=akW.value;
+  const akW=$("akWish"); if(akW) AG_KI.wish=akW.value;
+  const ocEl=$("agOc"), ocOpen=ocEl?ocEl.open:S.agent.connected;
   const conn=S.agent.connected;
   const topic = V.subj&&subjById(V.subj) ? nextLessonFor(V.subj) : null;
   const queue = (S.agent.status&&S.agent.status.queue)||[];
   $("app").innerHTML=`
   <div class="hero" style="background:linear-gradient(135deg,#24263a,#7c5cff)">
-    <h1>🤖 OpenCode-Agent</h1>
-    <p>Wenn der Stoff ausgeht, holt dein Agent neuen: aus dem Obsidian-Vault, der Schul-Website und offiziellen Quellen – und schreibt neue Aufgaben direkt in diese App.</p>
+    <h1>🤖 KI-Agent</h1>
+    <p>Dein Agent erstellt neue Aufgaben direkt im Browser – mit der kostenlosen Lernhub-KI oder deinem eigenen API-Key (Gemini, Groq, OpenAI …). OpenCode am PC ist nur noch ein Extra.</p>
   </div>
-  <div class="card" style="margin-top:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-    <span class="agentdot ${conn?'on':''}" style="width:14px;height:14px"></span>
+  ${kiCardHTML()}
+  ${agentKiHTML()}
+  <details class="card" id="agOc" style="margin-top:14px" ${ocOpen?"open":""}>
+  <summary style="cursor:pointer;display:flex;gap:10px;align-items:center"><span class="agentdot ${conn?'on':''}"></span><b>💻 OpenCode am PC</b> <small class="mut">· optional: Obsidian-Vault, Schul-Website, Vollzugriff</small></summary>
+  <div style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
     <div><b>${conn?"✅ Verbunden mit der Bridge":"⛔ Nicht verbunden"}</b><br>
-      <small class="mut">${conn?`OpenCode: ${esc(S.agent.oc||"installiert")} · wartet auf Aufträge`:agentAllowed()?"Die lokale Verbindung (opencode-verbinden.cmd) läuft nicht":"OpenCode läuft nur am PC – hier erstellt die KI deine Aufgaben"}</small></div>
+      <small class="mut">${conn?`OpenCode: ${esc(S.agent.oc||"installiert")} · wartet auf Aufträge`:agentAllowed()?"Die lokale Verbindung (opencode-verbinden.cmd) läuft nicht":"OpenCode läuft nur in der lokalen App am PC"}</small></div>
     <button class="btn sm" style="margin-left:auto" onclick="pingAgent()">Verbindung prüfen</button>
   </div>
-  ${agentKiHTML()}
   ${conn?agentQueueHTML(queue):agentAllowed()?agentSetupHTML():""}
   ${agentConfigHTML()}
-  <h2 class="h2">Aufträge an den Agenten</h2>
+  <h2 class="h2">Aufträge an OpenCode</h2>
   <div class="grid">
     <div class="card center" style="cursor:pointer" onclick="requestAgent('aufgaben')"><div style="font-size:28px">📝</div><b>Neue Aufgaben</b><br><small class="mut">${topic?`für „${esc(topic.name)}“`:"für mein aktuelles Thema"}</small></div>
     <div class="card center" style="cursor:pointer" onclick="requestAgent('pruefung')"><div style="font-size:28px">🎯</div><b>Prüfungsstoff</b><br><small class="mut">Tests/Prüfungen raussuchen &amp; einbauen</small></div>
@@ -3079,7 +3086,8 @@ function renderAgent(){
     <button class="btn ghost" onclick="copyText(connectPrompt())">Verbindungs-Prompt kopieren</button></div>
   </div>
   ${conn?agentFullHTML():""}
-  <p class="small mut" style="margin-top:14px">So funktioniert's: Die App schreibt den Auftrag in <span class="kbd">content/auftraege/</span> → die Bridge startet OpenCode → OpenCode liest <span class="kbd">AGENT.md</span>, recherchiert (Vault + Web) und schreibt neue Übungen nach <span class="kbd">content/erweiterungen.js</span>. Nach dem Neuladen sind sie da. Währenddessen kannst du weiterlernen.</p>`;
+  <p class="small mut" style="margin-top:14px">So funktioniert's: Die App schreibt den Auftrag in <span class="kbd">content/auftraege/</span> → die Bridge startet OpenCode → OpenCode liest <span class="kbd">AGENT.md</span>, recherchiert (Vault + Web) und schreibt neue Übungen nach <span class="kbd">content/erweiterungen.js</span>. Nach dem Neuladen sind sie da. Währenddessen kannst du weiterlernen.</p>
+  </details>`;
 }
 function agentSetupHTML(){
   return `<div class="card" style="margin-top:14px">
@@ -3100,38 +3108,6 @@ function agentSetupHTML(){
   </div>`;
 }
 /* Vault-Pfad & Schul-Website: bleiben lokal, werden in die Aufträge/Prompts eingebaut */
-const AG_KI={fach:"", wish:"", doc:null};
-function agentKiHTML(){
-  const subj=V.subj&&subjById(V.subj), d=AG_KI.doc;
-  return `<div class="card" style="margin-top:14px;border-color:var(--pri)">
-    <b>✨ Neue Aufgaben mit der KI</b> <small class="mut">· klappt überall, auch am Handy – ohne OpenCode</small>
-    <label class="fl">Fach</label><input class="fi" id="akFach" maxlength="40" value="${esc(AG_KI.fach||(subj?subj.name:""))}" placeholder="z. B. Mathe">
-    <label class="fl">Thema oder Wunsch</label><textarea class="ta" id="akWish" maxlength="600" placeholder="z. B. „Bruchrechnung: Kürzen und Erweitern“ oder „Aufgaben zur angehängten Mitschrift“">${esc(AG_KI.wish)}</textarea>
-    <div class="center" style="margin-top:10px">
-      <button class="btn ghost sm" onclick="$('akFile').click()">📎 ${d?esc(d.name):"Datei als Grundlage (optional)"}</button>${d?` <button class="btn ghost sm" onclick="AG_KI.doc=null;renderAgent()" title="Datei entfernen" aria-label="Datei entfernen">✕</button>`:""}
-      <input type="file" id="akFile" hidden accept="${DOC_ACCEPT}" onchange="agKiFile(this)">
-      <button class="btn" onclick="agKiGo()">Aufgaben erstellen</button></div>
-    <p class="small mut">Wird als eigenes Fach für <b>${esc(S.profile.school)}</b> gespeichert${CLOUD?" – mit deinem Konto auch in der Cloud":""}. Datei: PDF, Word, PowerPoint, Text oder Foto (z. B. Arbeitsblatt).</p></div>`;
-}
-async function agKiFile(inp){
-  const f=inp.files&&inp.files[0]; inp.value="";
-  if(!f) return;
-  if(DOC_BUSY) return toast("Moment – die Datei wird noch gelesen …");
-  DOC_BUSY=true; toast("⏳ "+f.name+" wird gelesen …",60000);
-  try{ AG_KI.doc=await docRead(f, s=>toast("⏳ "+s,60000)); toast("📎 "+AG_KI.doc.name+" ist bereit"); }
-  catch(e){ toast("⚠️ "+e.message,4500); }
-  DOC_BUSY=false;
-  if(V.view==="agent") renderAgent();
-}
-async function agKiGo(){
-  const fach=(($("akFach")||{}).value||"").trim().slice(0,40), wish=(($("akWish")||{}).value||"").trim().slice(0,600);
-  AG_KI.fach=fach; AG_KI.wish=wish;
-  if(!wish && !AG_KI.doc) return toast("Schreib ein Thema oder häng eine Datei an");
-  if(await kiMakeTasks(wish, fach, AG_KI.doc)){
-    AG_KI.wish=""; AG_KI.doc=null; const w=$("akWish"); if(w) w.value="";
-    if(V.view==="agent") renderAgent();
-  }
-}
 function agentConfigHTML(){
   return `<div class="card" style="margin-top:14px">
     <b>⚙️ Quellen für den Agenten</b>
@@ -3270,12 +3246,9 @@ function renderSettings(){
     ${ttsCardHTML()}
     <div class="card" style="margin-top:14px">
       <b>✨ KI-Chat (echte KI)</b>
-      <p class="small mut">${CLOUD?"Mit deinem Konto antwortet automatisch die kostenlose <b>Lernhub-KI</b> (Tageslimit).":"Es antwortet automatisch die kostenlose <b>Lernhub-KI</b> (als Gast mit kleinerem Tageslimit, mit Konto mehr)."} Sag im Chat z. B. „Mach mir Aufgaben zu …“ – dann legt die KI ein eigenes Fach mit Übungen an – oder „Mach mir einen Charakter: …“ für einen neuen Lern-Begleiter. Lösungen erst ab ${HINT_THRESHOLD} Fehlversuchen. Optional eigener Key (OpenAI-kompatibel, z. B. OpenAI, Groq oder lokaler Ollama-Server) – der hat dann Vorrang.</p>
-      <label class="fl">API-Key (bleibt lokal)</label><input class="fi" type="password" value="${esc(S.chat.apiKey)}" placeholder="sk-…" onchange="S.chat.apiKey=this.value.trim();save()">
-      <label class="fl">Endpunkt (URL)</label><input class="fi" value="${esc(S.chat.endpoint)}" onchange="S.chat.endpoint=this.value.trim();save()">
-      <label class="fl">Modell</label><input class="fi" value="${esc(S.chat.model)}" onchange="S.chat.model=this.value.trim();save()">
-      <div class="center" style="margin-top:10px"><button class="btn sm" onclick="testAPI()">Verbindung testen</button>
-      <button class="btn ghost sm" onclick="S.chat.apiKey='';save();toast(hubAI()?'Key entfernt – jetzt antwortet die Lernhub-KI':'Key entfernt – nur Offline-Tipps')">Key löschen</button></div>
+      <p class="small mut">${CLOUD?"Mit deinem Konto antwortet automatisch die kostenlose <b>Lernhub-KI</b> (Tageslimit).":"Es antwortet automatisch die kostenlose <b>Lernhub-KI</b> (als Gast mit kleinerem Tageslimit, mit Konto mehr)."} Sag im Chat z. B. „Mach mir Aufgaben zu …“ – dann legt die KI ein eigenes Fach mit Übungen an – oder „Mach mir einen Charakter: …“ für einen neuen Lern-Begleiter. Lösungen erst ab ${HINT_THRESHOLD} Fehlversuchen. Optional dein eigener Key (Gemini, Groq, OpenAI, Mistral … oder Ollama am PC) – der hat dann Vorrang und bleibt nur in diesem Browser.</p>
+      <p id="kiStat" style="margin:6px 0 2px">${kiStatusText()}</p>
+      ${kiKeyFormHTML()}
     </div>
     <div class="card" style="margin-top:14px">
       <b>🗣️ Sprachen</b>
@@ -3307,19 +3280,13 @@ function renderSettings(){
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.13 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.14 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
     </div>`;
 }
 function redoOnboard(){
   const p=S.profile;
   ob={step:0, style:"ausgewogen", daily:p.daily, goal:p.goal, langs:(p.langs||[]).slice(), name:p.name};
   S.seenOnboard=false; save(); go("onboard");
-}
-function testAPI(){
-  if(!aiReady()) return toast("Erst einloggen oder einen API-Key eintragen");
-  aiPost({messages:[{role:"user",content:"Sag nur: ok"}],max_tokens:10})
-    .then(j=>toast(j.choices?(hubAI()?"Lernhub-KI funktioniert ✓":"API funktioniert ✓"):("Fehler: "+(j.error&&j.error.message||"Antwort unbekannt"))))
-    .catch(e=>toast("Nicht erreichbar: "+e.message));
 }
 function exportData(){
   /* API-Key wird NIE exportiert (Backups werden oft geteilt/synchronisiert) */
@@ -3392,6 +3359,7 @@ function showLegal(which){
       <p><b>Wissens-Videos:</b> Die Videos sind YouTube-Videos im erweiterten Datenschutzmodus (youtube-nocookie.com). Sobald du den Video-Feed öffnest, lädt dein Browser das gerade sichtbare Video von YouTube (Google Ireland Ltd.); dabei werden u. a. deine IP-Adresse und technische Gerätedaten an YouTube übertragen. Vorschaubilder werden von YouTube-Servern (i.ytimg.com) geladen. Welche Videos du magst oder speicherst, bleibt lokal in deinem Browser.</p>
       <p><b>Schulsuche &amp; Schulfächer:</b> Suchst du deine Schule, schickt dein Browser den Suchbegriff (bzw. bei „In meiner Nähe“ deinen auf ca. 1 km gerundeten Standort) an jedeschule.codefor.de (Open Knowledge Foundation Deutschland e. V.); dabei wird deine IP-Adresse übertragen. Gespeichert wird nur die gewählte Schule, Schulart und Stufe in deinem Browser. Fachpakete (Aufgaben) werden ohne Personenbezug aus der Lernhub-Cloud (Supabase) geladen. Forderst du mit Konto ein neues Fach an oder meldest eine fehlerhafte Aufgabe, werden Fachname, Schulname, Bundesland/Schulart/Stufe, ggf. deine Notiz und deine Konto-ID gespeichert (für Tageslimits gegen Missbrauch); die Aufgaben selbst erstellt ein KI-Modell über OpenCode, dabei werden keine personenbezogenen Daten an die KI gesendet.</p>
       <p><b>Lernhub-KI:</b> Hast du keinen eigenen API-Key eingetragen, gehen deine Chat-Nachrichten, die aktuelle Aufgabe und Auszüge aus dem Lernstoff über unseren Server (Supabase) an Groq, Inc. (USA), das daraus die Antwort erzeugt. Deine E-Mail, deine Konto-ID und deine IP-Adresse werden dabei nicht an Groq gesendet. Gespeichert wird bei uns nur die Anzahl deiner KI-Anfragen pro Tag (für das Tageslimit): mit Konto zu deiner Konto-ID (nach 7 Tagen gelöscht), als Gast zu einem täglich wechselnden, nicht umkehrbaren Kennwert aus deiner IP-Adresse (die IP selbst wird nicht gespeichert, nach 2 Tagen gelöscht). Von der KI angelegte Aufgaben liegen als eigenes Fach in deinem Browser und – mit Konto und Cloud-Sync – in deinem privaten Cloud-Speicher. Schreib keine persönlichen Daten in den Chat.</p>
+    <p><b>Eigener API-Key, Lern-Agent &amp; Präsentations-Check:</b> Mit eigenem Key gehen die Anfragen direkt aus deinem Browser an den Anbieter, den du gewählt hast (z. B. Google, Groq, OpenAI, Mistral) – nach dessen Datenschutzbedingungen, nicht über unseren Server. Der Key bleibt nur in deinem Browser und kommt nie in die Cloud oder ins Backup. Der Lern-Agent schickt dabei eine Übersicht deines Lernstands (Schule, Klasse, Fächer, Themen mit Fehlern). Beim Präsentations-Check wird die Datei nur im Browser gelesen; an die KI geht nur der Folientext.</p>
       <p><b>Buy me a coffee:</b> Der Knopf öffnet buymeacoffee.com in einem neuen Tab (externe Seite, eigener Datenschutz). Lernhub überträgt dabei nichts.</p>
       <p><b>Werbung (nur mit deiner Zustimmung):</b> Lernhub fragt einmal, ob du zur Unterstützung Werbung sehen möchtest. Nur bei „Ja“ lädt dein Browser Google AdSense (Google Ireland Ltd.) und zeigt am rechten Rand eine Anzeige. Dabei werden u. a. deine IP-Adresse und Gerätedaten an Google übertragen und Cookies gesetzt. <b>Personalisiert</b> (nur ab 16): Google wählt Anzeigen nach deinen Interessen. <b>Nicht personalisiert:</b> Anzeigen passend zur Seite, ohne Interessen-Profil; Google nutzt Daten trotzdem zum Zählen und gegen Betrug. Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO, § 25 TDDDG); du kannst sie unter ⚙️ Einstellungen → „Werbung“ jederzeit widerrufen. Die Wahl gilt nur für dieses Gerät. Mehr: <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">policies.google.com/technologies/ads</a></p>
       <p><b>Was das Internet sieht:</b> Grundsätzlich nichts. Nur wenn du selbst (a) einen API-Key in den Einstellungen einträgst, werden Chat-Anfragen an den von dir gewählten Endpunkt gesendet, (b) Video-Tipps öffnest (YouTube, externe Seite), (c) der Werbung zustimmst (Google AdSense, siehe oben) oder (d) den OpenCode-Agenten nutzt (recherchiert lokal + Web). Hängst du im KI-Chat eine Datei an, liest dein Browser den Text aus und schickt nur diesen Text mit der Anfrage; für PDFs und Fotos lädt er dafür einmalig pdf.js bzw. die Texterkennung (tesseract.js) von jsDelivr. Mikrofon wird nur bei Sprechübungen aktiviert und nur für die Spracherkennung deines Browsers verwendet.</p>

@@ -349,6 +349,10 @@ body.feedmode #app{padding-top:8px;padding-bottom:0}
 .schip.bad{border-color:var(--red)}
 .schx{background:none;border:0;color:var(--mut);cursor:pointer;padding:0 0 0 2px;font-size:12px}
 
+/* 🎤 Präsentations-Check */
+.prdrop{margin-top:14px;text-align:center;border:2px dashed var(--line);cursor:pointer;padding:28px 16px;transition:border-color .2s,background .2s}
+.prdrop:hover,.prdrop:focus-visible,.prdrop.over{border-color:var(--pri);background:var(--pri-l)}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important;scroll-behavior:auto!important}
 }

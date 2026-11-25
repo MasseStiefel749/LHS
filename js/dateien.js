@@ -67,6 +67,9 @@ async function docRead(file, onStep) {
 }
 
 async function docPdf(file, step) {
+  return (await docPdfPages(file, step)).join("\n\n");
+}
+async function docPdfPages(file, step) {
   if (!window.pdfjsLib) {
     step("PDF-Leser wird geladen …");
     await docScript(DOC_PDFJS + "pdf.min.js", DOC_PDFJS_SRI);
@@ -88,7 +91,7 @@ async function docPdf(file, step) {
     len += t.length;
   }
   pdf.destroy();
-  return out.join("\n\n");
+  return out;
 }
 
 async function docOcr(file, step) {
@@ -124,6 +127,9 @@ async function docOcr(file, step) {
 
 /* Office-Dateien sind ZIP-Archive: Inhaltsverzeichnis lesen, passende XML-Teile entpacken, Text herausziehen */
 async function docZip(file, re) {
+  return (await docZipParts(file, re)).map((x) => docXmlText(x.xml)).join("\n\n");
+}
+async function docZipParts(file, re) {
   if (!window.DecompressionStream)
     throw new Error("Dieser Browser kann Office-Dateien nicht entpacken – als PDF speichern");
   const buf = new Uint8Array(await file.arrayBuffer()),
@@ -162,7 +168,7 @@ async function docZip(file, re) {
     parts.push({ name, xml: dec.decode(data) });
   }
   parts.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-  return parts.map((x) => docXmlText(x.xml)).join("\n\n");
+  return parts;
 }
 function docXmlText(xml) {
   const cp = (n) => (n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : "");

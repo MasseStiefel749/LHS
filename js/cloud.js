@@ -149,20 +149,48 @@ async function rpc(name, args) {
 }
 
 /* KI: eigener Key hat Vorrang, sonst die Lernhub-KI (Edge Function "ki"; Gäste mit kleinerem Tageslimit) */
+/* Eigene KI: mit Key – oder Ollama am eigenen PC, das keinen Key braucht */
+function kiOwn() {
+  return S.chat.provider !== "hub" && (!!S.chat.apiKey || S.chat.provider === "ollama");
+}
 function hubAI() {
-  return !S.chat.apiKey && !!cloudCfg();
+  return !kiOwn() && !!cloudCfg();
 }
 function aiReady() {
-  return !!S.chat.apiKey || hubAI();
+  return kiOwn() || hubAI();
+}
+// Der Key darf nur verschlüsselt raus – http nur zum eigenen PC
+function kiEndpointOk(u) {
+  return (
+    /^https:\/\/[^\s/]+\//i.test(u) ||
+    /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//i.test(u)
+  );
 }
 async function aiPost(body) {
-  if (S.chat.apiKey) {
+  if (kiOwn()) {
+    if (!kiEndpointOk(S.chat.endpoint))
+      return {
+        error: { message: "Der Endpunkt muss mit https:// beginnen (http nur für localhost)." },
+      };
+    const headers = { "Content-Type": "application/json" };
+    if (S.chat.apiKey) headers.Authorization = "Bearer " + S.chat.apiKey;
     const r = await fetch(S.chat.endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + S.chat.apiKey },
+      headers,
       body: JSON.stringify(Object.assign({ model: S.chat.model || "gpt-4o-mini" }, body)),
     });
-    return r.json();
+    let j = await r.json().catch(() => null);
+    if (Array.isArray(j)) j = j[0];
+    if (j && typeof j.error === "string") j.error = { message: j.error };
+    if (j && (r.ok || j.error)) return j;
+    return {
+      error: {
+        message:
+          r.status === 401 || r.status === 403
+            ? "Der API-Key wurde abgelehnt – prüfe ihn in den Einstellungen."
+            : "Deine KI antwortet nicht (HTTP " + r.status + ").",
+      },
+    };
   }
   const cfg = cloudCfg();
   if (!cfg) throw new Error("Lernhub-KI ist nicht eingerichtet");
