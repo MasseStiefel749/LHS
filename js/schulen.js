@@ -661,7 +661,7 @@ function schoolDashHTML() {
   const chips = b.ids
     .map((id) => {
       const s = b.all[id];
-      return `<button class="schip" style="--c:${s.color}" onclick="openSubject('${id}')">${esc(s.name)} <small>${s.topics.length}</small></button>`;
+      return `<button class="schip" style="--c:${s.color}" onclick="openSubject(${jsa(id)})">${esc(s.name)} <small>${s.topics.length}</small></button>`;
     })
     .join("");
   const pend = p.faecher

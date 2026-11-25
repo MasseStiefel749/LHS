@@ -2136,7 +2136,7 @@
     <div class="sidefoot">
       <div id="sideUser"></div>
       <a onclick="showLegal('impressum')">Impressum</a> · <a onclick="showLegal('datenschutz')">Datenschutz</a><br>
-      <span id="verLine">v1.16 · offline</span>
+      <span id="verLine">v1.17 · offline</span>
     </div>
   </aside>
   <div id="shell">
@@ -2363,7 +2363,9 @@
 
     /* ===================== Utils ===================== */
     const $ = id => document.getElementById(id);
-    function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+    function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    // JS-String-Literal für onclick="…": HTML entschlüsselt &#39; vor dem JS-Parsen, deshalb JSON statt esc() in '…'
+    function jsa(s) { return esc(JSON.stringify(String(s))); }
     function norm(s) {
       return String(s).toLowerCase()
         .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, d => "0123456789"["⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(d)])
@@ -3653,12 +3655,12 @@
       <p>${totalN} Themen · ${doneN} geschafft · ${dueCount()} Wiederholung${dueCount() === 1 ? "" : "en"} fällig</p>
       <span class="big">🎓</span>
     </div>
-    <div class="pathtabs" style="margin-top:14px">${ids.map(sid => `<button class="${sid === id ? 'on' : ''}" onclick="openSubject('${sid}')">${esc(subjById(sid).name)}</button>`).join("")}</div>
+    <div class="pathtabs" style="margin-top:14px">${ids.map(sid => `<button class="${sid === id ? 'on' : ''}" onclick="openSubject(${jsa(sid)})">${esc(subjById(sid).name)}</button>`).join("")}</div>
     <div class="card" style="padding:10px 4px">${renderPathNodes(id)}</div>
     <div class="grid" style="margin-top:14px">
-      <div class="card center" style="cursor:pointer" onclick="startExam('${id}')"><div style="font-size:28px">📝</div><b>Probeprüfung</b><br><small class="mut">mit ${examPool(id).free.length} Freitext-Fragen</small></div>
+      <div class="card center" style="cursor:pointer" onclick="startExam(${jsa(id)})"><div style="font-size:28px">📝</div><b>Probeprüfung</b><br><small class="mut">mit ${examPool(id).free.length} Freitext-Fragen</small></div>
       <div class="card center" style="cursor:pointer" onclick="go('review')"><div style="font-size:28px">🔁</div><b>Wiederholen</b><br><small class="mut">${dueCount()} fällig</small></div>
-      <div class="card center" style="cursor:pointer" onclick="suggestVideo('${id}')"><div style="font-size:28px">🎥</div><b>Video-Tipp</b><br><small class="mut">zum aktuellen Thema</small></div>
+      <div class="card center" style="cursor:pointer" onclick="suggestVideo(${jsa(id)})"><div style="font-size:28px">🎥</div><b>Video-Tipp</b><br><small class="mut">zum aktuellen Thema</small></div>
       ${(window.schoolPathCard && schoolPathCard(id)) || `<div class="card center" style="cursor:pointer" onclick="openAgent()"><div style="font-size:28px">🤖</div><b>Neue Aufgaben</b><br><small class="mut">vom Agenten holen</small></div>`}
     </div>
     <div class="center" style="margin-top:16px"><button class="btn ghost" onclick="go('home')">← Zum Dashboard</button></div>`;
@@ -4087,7 +4089,7 @@
       const packs = Object.keys(SPRACHEN);
       const cards = packs.map(k => {
         const p = SPRACHEN[k];
-        return `<div class="card" style="cursor:pointer" onclick="openPack('${esc(k)}')">
+        return `<div class="card" style="cursor:pointer" onclick="openPack(${jsa(k)})">
       <div style="font-size:34px">${p.flag || "🗣️"}</div>
       <h3 style="margin:6px 0 4px">${esc(k)}</h3>
       <p class="mut small">${(p.vok || []).length} Vokabeln · ${(p.calls || []).length} Telefon-Dialoge</p>
@@ -4189,8 +4191,8 @@
     <div style="font-size:56px">🗣️</div><div class="score" style="color:var(--green)">${SPK.ok}/${SPK.items.length}</div>
     <p class="mut"><b>+${x} XP</b> · ${pct}% verständlich</p>
     <div class="center" style="margin-top:14px">
-      <button class="btn" onclick="openPack('${esc(SPK.pack)}')">Nochmal sprechen</button>
-      <button class="btn ghost" onclick="startCall('${esc(SPK.pack)}')">📞 Jetzt anrufen</button><br><br>
+      <button class="btn" onclick="openPack(${jsa(SPK.pack)})">Nochmal sprechen</button>
+      <button class="btn ghost" onclick="startCall(${jsa(SPK.pack)})">📞 Jetzt anrufen</button><br><br>
       <button class="btn ghost" onclick="SPK=null;go('sprachen')">Zurück zu den Sprachen</button></div></div>`;
       confetti(20); window.scrollTo(0, 0);
     }
@@ -4216,8 +4218,8 @@
       <p class="mut">Gespräch mit <b>${esc(cname)}</b> beendet – ${score === call.lines.length ? "flawless! 🎉" : "gute Übung! 💪"}</p>
       <p class="small">+${score * 10} XP</p>
       <div class="center">
-        <button class="btn" onclick="startCall('${esc(CALL.pack)}')">Nochmal anrufen</button>
-        ${p.calls.length > 1 ? `<button class="btn ghost" onclick="startCall('${esc(CALL.pack)}',${(CALL.idx + 1) % p.calls.length})">Nächster Dialog</button>` : ""}<br><br>
+        <button class="btn" onclick="startCall(${jsa(CALL.pack)})">Nochmal anrufen</button>
+        ${p.calls.length > 1 ? `<button class="btn ghost" onclick="startCall(${jsa(CALL.pack)},${(CALL.idx + 1) % p.calls.length})">Nächster Dialog</button>` : ""}<br><br>
         <button class="btn ghost" onclick="CALL=null;go('sprachen')">Zurück</button></div></div>`;
         confetti(25); window.scrollTo(0, 0); return;
       }
@@ -4300,7 +4302,7 @@
     function defaultChar() { return { id: "c" + Date.now(), name: "Coach", emoji: "🦉", img: "", face: "", sex: "", voiceName: "", traits: { freundlich: 70, ernst: 40, chaos: 30, motivation: 60 }, voicePitch: 1, voiceRate: 1, color: "#7c5cff", blurb: "Dein Lernbegleiter – erklärt, motiviert, gibt aber erst nach der Schwelle die Lösung." }; }
     function renderChars() {
       const list = S.chars.map(c => `
-    <div class="listrow" onclick="editChar('${c.id}')">
+    <div class="listrow" onclick="editChar(${jsa(c.id)})">
       <span class="emo" style="width:44px;height:44px;border-radius:50%;background:${c.color || '#eee'};display:grid;place-items:center;overflow:hidden;font-size:22px">
         ${charAvatarHTML(c)}</span>
       <div><b>${esc(c.name)}${S.activeChar === c.id ? " · aktiv" : ""}</b><br><small class="mut">${esc((c.blurb || "").slice(0, 70))}…</small></div>
@@ -4364,7 +4366,7 @@
     <div class="center" style="margin-top:14px">
       <button class="btn" onclick="saveChar()">Speichern &amp; aktivieren</button>
       <button class="btn ghost" onclick="closeModal()">Abbrechen</button>
-      ${c._new ? "" : `<br><br><button class="btn r sm" onclick="delChar('${c.id}')">Löschen</button>`}
+      ${c._new ? "" : `<br><br><button class="btn r sm" onclick="delChar(${jsa(c.id)})">Löschen</button>`}
       <br><br><button class="btn ghost sm" onclick="speakTest()">🔊 Stimme testen</button>
     </div>`);
     }
@@ -4683,7 +4685,7 @@ Regeln: Antworte auf Deutsch, locker und kurz (höchstens 4 Sätze), ohne Markdo
             const t0 = Date.now();
             while (Date.now() - t0 < 150000) {
               await new Promise(res => setTimeout(res, 2000));
-              const s = await (await fetch(BRIDGE + "/tipp?id=" + encodeURIComponent(j.id))).json();
+              const s = await (await fetch(BRIDGE + "/tipp?id=" + encodeURIComponent(j.id), { headers: { "X-Lernhub-Token": window.LERNHUB_TOKEN || "" } })).json();
               if (s.done) { out = s.text || ""; break; }
               if (!s.ok) break;
             }
@@ -4946,7 +4948,7 @@ Regeln: Antworte auf Deutsch, locker und kurz (höchstens 4 Sätze), ohne Markdo
       fishCheck().then(ch => { if (ch && V.view === "settings" && !typingNow()) render(); });
       try {
         const ctl = new AbortController(); const h = setTimeout(() => ctl.abort(), 4000);
-        const r = await fetch(BRIDGE + "/ping", { signal: ctl.signal }); clearTimeout(h);
+        const r = await fetch(BRIDGE + "/ping", { signal: ctl.signal, headers: window.LERNHUB_TOKEN ? { "X-Lernhub-Token": window.LERNHUB_TOKEN } : {} }); clearTimeout(h);
         const j = await r.json();
         if (j.ok && !window.LERNHUB_TOKEN) await loadToken();
         if (j.ok && !AGENT_EXT_LOADED) { AGENT_EXT_LOADED = true; reloadExt(true); }
@@ -5244,7 +5246,7 @@ Regeln: Antworte auf Deutsch, locker und kurz (höchstens 4 Sätze), ohne Markdo
         <button class="btn ghost sm" onclick="showLegal('datenschutz')">Datenschutz</button>
         <button class="sidecoffee inl" onclick="coffeeOpen()">Buy me a coffee</button>
       </div>
-      <p class="small mut center" style="margin-top:10px">Lernhub v1.16 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
+      <p class="small mut center" style="margin-top:10px">Lernhub v1.17 · Open Source (MIT) · keine Pflicht-Abhängigkeiten</p>
     </div>`;
     }
     function redoOnboard() {
@@ -5324,7 +5326,8 @@ Regeln: Antworte auf Deutsch, locker und kurz (höchstens 4 Sätze), ohne Markdo
       <p><b>Chat (nur mit Konto, freiwillig):</b> Nachrichten an Freunde oder deine Klasse werden mit Absender, Empfänger und Zeitpunkt bei Supabase gespeichert, sind nur für die Beteiligten lesbar und werden nach 90 Tagen automatisch gelöscht. Eigene Nachrichten kannst du jederzeit löschen.</p>
       <p><b>Einladungslinks:</b> Ein Einladungslink enthält deinen Spitznamen (und ggf. den Klassencode). Öffnet jemand den Link und erstellt ein Konto, wird automatisch eine Freundschaftsanfrage an dich geschickt.</p>
       <p><b>Wissens-Videos:</b> Die Videos sind YouTube-Videos im erweiterten Datenschutzmodus (youtube-nocookie.com). Sobald du den Video-Feed öffnest, lädt dein Browser das gerade sichtbare Video von YouTube (Google Ireland Ltd.); dabei werden u. a. deine IP-Adresse und technische Gerätedaten an YouTube übertragen. Vorschaubilder werden von YouTube-Servern (i.ytimg.com) geladen. Welche Videos du magst oder speicherst, bleibt lokal in deinem Browser.</p>
-      <p><b>Arbeitsplatz – Musik &amp; Video:</b> Suchst du Musik oder öffnest eine Spotify-Playlist, lädt dein Browser die öffentliche Spotify-Seite über den Dienst r.jina.ai (Jina AI GmbH) und sucht das passende Video über eine Piped-Instanz (api.piped.private.coffee); abgespielt wird über den YouTube-Player (youtube-nocookie.com, Google Ireland Ltd.). Freie Musik kommt von Audius und dem Internet Archive. Dabei werden jeweils dein Suchbegriff bzw. der Link sowie deine IP-Adresse an diese Dienste übertragen. Ein Spotify-Login gibt es nicht. Bibliothek, Playlists und Verlauf bleiben nur in deinem Browser. Eigene Videodateien verlassen dein Gerät nicht.</p>
+      <p><b>Arbeitsplatz – Musik &amp; Video:</b> Suchst du Musik oder öffnest eine Spotify-Playlist, lädt dein Browser die öffentliche Spotify-Seite über den Dienst r.jina.ai (Jina AI GmbH) und sucht das passende Video über eine Piped-Instanz (api.piped.private.coffee); abgespielt wird über den YouTube-Player (youtube-nocookie.com, Google Ireland Ltd.). Freie Musik kommt von Audius und dem Internet Archive. Dabei werden jeweils dein Suchbegriff bzw. der Link sowie deine IP-Adresse an diese Dienste übertragen. Ein Spotify-Login gibt es nicht. Bibliothek, Playlists und Verlauf bleiben nur in deinem Browser. Eigene Videodateien verlassen dein Gerät nicht. Cover-Bilder kommen von Spotify-Servern (i.scdn.co), Videos ggf. von Vimeo.</p>
+      <p><b>Arbeitsplatz – Code &amp; eingebettete Seiten:</b> Programme, die dein Browser nicht selbst ausführen kann (z. B. Java, C, C#, Go, Rust), schickt die Code-App samt deiner Eingabe an den Online-Compiler wandbox.org und zeigt die Ausgabe; dabei wird auch deine IP-Adresse übertragen. Schreib deshalb keine persönlichen Daten in den Code. Öffnest du im Arbeitsplatz eine externe Seite (z. B. vscode.dev, GeoGebra, Photopea, Office), lädt dein Browser sie direkt vom jeweiligen Anbieter – nach dessen Datenschutzbedingungen.</p>
       <p><b>Schulsuche &amp; Schulfächer:</b> Suchst du deine Schule, schickt dein Browser den Suchbegriff (bzw. bei „In meiner Nähe“ deinen auf ca. 1 km gerundeten Standort) an jedeschule.codefor.de (Open Knowledge Foundation Deutschland e. V.); dabei wird deine IP-Adresse übertragen. Gespeichert wird nur die gewählte Schule, Schulart und Stufe in deinem Browser. Fachpakete (Aufgaben) werden ohne Personenbezug aus der Lernhub-Cloud (Supabase) geladen. Forderst du mit Konto ein neues Fach an oder meldest eine fehlerhafte Aufgabe, werden Fachname, Schulname, Bundesland/Schulart/Stufe, ggf. deine Notiz und deine Konto-ID gespeichert (für Tageslimits gegen Missbrauch); die Aufgaben selbst erstellt ein KI-Modell über OpenCode, dabei werden keine personenbezogenen Daten an die KI gesendet.</p>
       <p><b>Lernhub-KI:</b> Hast du keinen eigenen API-Key eingetragen, gehen deine Chat-Nachrichten, die aktuelle Aufgabe und Auszüge aus dem Lernstoff über unseren Server (Supabase) an Groq, Inc. (USA), das daraus die Antwort erzeugt. Deine E-Mail, deine Konto-ID und deine IP-Adresse werden dabei nicht an Groq gesendet. Gespeichert wird bei uns nur die Anzahl deiner KI-Anfragen pro Tag (für das Tageslimit): mit Konto zu deiner Konto-ID (nach 7 Tagen gelöscht), als Gast zu einem täglich wechselnden, nicht umkehrbaren Kennwert aus deiner IP-Adresse (die IP selbst wird nicht gespeichert, nach 2 Tagen gelöscht). Von der KI angelegte Aufgaben liegen als eigenes Fach in deinem Browser und – mit Konto und Cloud-Sync – in deinem privaten Cloud-Speicher. Schreib keine persönlichen Daten in den Chat.</p>
     <p><b>Eigener API-Key, Lern-Agent &amp; Präsentations-Check:</b> Mit eigenem Key gehen die Anfragen direkt aus deinem Browser an den Anbieter, den du gewählt hast (z. B. Google, Groq, OpenAI, Mistral) – nach dessen Datenschutzbedingungen, nicht über unseren Server. Ausnahme NVIDIA: Weil NVIDIA keine Anfragen direkt aus dem Browser erlaubt, reicht unser Server (Supabase Edge Function) die Anfrage samt Key nur weiter, ohne sie oder den Key zu speichern. Der Key bleibt nur in deinem Browser und kommt nie in die Cloud oder ins Backup. Der Lern-Agent schickt dabei eine Übersicht deines Lernstands (Schule, Klasse, Fächer, Themen mit Fehlern). Beim Präsentations-Check wird die Datei nur im Browser gelesen; an die KI geht nur der Folientext.</p>

@@ -112,6 +112,10 @@ def synth(text, ref, lang, exag, cfg):
     return buf.getvalue()
 
 
+# Gleiche Liste wie $OriginOk in bridge.ps1
+ORIGIN_OK = re.compile(r"^(https://massestiefel749\.github\.io|app://lernhub|http://(127\.0\.0\.1|localhost):55[0-2]\d)$")
+
+
 def read_token(path):
     try:
         with open(path, encoding="utf-8") as f:
@@ -129,13 +133,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def _host_ok(self):
         host = (self.headers.get("Host") or "").split(":")[0].lower()
-        return host in ("127.0.0.1", "localhost")
+        origin = self.headers.get("Origin")
+        # Fremde Webseiten bekommen nichts; "null" = lokal geöffnete Datei
+        return host in ("127.0.0.1", "localhost") and (not origin or origin == "null" or bool(ORIGIN_OK.match(origin)))
 
     def _send(self, code, body=b"", ctype="application/json"):
+        origin = self.headers.get("Origin") or ""
         self.send_response(code)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Origin", origin if ORIGIN_OK.match(origin) else "null")
+        self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Lernhub-Token")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         # Chrome erlaubt der Online-Version (https) den Zugriff auf 127.0.0.1 nur mit diesem Header

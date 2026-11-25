@@ -34,7 +34,7 @@ $ExtFile = Join-Path $ContentDir "erweiterungen.js"
 $TokenFile = Join-Path $ContentDir "bridge-token.js"
 # Browser-Herkuenfte, die die Bridge nutzen duerfen: die Online-Version und der lokale Dev-Server (Ports 5500-5529).
 $OriginOk = '^(https://massestiefel749\.github\.io|app://lernhub|http://(127\.0\.0\.1|localhost):55[0-2]\d)$'
-$script:CorsOrigin = "*"
+$script:CorsOrigin = "null"
 New-Item -ItemType Directory -Force -Path $QueueDir | Out-Null
 
 # Port zuerst belegen: laeuft schon eine Bridge, darf deren Token nicht ueberschrieben werden.
@@ -253,7 +253,7 @@ while ($true) {
   try {
     $stream = $client.GetStream()
     $stream.ReadTimeout = 5000
-    $script:CorsOrigin = "*"
+    $script:CorsOrigin = "null"
     $raw = Read-Headers $stream
     if (-not $raw) { continue }
     $lines = $raw -split "`r`n"
@@ -278,6 +278,7 @@ while ($true) {
     }
 
     if ($method -eq "OPTIONS") { Send-Json $stream ([pscustomobject]@{ ok = $true }) 204; continue }
+    $tokenOk = $headers["x-lernhub-token"] -ceq $Token
 
     # Online-Version holt sich den Token hier. Den Origin-Header kann eine Webseite nicht faelschen.
     if ($method -eq "GET" -and $path -eq "/token") {
@@ -298,12 +299,13 @@ while ($true) {
       if (-not $script:TtsOk -and ((Get-Date) - $script:TtsAt).TotalSeconds -gt 60) { $script:TtsOk = Test-EdgeTts; $script:TtsAt = Get-Date }
       Start-Chatterbox
       Send-Json $stream ([pscustomobject]@{
-          ok = $true; bridge = "1.5"; opencode = $script:OcVer; full = [bool]$Vollzugriff; tipp = $true; tts = $script:TtsOk; fishcloud = $true
+          ok = $true; bridge = "1.6"; opencode = $script:OcVer; full = [bool]$Vollzugriff; tipp = $true; tts = $script:TtsOk; fishcloud = $true
           cbx = [bool](Test-Path -LiteralPath $CbxPy)
-          status = Get-StatusObj; running = (Test-RunBusy)
+          status = $(if ($tokenOk) { Get-StatusObj } else { $null }); running = (Test-RunBusy)
         }); continue
     }
     if ($method -eq "GET" -and $path -eq "/status") {
+      if (-not $tokenOk) { Send-Json $stream ([pscustomobject]@{ ok = $false; error = "token" }) 403; continue }
       Send-Json $stream (Get-StatusObj); continue
     }
     if ($method -eq "POST" -and $path -eq "/tipp") {
@@ -324,6 +326,7 @@ while ($true) {
       Send-Json $stream ([pscustomobject]@{ ok = $true; id = $id }); continue
     }
     if ($method -eq "GET" -and $path -eq "/tipp") {
+      if (-not $tokenOk) { Send-Json $stream ([pscustomobject]@{ ok = $false; error = "token" }) 403; continue }
       $id = if ($query -match '(?:^|&)id=(\d{8}-\d{6}-\d{3})(?:&|$)') { $Matches[1] } else { "" }
       $t = if ($id) { $script:Tips[$id] } else { $null }
       if (-not $t) { Send-Json $stream ([pscustomobject]@{ ok = $false; error = "unbekannt" }) 404; continue }

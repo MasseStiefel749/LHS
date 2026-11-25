@@ -1704,7 +1704,7 @@ function voiceCardHTML() {
         ? `<p class="small">Mit deiner Stimme: ${own
             .map((id) => {
               const c = all.find((x) => cbxId(x.id) === id);
-              return `<span style="display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 8px;margin:2px">${esc(c ? c.name : id)} <a href="javascript:void 0" title="Eigene Stimme löschen" onclick="voiceDel('${esc(id)}')">✕</a></span>`;
+              return `<span style="display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 8px;margin:2px">${esc(c ? c.name : id)} <a href="javascript:void 0" title="Eigene Stimme löschen" onclick="voiceDel(${jsa(id)})">✕</a></span>`;
             })
             .join("")}</p>`
         : ""
@@ -2020,7 +2020,7 @@ function voiceOptsHTML(c, re) {
   const v = charVoiceCfg(c),
     id = esc(c.id),
     eng = v.engine || ttsEngine();
-  const set = (k) => `voiceSet('${id}','${k}',this.value);${re}`;
+  const set = (k) => `voiceSet(${jsa(id)},'${k}',this.value);${re}`;
   const base = castById(c.id);
   const auto =
     c.tts ||
@@ -2059,9 +2059,9 @@ function voiceOptsHTML(c, re) {
   return (
     html +
     `<p class="small mut">Gilt nur für ${esc(c.name || "diese Figur")} und wird sofort gespeichert. Ist das Modell nicht erreichbar, springt die nächste Stimme ein.</p>
-    <div class="center"><button class="btn ghost sm" onclick="voiceTry('${id}')">🔊 Probehören</button>${
+    <div class="center"><button class="btn ghost sm" onclick="voiceTry(${jsa(id)})">🔊 Probehören</button>${
       Object.keys(v).length
-        ? ` <button class="btn ghost sm" onclick="voiceReset('${id}');${re}">↺ Zurücksetzen</button>`
+        ? ` <button class="btn ghost sm" onclick="voiceReset(${jsa(id)});${re}">↺ Zurücksetzen</button>`
         : ""
     }</div>`
   );
@@ -2070,7 +2070,7 @@ function voicePick(id) {
   const c = voiceChar(id);
   if (!c) return;
   toastModal(`<h2 style="margin-top:0">🎙️ Stimme von ${esc(c.name)}</h2>
-    ${voiceOptsHTML(c, `voicePick('${esc(c.id)}')`)}
+    ${voiceOptsHTML(c, `voicePick(${jsa(c.id)})`)}
     <div class="center" style="margin-top:12px"><button class="btn" onclick="closeModal();renderChars()">Fertig</button></div>`);
 }
 
@@ -2081,9 +2081,9 @@ function castHTML() {
   <p class="small mut" style="margin-top:-6px">Jede Figur hat ihre eigene Stimme und bewegt beim Sprechen den Mund – wie bei Duolingo. Tipp auf „🔊 Hallo“.</p>
   <div class="castgrid">${CAST.map(
     (c) => `<div class="castcard ${act === c.id ? "on" : ""}" style="--cc:${c.color}">
-    <div class="castface" onclick="castHello('${c.id}')">${faceSVG(c)}</div>
+    <div class="castface" onclick="castHello(${jsa(c.id)})">${faceSVG(c)}</div>
     <b>${esc(c.name)}</b><small class="mut">${esc(c.role)}</small>
-    <div class="castbtns"><button class="btn ghost sm" onclick="castHello('${c.id}')">🔊 Hallo</button><button class="btn ghost sm" title="Stimme wählen" aria-label="Stimme von ${esc(c.name)} wählen" onclick="voicePick('${c.id}')">🎙️${charVoiceCfg(c).engine || charVoiceCfg(c).edge || charVoiceCfg(c).fish || charVoiceCfg(c).sys ? "✓" : ""}</button><button class="btn sm ${act === c.id ? "g" : ""}" onclick="castPick('${c.id}')">${act === c.id ? "✓ Aktiv" : "Wählen"}</button></div></div>`,
+    <div class="castbtns"><button class="btn ghost sm" onclick="castHello(${jsa(c.id)})">🔊 Hallo</button><button class="btn ghost sm" title="Stimme wählen" aria-label="Stimme von ${esc(c.name)} wählen" onclick="voicePick(${jsa(c.id)})">🎙️${charVoiceCfg(c).engine || charVoiceCfg(c).edge || charVoiceCfg(c).fish || charVoiceCfg(c).sys ? "✓" : ""}</button><button class="btn sm ${act === c.id ? "g" : ""}" onclick="castPick(${jsa(c.id)})">${act === c.id ? "✓ Aktiv" : "Wählen"}</button></div></div>`,
   ).join("")}</div>
   <p class="small mut">🙏 ${esc(DUO_CREDIT)}</p>`;
 }

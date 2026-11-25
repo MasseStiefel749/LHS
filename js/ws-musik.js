@@ -992,8 +992,8 @@ function wsMusRowsH(list, ctx, opt) {
     ${list
       .map((t, i) => {
         const k = wsMusKey(t),
-          ars = t.artists && t.artists.length ? t.artists.map((a) => `<a href="#" onclick="event.preventDefault();event.stopPropagation();wsMusOpen({src:'sp',kind:'artist',id:'${a.id}',name:this.textContent})">${esc(a.name)}</a>`).join(", ") : esc(t.artist);
-        const alb = t.alb ? `<a href="#" onclick="event.preventDefault();event.stopPropagation();wsMusOpen({src:'sp',kind:'album',id:'${t.alb}',name:this.textContent})">${esc(t.album)}</a>` : esc(t.album || (t.src === "au" ? "Audius" : t.src === "ia" ? "Internet Archive" : ""));
+          ars = t.artists && t.artists.length ? t.artists.map((a) => `<a href="#" onclick="event.preventDefault();event.stopPropagation();wsMusOpen({src:'sp',kind:'artist',id:${jsa(a.id)},name:this.textContent})">${esc(a.name)}</a>`).join(", ") : esc(t.artist);
+        const alb = t.alb ? `<a href="#" onclick="event.preventDefault();event.stopPropagation();wsMusOpen({src:'sp',kind:'album',id:${jsa(t.alb)},name:this.textContent})">${esc(t.album)}</a>` : esc(t.album || (t.src === "au" ? "Audius" : t.src === "ia" ? "Internet Archive" : ""));
         return `<div class="wsp-tr${k === now ? " on" : ""}" data-k="${esc(k)}" onclick="wsMusRow(${i})" ondblclick="wsMusRow(${i})">
         <span class="wsp-n"><i>${i + 1}</i><b class="wsp-eq"><u></u><u></u><u></u></b><em>${wsIc("play", 16)}</em></span>
         <span class="wsp-tt">${opt.noArt ? "" : wsMusImg(t.art, "wsp-timg")}<span><b>${esc(t.title)}</b><small>${t.ex ? '<i class="wsp-e">E</i>' : ""}${t.src === "au" ? '<i class="wsp-src">Audius</i>' : t.src === "ia" ? '<i class="wsp-src">CC</i>' : ""}${ars}</small></span></span>
@@ -1022,9 +1022,9 @@ function wsMusMenu(i) {
     <button onclick="closeModal();wsMusQueueAdd(WS_MUS.menuT)">${wsIc("queue")} Zur Warteschlange hinzufügen</button>
     <button onclick="wsMusPlPick()">${wsIc("add")} Zu Playlist hinzufügen</button>
     <button onclick="closeModal();wsMusLike(WS_MUS.menuT)">${wsIc(wsMusLiked(t) ? "heart" : "heartO")} ${wsMusLiked(t) ? "Aus Lieblingssongs entfernen" : "Zu Lieblingssongs hinzufügen"}</button>
-    ${own ? `<button onclick="closeModal();wsMusPlRemove('${c.id}',${i})">${wsIc("close")} Aus dieser Playlist entfernen</button>` : ""}
-    ${a ? `<button onclick="closeModal();wsMusOpen({src:'sp',kind:'artist',id:'${a.id}',name:WS_MUS.menuT.artists[0].name})">${wsIc("lib")} Zum Künstler</button>` : t.src === "sp" && t.artist ? `<button onclick="closeModal();wsMusSearchGo(WS_MUS.menuT.artist.split(',')[0],'artists')">${wsIc("lib")} Künstler suchen</button>` : ""}
-    ${t.alb ? `<button onclick="closeModal();wsMusOpen({src:'sp',kind:'album',id:'${t.alb}',name:WS_MUS.menuT.album})">${wsIc("lib")} Zum Album</button>` : ""}
+    ${own ? `<button onclick="closeModal();wsMusPlRemove(${jsa(c.id)},${i})">${wsIc("close")} Aus dieser Playlist entfernen</button>` : ""}
+    ${a ? `<button onclick="closeModal();wsMusOpen({src:'sp',kind:'artist',id:${jsa(a.id)},name:WS_MUS.menuT.artists[0].name})">${wsIc("lib")} Zum Künstler</button>` : t.src === "sp" && t.artist ? `<button onclick="closeModal();wsMusSearchGo(WS_MUS.menuT.artist.split(',')[0],'artists')">${wsIc("lib")} Künstler suchen</button>` : ""}
+    ${t.alb ? `<button onclick="closeModal();wsMusOpen({src:'sp',kind:'album',id:${jsa(t.alb)},name:WS_MUS.menuT.album})">${wsIc("lib")} Zum Album</button>` : ""}
     <button onclick="closeModal();wsMusShare(WS_MUS.menuT)">${wsIc("share")} Teilen</button>
     ${t.dl ? `<button onclick="closeModal();wsMusDl(WS_MUS.menuT)">${wsIc("dl")} Herunterladen (frei erlaubt)</button>` : ""}
     <a href="${esc(wsMusLinkOf(t))}" target="_blank" rel="noopener noreferrer">${wsIc("ext")} ${t.src === "sp" ? "Auf Spotify öffnen" : t.src === "au" ? "Bei Audius öffnen" : t.src === "ia" ? "Im Internet Archive öffnen" : "Auf YouTube öffnen"}</a>
@@ -1035,7 +1035,7 @@ function wsMusPlPick() {
   const d = wsMusLib();
   toastModal(`<div class="wsp-menu"><h3 style="margin:4px 0 10px">Zu Playlist hinzufügen</h3>
     <button onclick="const p=wsMusPlNew(prompt('Name der neuen Playlist:','Meine Playlist #${d.pls.length + 1}'));if(p)wsMusPlAdd(p.id,WS_MUS.menuT)">${wsIc("add")} Neue Playlist</button>
-    ${d.pls.map((p) => `<button onclick="wsMusPlAdd('${p.id}',WS_MUS.menuT)">${wsIc("queue")} ${esc(p.name)} <small>${p.tracks.length} Songs</small></button>`).join("")}
+    ${d.pls.map((p) => `<button onclick="wsMusPlAdd(${jsa(p.id)},WS_MUS.menuT)">${wsIc("queue")} ${esc(p.name)} <small>${p.tracks.length} Songs</small></button>`).join("")}
     <button class="wsp-mx" onclick="closeModal()">Abbrechen</button></div>`);
 }
 async function wsMusShare(x) {
@@ -1279,7 +1279,7 @@ function wsMusColH(v) {
   const meta = [data.sub, data.year, tracks.length ? tracks.length + " Songs" : "", wsMusTotal(tracks)].filter(Boolean).map(esc).join(" • ");
   const saveB = v.src === "sp" || v.src === "au" ? `<button class="wsp-ib big${wsMusSaved(ref) ? " on" : ""}" onclick="wsMusSave(WS_MUS.colRef)" title="${wsMusSaved(ref) ? "Aus Bibliothek entfernen" : "In Bibliothek speichern"}" aria-label="Speichern">${wsIc(wsMusSaved(ref) ? "check" : "add", 26)}</button>` : "";
   const ownB = own
-    ? `<button class="wsp-ib big" onclick="wsMusPlRename('${own.id}')" title="Umbenennen" aria-label="Umbenennen">✏️</button><button class="wsp-ib big" onclick="wsMusPlDel('${own.id}')" title="Löschen" aria-label="Löschen">🗑️</button>`
+    ? `<button class="wsp-ib big" onclick="wsMusPlRename(${jsa(own.id)})" title="Umbenennen" aria-label="Umbenennen">✏️</button><button class="wsp-ib big" onclick="wsMusPlDel(${jsa(own.id)})" title="Löschen" aria-label="Löschen">🗑️</button>`
     : "";
   const copyB = v.src === "sp" && tracks.length && v.kind !== "artist" ? `<button class="wsp-ib big" onclick="const p=wsMusPlNew(WS_MUS.colRef.name,wsMusCur().data.tracks);if(p)toast('Als eigene Playlist kopiert – jetzt bearbeitbar')" title="Als eigene Playlist kopieren" aria-label="Kopieren">${wsIc("queue", 24)}</button>` : "";
   let body = "";
@@ -1296,7 +1296,7 @@ function wsMusColH(v) {
     }
     if (v.kind === "track" && data.artists && data.artists[0]) {
       const a = data.artists[0];
-      body += `<p><button class="btn ghost sm" onclick="wsMusOpen({src:'sp',kind:'artist',id:'${a.id}',name:WS_MUS.colRef.sub})">Mehr von ${esc(a.name)} →</button></p>`;
+      body += `<p><button class="btn ghost sm" onclick="wsMusOpen({src:'sp',kind:'artist',id:${jsa(a.id)},name:WS_MUS.colRef.sub})">Mehr von ${esc(a.name)} →</button></p>`;
     }
   }
   const credit =
@@ -1348,7 +1348,7 @@ function wsMusNpH(full) {
           : `<p>Video auf <a href="${esc(wsMusLinkOf(t))}" target="_blank" rel="noopener noreferrer">YouTube ↗</a>${t.ch ? " von " + esc(t.ch) : ""}</p>`;
   return `<div class="wsp-np-in">${full ? "" : `<div class="wsp-nph"><b>${esc((WS_P.ctx && WS_P.ctx.name) || "Wird gerade gespielt")}</b><button class="wsp-ib" onclick="wsMusNpToggle()" title="Schließen" aria-label="Schließen">${wsIc("close", 16)}</button></div>`}
     ${yt ? `<div class="wsp-vid" id="wmVid">${WS_P.busy ? '<div class="wsp-load"><i></i><i></i><i></i></div><small>Suche das passende Video …</small>' : ""}</div>` : `<div class="wsp-npart">${wsMusImg(t.art)}</div>`}
-    <div class="wsp-npt"><div><h3>${esc(t.title)}</h3><small>${a ? `<a href="#" onclick="event.preventDefault();wsMusOpen({src:'sp',kind:'artist',id:'${a.id}',name:this.textContent})">${esc(a.name)}</a>${t.artists.length > 1 ? ", " + esc(t.artists.slice(1).map((x) => x.name).join(", ")) : ""}` : esc(t.artist)}</small></div>
+    <div class="wsp-npt"><div><h3>${esc(t.title)}</h3><small>${a ? `<a href="#" onclick="event.preventDefault();wsMusOpen({src:'sp',kind:'artist',id:${jsa(a.id)},name:this.textContent})">${esc(a.name)}</a>${t.artists.length > 1 ? ", " + esc(t.artists.slice(1).map((x) => x.name).join(", ")) : ""}` : esc(t.artist)}</small></div>
       <button class="wsp-like${wsMusLiked(t) ? " on" : ""}" data-lk="${esc(wsMusKey(t))}" data-s="20" onclick="wsMusLike(WS_NOW)" aria-label="Lieblingssong">${wsIc(wsMusLiked(t) ? "heart" : "heartO", 20)}</button>
       <button class="wsp-ib" onclick="wsMusShare(WS_NOW)" title="Teilen" aria-label="Teilen">${wsIc("share", 18)}</button></div>
     <div class="wsp-box"><b>Credits</b>${credit}<p class="wsp-fine">Alle Rechte bei den Künstlerinnen, Künstlern und Labels.</p></div>

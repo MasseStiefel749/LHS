@@ -182,6 +182,12 @@ function wsDocx() {
   ];
   wsDownload(wsZip(files, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"), wsTextData().name + ".docx");
 }
+/* Menüband wie in Office: Farbleiste der App + beschriftete Gruppen */
+function wsRibbon(cls, app, groups) {
+  return `<div class="wrib ${cls}"><div class="wrib-t"><b>${app}</b><span class="on">Start</span></div><div class="wrib-b">${groups
+    .map(([n, h]) => `<div class="wrg"><div class="wrgb">${h}</div><small>${n}</small></div>`)
+    .join("")}</div></div>`;
+}
 function wsTextName(v, id) {
   wsTextData().name = String(v).trim().replace(/[\\/:*?"<>|]+/g, "_").slice(0, 60) || "Dokument";
   const w = wsWin(id);
@@ -219,14 +225,19 @@ WS_APPS.text = {
     const b = (cmd, label, title, val) =>
       `<button class="wstool" onmousedown="event.preventDefault()" onclick="wsTextCmd('${cmd}'${val ? `,'${val}'` : ""})" title="${title}" aria-label="${title}">${label}</button>`;
     body.innerHTML = `<div class="wtext">
-      <div class="wcbar">${b("bold", "<b>F</b>", "Fett")}${b("italic", "<i>K</i>", "Kursiv")}${b("underline", "<u>U</u>", "Unterstrichen")}
-        ${b("formatBlock", "H1", "Überschrift", "h1")}${b("formatBlock", "H2", "Zwischenüberschrift", "h2")}${b("formatBlock", "¶", "Normaler Absatz", "p")}
-        ${b("insertUnorderedList", "•", "Aufzählung")}${b("insertOrderedList", "1.", "Nummerierung")}${b("undo", "↶", "Rückgängig")}${b("redo", "↷", "Wiederholen")}
-        <span class="wsgap"></span>
-        <button class="wstool" onclick="$('wtFile').click()" title="Öffnen (.docx, .odt, .txt, .pdf)" aria-label="Öffnen">📂</button>
+      ${wsRibbon("word", "Text", [
+        ["Rückgängig", b("undo", "↶", "Rückgängig") + b("redo", "↷", "Wiederholen")],
+        ["Schriftart", b("bold", "<b>F</b>", "Fett") + b("italic", "<i>K</i>", "Kursiv") + b("underline", "<u>U</u>", "Unterstrichen")],
+        ["Absatz", b("insertUnorderedList", "•", "Aufzählung") + b("insertOrderedList", "1.", "Nummerierung")],
+        ["Formatvorlagen", b("formatBlock", "H1", "Überschrift", "h1") + b("formatBlock", "H2", "Zwischenüberschrift", "h2") + b("formatBlock", "¶", "Normaler Absatz", "p")],
+        [
+          "Datei",
+          `<button class="wstool" onclick="$('wtFile').click()" title="Öffnen (.docx, .odt, .txt, .pdf)" aria-label="Öffnen">📂</button>
         <button class="wstool" onclick="wsDocx()" title="Als Word-Datei (.docx) speichern" aria-label="Als docx speichern">💾</button>
         <button class="wstool" onclick="wsPrint(wsTextData().name, wsCleanHtml(wsTextEd().innerHTML))" title="Drucken / als PDF speichern" aria-label="PDF">🖨️</button>
-        <input type="file" id="wtFile" hidden accept=".docx,.odt,.txt,.md,.pdf,.html,.htm" onchange="wsTextOpen(this)"></div>
+        <input type="file" id="wtFile" hidden accept=".docx,.odt,.txt,.md,.pdf,.html,.htm" onchange="wsTextOpen(this)">`,
+        ],
+      ])}
       <div class="wtpage"><input class="wtname" value="${esc(d.name)}" maxlength="60" aria-label="Dateiname" onchange="wsTextName(this.value,'${w.id}')">
         <div class="wted" id="wtEd" contenteditable="true" spellcheck="true" lang="de"></div></div>
       <div class="wtfoot small mut"><span id="wtCount"></span></div>
@@ -690,13 +701,20 @@ WS_APPS.tabelle = {
       for (let c = 0; c < WS_COLS; c++) rows += `<td data-c="${wsCol(c)}${r}"></td>`;
       rows += "</tr>";
     }
+    const fx = (f, t) => `<button class="wstool" onclick="wsSheetSel(WS_SHEET.sel,'=${f}(')" title="${t}" aria-label="${t}">${f === "SUMME" ? "Σ" : f.slice(0, 3)}</button>`;
     body.innerHTML = `<div class="wsheet" onkeydown="wsSheetKey(event)">
-      <div class="wcbar"><b class="wscell" id="wsCell">A1</b><input class="fi wsfx" id="wsFx" placeholder="Wert oder Formel, z. B. =SUMME(A1:A5)" autocomplete="off" aria-label="Zellinhalt"
-          onchange="wsSheetSet(WS_SHEET.sel,this.value);wsSheetPaint()">
-        <button class="wstool" onclick="$('wsFile').click()" title="Öffnen (.xlsx, .csv)" aria-label="Öffnen">📂</button>
+      ${wsRibbon("excel", "Tabelle", [
+        ["Funktionen", fx("SUMME", "Summe") + fx("MITTELWERT", "Mittelwert") + fx("MIN", "Minimum") + fx("MAX", "Maximum") + fx("WENN", "Wenn-Dann")],
+        [
+          "Datei",
+          `<button class="wstool" onclick="$('wsFile').click()" title="Öffnen (.xlsx, .csv)" aria-label="Öffnen">📂</button>
         <button class="wstool" onclick="wsSheetXlsx()" title="Als Excel-Datei (.xlsx) speichern" aria-label="Als xlsx speichern">💾</button>
         <button class="wstool" onclick="wsSheetCsv()" title="Als CSV speichern" aria-label="CSV">CSV</button>
-        <input type="file" id="wsFile" hidden accept=".xlsx,.csv,.txt" onchange="wsSheetOpen(this)"></div>
+        <input type="file" id="wsFile" hidden accept=".xlsx,.csv,.txt" onchange="wsSheetOpen(this)">`,
+        ],
+      ])}
+      <div class="wcbar"><b class="wscell" id="wsCell">A1</b><i class="wsfxi">fx</i><input class="fi wsfx" id="wsFx" placeholder="Wert oder Formel, z. B. =SUMME(A1:A5)" autocomplete="off" aria-label="Zellinhalt"
+          onchange="wsSheetSet(WS_SHEET.sel,this.value);wsSheetPaint()"></div>
       <div class="wsgrid" id="wsGridBox" tabindex="0"><table id="wsGrid"><thead>${head}</tr></thead><tbody>${rows}</tbody></table></div>
       <p class="small mut wmnote">Formeln: =A1+B1 · =SUMME(A1:A9) · =MITTELWERT(…) · MIN · MAX · ANZAHL · RUNDEN(x;2) · WENN(A1>4;"ok";"nein") · WURZEL · ABS</p>
     </div>`;
@@ -955,17 +973,24 @@ WS_APPS.folien = {
   title: () => "Folien · " + wsSlidesData().name,
   mount(w, body) {
     body.innerHTML = `<div class="wfol">
-      <div class="wcbar"><button class="wstool" onclick="wsSlideAdd()" title="Neue Folie" aria-label="Neue Folie">＋</button>
+      ${wsRibbon("ppt", "Folien", [
+        [
+          "Folien",
+          `<button class="wstool" onclick="wsSlideAdd()" title="Neue Folie" aria-label="Neue Folie">＋</button>
         <button class="wstool" onclick="wsSlideDel()" title="Folie löschen" aria-label="Folie löschen">🗑️</button>
         <button class="wstool" onclick="wsSlideMove(-1)" title="Nach oben" aria-label="Nach oben">↑</button>
-        <button class="wstool" onclick="wsSlideMove(1)" title="Nach unten" aria-label="Nach unten">↓</button>
-        <span class="wsgap"></span>
-        <button class="btn g sm" onclick="wsSlideShow(WS_SL.cur)">▶ Präsentieren</button>
-        <button class="wstool" onclick="$('wfFile').click()" title="Öffnen (.pptx, .odp, .pdf)" aria-label="Öffnen">📂</button>
+        <button class="wstool" onclick="wsSlideMove(1)" title="Nach unten" aria-label="Nach unten">↓</button>`,
+        ],
+        ["Bildschirmpräsentation", `<button class="btn g sm" onclick="wsSlideShow(WS_SL.cur)">▶ Präsentieren</button>`],
+        [
+          "Datei",
+          `<button class="wstool" onclick="$('wfFile').click()" title="Öffnen (.pptx, .odp, .pdf)" aria-label="Öffnen">📂</button>
         <button class="wstool" onclick="wsSlidesPptx()" title="Als PowerPoint-Datei (.pptx) speichern" aria-label="Als pptx speichern">💾</button>
         <button class="wstool" onclick="wsSlidesPrint()" title="Als PDF speichern / drucken" aria-label="PDF">🖨️</button>
         <button class="wstool" onclick="wsSlidesCheck()" title="Vom Präsentations-Check bewerten lassen" aria-label="Bewerten">🎤</button>
-        <input type="file" id="wfFile" hidden accept=".pptx,.odp,.pdf" onchange="wsSlidesOpen(this)"></div>
+        <input type="file" id="wfFile" hidden accept=".pptx,.odp,.pdf" onchange="wsSlidesOpen(this)">`,
+        ],
+      ])}
       <div class="wfmain"><div class="wfthumbs" id="wfThumbs"></div>
         <div class="wfedit"><div id="wfPrev"></div>
           <input class="fi" id="wfT" maxlength="120" placeholder="Titel" oninput="wsSlideEdit('t',this.value)" aria-label="Titel">

@@ -1,6 +1,8 @@
 # Temporäres vom Agenten (nicht committen)
 content/.agent-running
 content/auftraege/
+# Lokaler Agent-Status (ändert sich bei jedem Lauf, kann Notizen aus dem Vault enthalten)
+content/status.json
 *.log
 # OS
 Thumbs.db

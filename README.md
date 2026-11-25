@@ -651,7 +651,8 @@ Crew-Gesicht und eine bestimmte Stimme bekommen.
 | `agent/bridge.ps1`                        | Lokale HTTP-Bridge (127.0.0.1:8799)                                 |
 | `agent/vollzugriff.ps1`                   | PC-Auftrag bestätigen lassen + OpenCode mit Vollzugriff starten     |
 | `content/erweiterungen.js`                | Agent-schreibt-hier-neue-Inhalte rein                               |
-| `content/status.json`                     | Agent-Status (Warteschlange, letzter Lauf)                          |
+| `content/status.json`                     | Agent-Status (lokal, nicht im Git; fehlt er, legt der Agent ihn an) |
+| `tools/check.mjs`                         | Selbsttest (`node tools/check.mjs`, läuft bei jedem Push in CI)     |
 | `content/auftraege/`                      | Aufträge aus der App                                                |
 | `content/cloud-config.js`                 | Supabase-URL + anon key (leer = keine Bestenliste)                  |
 | `js/plus.js`                              | Dashboard, Erklär-Modus, Notizen, Planer/Untis, Erinnerungen, Links |

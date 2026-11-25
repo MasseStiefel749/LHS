@@ -31,7 +31,7 @@ lernhub/
 ├── content/
 │   ├── cloud-config.js      ← Supabase-Zugang (NICHT ändern)
 │   ├── erweiterungen.js     ← HIER schreibst du neue Inhalte hin
-│   ├── status.json          ← HIER schreibst du den Status hinein
+│   ├── status.json          ← HIER schreibst du den Status hinein (fehlt sie: neu anlegen)
 │   └── auftraege/*.md       ← Aufträge aus der App (zu erledigen)
 └── docs/                    ← AI-CHECKLISTE.md, PUBLIKATION.md
 ```
