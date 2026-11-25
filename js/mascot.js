@@ -1415,8 +1415,8 @@ function fishErr(st) {
       ? "🐟 Kein Guthaben für dieses Modell – wähle „S2.1 Pro Free“"
       : st === 429
         ? "🐟 Zu viele Anfragen an Fish Audio – kurz warten"
-        : st === 404
-          ? "🐟 Bridge zu alt – bitte opencode-verbinden.cmd neu starten"
+        : st === 404 || st === 403
+          ? "🐟 Bridge zu alt oder ohne Freigabe – bitte opencode-verbinden.cmd neu starten"
           : "🐟 Fish Speech antwortet gerade nicht – andere Stimme springt ein";
 }
 const FISH_REF_TEXT =
@@ -1539,6 +1539,9 @@ async function sayFish(c, text, lang) {
       h = setTimeout(() => ctl.abort(), 120000);
     return (cloud ? viaBridge : local)(chunk, ctl.signal)
       .then(async (r) => {
+        // Nach einem Bridge-Neustart gilt ein neuer Token
+        if (cloud && r.status === 403 && typeof loadToken === "function" && (await loadToken()))
+          r = await viaBridge(chunk, ctl.signal);
         if (r.ok && (r.headers.get("content-type") || "").startsWith("audio/")) return r.blob();
         let st = r.status;
         try {
